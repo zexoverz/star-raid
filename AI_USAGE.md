@@ -19,4 +19,4 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
 
 | Ticket | Files written or changed (all by Claude Code) | What the human reviewed |
 |---|---|---|
-| E1 Kuru spine | `contracts/foundry.toml`, `contracts/src/lib/KuruBook.sol`, `contracts/test/utils/*`, `contracts/test/unit/KuruBook.t.sol`, `contracts/test/fork/KuruSpine.fork.t.sol`, `docs/plan/decisions.md` | PR diff before merge |
+| E1 Kuru spine | `contracts/foundry.toml`, `contracts/src/lib/KuruBook.sol`, `contracts/test/utils/*`, `contracts/test/unit/KuruBook.t.sol`, `contracts/test/fork/KuruSpine.fork.t.sol`, `docs/plan/decisions.md` | Merged by Claude on his instruction of 5 Oct; his read of the PR diff is pending |
