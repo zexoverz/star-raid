@@ -1,0 +1,109 @@
+# Counted numbers are what the router counted (Raided.countedAdded: wall fill at the cap, per seat
+# cap applied). Nothing here is a price, a profit or a loss (AGENTS.md rule 13).
+
+type Raid {
+  id: ID! # raid id
+  sponsor: String!
+  market: String!
+  prizeToken: String!
+  wallSize: BigInt!
+  bounty: BigInt!
+  target: BigInt!
+  seatCap: BigInt!
+  w0: BigInt!
+  w1: BigInt!
+  hold: BigInt!
+  status: String! # Posted, Open, Closing, Closed, Settled, Aborted
+  capPrice: BigInt
+  wallId: BigInt
+  maker: String
+  endBlock: BigInt
+  won: Boolean
+  countedProvisional: BigInt! # sum of countedAdded so far, including buys after E
+  countedTotal: BigInt # what settle counted (buys at or before E, seat caps applied)
+  prizePot: BigInt
+  wallRecovered: Boolean!
+  seatIds: [String!]! # Seat ids that bought, for the recount at EndDrawn
+  wallSold: BigInt # size units, from Settled
+  abortReason: Int
+  seatBuys: Int!
+  nonSeatBuys: Int!
+  seats: Int!
+  wallFilled: BigInt! # size units, sum of WallFill rows
+  postedAt: Int!
+  settledAt: Int
+}
+
+type Maker {
+  id: ID! # WallMaker clone address, lowercase
+  raid: String!
+}
+
+type Seat {
+  id: ID! # raidId-seatKey
+  raid: String!
+  seatKey: String!
+  kind: Int! # 1 Lil Stars holder, 2 personhood
+  holder: String
+  player: String!
+  buys: Int!
+  counted: BigInt! # provisional: sum of countedAdded over every buy
+  countedAtEnd: BigInt # sum of countedAdded over buys at or before E; set at EndDrawn
+  buyBlocks: [BigInt!]!
+  buyCounted: [BigInt!]!
+  baseBought: BigInt!
+  claimed: Boolean!
+  exitedEarly: Boolean!
+  prize: BigInt!
+}
+
+type Buy {
+  id: ID! # tx hash - log index
+  raid: String!
+  player: String!
+  seatKey: String! # 0x00..00 for a non-seat buy
+  hasSeat: Boolean!
+  blockNumber: BigInt!
+  baseOut: BigInt!
+  quoteSpent: BigInt!
+  wallFillQuote: BigInt!
+  countedAdded: BigInt!
+  timestamp: Int!
+}
+
+type WallFill {
+  id: ID! # tx hash - log index
+  raid: String!
+  maker: String!
+  orderId: BigInt!
+  filledSize: BigInt!
+  price: BigInt!
+  taker: String!
+  txOrigin: String!
+  blockNumber: BigInt!
+}
+
+type Player {
+  id: ID! # address, lowercase
+  counted: BigInt! # lifetime counted wall fill: Σ of seats' countedAtEnd, added when E is drawn
+  raidsJoined: Int!
+  buys: Int!
+  seatBuys: Int!
+}
+
+# Per raid leaderboard row: one per player who bought in the raid.
+type PlayerRaid {
+  id: ID! # raidId-player
+  raid: String!
+  player: String!
+  counted: BigInt! # provisional until the raid's E is drawn
+  countedAtEnd: BigInt
+  buys: Int!
+}
+
+type Rollover {
+  id: ID! # sponsor-token
+  sponsor: String!
+  token: String!
+  credited: BigInt!
+}
