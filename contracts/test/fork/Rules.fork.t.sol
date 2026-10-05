@@ -12,6 +12,7 @@ import {WallMaker} from "../../src/WallMaker.sol";
 import {KuruBook, IKuruOrderBook, IKuruMarginAccount} from "../../src/lib/KuruBook.sol";
 import {Terms, AnchorMode, RaidStatus, RaidView, IRaidRouter, IRaidVault} from "../../src/interfaces/IRaid.sol";
 import {SpineProbe} from "../utils/SpineProbe.sol";
+import {BookDepth} from "../utils/BookDepth.sol";
 
 /// AGENTS.md rules 4 to 8, each pinned by a test on chain 143 against Kuru's live MON/USDC book, the
 /// real Lil Stars and the real Pyth Entropy. Each test is checked by deleting its guard: see
@@ -37,6 +38,7 @@ contract RulesForkTest is Test {
     address holder;
     uint256 id;
     RaidView v;
+    uint128 through; // a buy that goes through the wall with an overshoot, sized from the live book
 
     function setUp() public {
         if (block.chainid != 143) {
@@ -79,7 +81,11 @@ contract RulesForkTest is Test {
         require(v.status == RaidStatus.Open, "open");
 
         holder = LIL_STARS.ownerOf(1);
-        deal(usdc, holder, 100_000e6);
+        // enough to clear every live ask under the wall, the wall, and overshoot
+        through = uint128(
+            KuruBook.quoteFor(BookDepth.sizeUnder(BOOK, v.capPrice, tick, 2000) + 2 * uint256(minSize) * 10, v.capPrice, sp, pp, 6)
+        );
+        deal(usdc, holder, uint256(through) * 2);
         vm.prank(holder);
         IERC20(usdc).approve(address(router), type(uint256).max);
     }
@@ -98,7 +104,7 @@ contract RulesForkTest is Test {
     /// Buys straight through the wall with an overshoot, so Kuru keeps the wall's old size. Kuru's
     /// own cancel check (OrderBook.sol:604-622) is what says the wall is filled, not ours.
     function _fillWallWithOvershoot() internal {
-        _raid(30_000e6);
+        _raid(through);
         uint40[] memory ids = new uint40[](1);
         ids[0] = v.wallId;
         vm.prank(v.maker);
@@ -135,7 +141,7 @@ contract RulesForkTest is Test {
         uint256 before = IERC20(usdc).balanceOf(holder);
         uint40 c0 = BOOK.s_orderIdCounter();
         vm.recordLogs();
-        _raid(30_000e6);
+        _raid(through);
         // the overshoot rested as the router's own bid (the last id created) and was cancelled
         uint40 rest = BOOK.s_orderIdCounter();
         assertGt(rest, c0, "a remainder rested");
@@ -150,7 +156,7 @@ contract RulesForkTest is Test {
         }
         assertEq(KuruBook.remaining(BOOK, aboveId), minSize, "the ask over the cap is untouched");
         assertEq(MARGIN.getBalance(address(router), usdc), 0, "no quote left resting for the router");
-        assertGt(IERC20(usdc).balanceOf(holder), before - 30_000e6, "the unspent quote came back");
+        assertGt(IERC20(usdc).balanceOf(holder), before - through, "the unspent quote came back");
     }
 
     /// Never placeAndExecuteMarketBuy: it has no per-level cap. Its selector must not appear in the
@@ -174,7 +180,7 @@ contract RulesForkTest is Test {
         MARGIN.deposit{value: donation}(address(router), address(0), donation);
 
         vm.recordLogs();
-        _raid(30_000e6); // overshoots the wall: the size asked for is more than the size filled
+        _raid(through); // overshoots the wall: the size asked for is more than the size filled
         Vm.Log[] memory logs = vm.getRecordedLogs();
         uint256 filled;
         for (uint256 i; i < logs.length; ++i) {
