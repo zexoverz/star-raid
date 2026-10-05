@@ -12,6 +12,7 @@ indexer.onEvent({ contract: "SeatGate", event: "SeatBound" }, async ({ event, co
     seatKey: p.seatKey.toLowerCase(),
     kind: Number(p.kind),
     holder: holder === ZERO ? undefined : holder,
+    tokenId: p.tokenId,
     player: lower(p.player),
     buys: 0,
     counted: 0n,
