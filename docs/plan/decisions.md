@@ -245,7 +245,6 @@ the receipt's block.
 **Why.** Rule 12 has the keeper read finalized state, which lags `latest` by 2-3 blocks on Monad. The
 rehearsal showed the keeper sending `open` a second time (reverted) because finalized still said
 Posted.
-||||||| a7197bd
 
 ## D30. The indexer recounts each seat at the end block; counted numbers come only from Raided
 
