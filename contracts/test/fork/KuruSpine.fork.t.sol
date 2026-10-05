@@ -69,6 +69,44 @@ contract KuruSpineForkTest is Test {
         assertEq(uint8(KuruBook.status(BOOK, id)), uint8(KuruBook.Status.Active));
     }
 
+    /// Rule 4 on the live book: partial, filled (size kept) and cancelled, all read from the head.
+    function test_fork_statusPartialFilledCancelled() public {
+        uint32 cap = _wallPrice();
+        uint40 partialWall = _placeWall(cap, minSize * 5);
+        uint256 quoteIn = _quoteFor(cap, minSize * 1000);
+        deal(usdc, address(probe), quoteIn * 3);
+
+        // buy everything under the cap plus part of the wall
+        SpineProbe taker = new SpineProbe(BOOK, MARGIN);
+        deal(usdc, address(taker), quoteIn);
+        uint96 under = _sizeUnder(cap);
+        taker.cappedBuy(cap, under + minSize * 2, quoteIn, partialWall);
+        assertEq(uint8(KuruBook.status(BOOK, partialWall)), uint8(KuruBook.Status.Active));
+        assertEq(KuruBook.remaining(BOOK, partialWall), minSize * 3);
+
+        // a bigger buy fills the rest; the stored size stays at 3x minSize
+        uint40 next = _placeWall(cap, minSize * 5);
+        deal(usdc, address(taker), _quoteFor(cap, minSize * 4));
+        taker.cappedBuy(cap, minSize * 4, _quoteFor(cap, minSize * 4), next);
+        (, uint96 stored,,,,,,) = BOOK.s_orders(partialWall);
+        assertEq(stored, minSize * 3, "full fill keeps the old size");
+        assertEq(uint8(KuruBook.status(BOOK, partialWall)), uint8(KuruBook.Status.Filled));
+
+        probe.cancel(next);
+        assertEq(uint8(KuruBook.status(BOOK, next)), uint8(KuruBook.Status.Cancelled));
+    }
+
+    function _sizeUnder(uint32 cap) internal view returns (uint96 total) {
+        for (uint256 p = cap - tick; p > cap - 400 * tick; p -= tick) {
+            (uint40 id,) = BOOK.s_sellPricePoints(p);
+            while (id != 0) {
+                (, uint96 size,, uint40 nxt,,,,) = BOOK.s_orders(id);
+                total += size;
+                id = nxt;
+            }
+        }
+    }
+
     /// Rule 5: the capped buy pays at most the cap on every level, with cheaper asks present,
     /// and never touches an ask one tick above the cap.
     function test_fork_cappedBuyNeverFillsAboveCap() public {
