@@ -42,7 +42,9 @@ contract SeatGate is EIP712, Ownable2Step {
 
     event RouterSet(address router);
     event VerifierSet(address verifier);
-    event SeatBound(uint256 indexed raidId, bytes32 indexed seatKey, address indexed player, uint8 kind, address holder);
+    event SeatBound(
+        uint256 indexed raidId, bytes32 indexed seatKey, address indexed player, uint8 kind, address holder, uint256 tokenId
+    );
 
     error OnlyRouter();
     error RouterAlreadySet();
@@ -92,17 +94,19 @@ contract SeatGate is EIP712, Ownable2Step {
         } else {
             revert BadKind();
         }
-        _bind(raidId, key, player, seat.kind, holder);
+        _bind(raidId, key, player, seat.kind, holder, seat.kind == STAR ? seat.tokenId : 0);
     }
 
-    function _bind(uint256 raidId, bytes32 key, address player, uint8 kind, address holder) internal {
+    function _bind(uint256 raidId, bytes32 key, address player, uint8 kind, address holder, uint256 tokenId)
+        internal
+    {
         address bound = seatPlayer[raidId][key];
         if (bound == player) return;
         if (bound != address(0)) revert SeatTaken();
         if (playerSeat[raidId][player] != bytes32(0)) revert PlayerHasSeat();
         seatPlayer[raidId][key] = player;
         playerSeat[raidId][player] = key;
-        emit SeatBound(raidId, key, player, kind, holder);
+        emit SeatBound(raidId, key, player, kind, holder, tokenId); // tokenId lets the app show the Star
     }
 
     function _checkBind(Seat calldata seat, address player) internal view {

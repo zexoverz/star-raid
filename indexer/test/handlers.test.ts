@@ -1,16 +1,18 @@
 import { describe, it } from "vitest";
 import { createTestIndexer } from "envio";
 
+type Hex = `0x${string}`;
+
 const CHAIN = 10143;
-const MARKET = "0x00000000000000000000000000000000000000Aa";
-const MAKER = "0x00000000000000000000000000000000000000Bb";
-const STRANGER = "0x00000000000000000000000000000000000000Cc";
-const SPONSOR = "0x00000000000000000000000000000000000000Dd";
-const ALICE = "0x000000000000000000000000000000000000A11c";
-const BOB = "0x0000000000000000000000000000000000000B0b";
-const KEY_A = `0x${"a".repeat(64)}`;
-const KEY_B = `0x${"b".repeat(64)}`;
-const NO_SEAT = `0x${"0".repeat(64)}`;
+const MARKET: Hex = "0x00000000000000000000000000000000000000Aa";
+const MAKER: Hex = "0x00000000000000000000000000000000000000Bb";
+const STRANGER: Hex = "0x00000000000000000000000000000000000000Cc";
+const SPONSOR: Hex = "0x00000000000000000000000000000000000000Dd";
+const ALICE: Hex = "0x000000000000000000000000000000000000A11c";
+const BOB: Hex = "0x0000000000000000000000000000000000000B0b";
+const KEY_A: Hex = `0x${"a".repeat(64)}`;
+const KEY_B: Hex = `0x${"b".repeat(64)}`;
+const NO_SEAT: Hex = `0x${"0".repeat(64)}`;
 
 const terms = {
   market: MARKET,
@@ -27,7 +29,7 @@ const terms = {
   anchorParam: 2_600_000n,
 };
 
-const raided = (player: string, seatKey: string, block: number, countedAdded: bigint) => ({
+const raided = (player: Hex, seatKey: Hex, block: number, countedAdded: bigint) => ({
   contract: "RaidRouter" as const,
   event: "Raided" as const,
   block: { number: block },
@@ -43,11 +45,11 @@ const raided = (player: string, seatKey: string, block: number, countedAdded: bi
   },
 });
 
-const bound = (player: string, seatKey: string, block: number) => ({
+const bound = (player: Hex, seatKey: Hex, block: number) => ({
   contract: "SeatGate" as const,
   event: "SeatBound" as const,
   block: { number: block },
-  params: { raidId: 1n, seatKey, player, kind: 1n, holder: player },
+  params: { raidId: 1n, seatKey, player, kind: 1n, holder: player, tokenId: 7n },
 });
 
 async function run() {

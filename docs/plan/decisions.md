@@ -180,6 +180,72 @@ The MON/USDC fork raid (`test_fork_fullRaidOnLiveBook`) needed about $20k of buy
 cheaper live asks to a wall at mid + 50 bps; $5k did not reach it. That confirms C1's consequence:
 raids on deep markets almost never reach the wall.
 
+## D17. Testnet Entropy is `0x825c…3c07`, not the mainnet address
+
+**Claim.** On Monad testnet the Pyth Entropy contract is `0x825c0390f379C631f3Cf11A82a37D20BddF93c07`
+(fee ~0.128 MON on 5 Oct). Mainnet is `0xD458261E832415CFd3BAE5E416FdF3230ce6F134`.
+
+**Why.** `0xD458…` also has code on testnet, but its default provider is unregistered there and
+`requestV2()` reverts `NoSuchProvider()` (`0xdf51c431`). This was caught by the testnet fork raid,
+and Pyth's chainlist confirms the address. The vault takes Entropy as a constructor argument, so this
+is deploy config.
+
+## D18. The start guard runs on liquid markets only
+
+**Claim.** The keeper applies the trade-based start guard only to markets not listed in
+`THIN_MARKETS`. The testnet market is thin by default.
+
+**Why.** The guard exists so outside buyers on a busy book do not lift the wall during the window.
+On a thin market the wall is the whole ask side and nothing trades, so "last trade ≤300 blocks" would
+refuse every raid forever. The contract's own mid guard (D4) still runs everywhere.
+
+**Reverses it.** A thin market that starts trading; move it off the list.
+
+## D19. No on-chain reschedule; a guard refusal lets the raid expire
+
+**Claim.** The E4 ticket "reschedule inside the sponsor's slide range" is not built. If the guard
+refuses through `w0 + 30`, the keeper calls `expire` and the sponsor's funds come back in full.
+
+**Why.** Terms are immutable after post (SPEC §6). A slide range would need new terms fields and a new
+code path in the vault for a case the sponsor can handle by posting again. Cut for time.
+
+**Reverses it.** Guard refusals being common on mainnet; then add `slideMax` to the terms.
+
+## D20. The local keeper signs through `cast`, never with an exported key
+
+**Claim.** `CastSigner` shells out to `cast send --account zexo-secondary --password-file …` with raw
+calldata. `KeySigner` (`PRIVATE_KEY`) is for a hosted run only.
+
+**Why.** The dev wallet rule forbids exporting a keystore to a private key.
+
+## D21. Railway is not set up yet
+
+**Claim.** The keeper and live service run locally for the testnet rehearsal. The Railway project with
+a fixed domain (E4 ticket) waits.
+
+**Why.** Creating the project needs his Railway login, and nothing in the testnet run needs a public
+URL. The app (E5) will need `live/` hosted before the demo.
+
+## D22. A raid buy's gas limit is max(800k + 40k per maker, 1.5 × estimate), capped at 2M
+
+**Claim.** `raidGasLimit(makers, estimate)` keeps rule 10's figure as a floor and applies SPEC §16 M8
+(estimate at `latest` × 1.5) above it, never over 2,000,000.
+
+**Why.** The anvil rehearsal on a testnet fork ran a first buy out of gas at 840k: a cold seat costs
+864,189 (seat binding, two checkpoint arrays, a Kuru order created and cancelled). Rule 10's 800k came
+from a bare Kuru buy measured on 26 Sep, before the router existed.
+
+**Reverses it.** Profiling that brings a cold seat under 800k; then the floor alone is enough.
+
+## D23. The keeper treats a sent step as in flight until finality reaches its receipt
+
+**Claim.** After a successful send the keeper skips that raid until the finalized block is at or past
+the receipt's block.
+
+**Why.** Rule 12 has the keeper read finalized state, which lags `latest` by 2-3 blocks on Monad. The
+rehearsal showed the keeper sending `open` a second time (reverted) because finalized still said
+Posted.
+
 ## D30. The indexer recounts each seat at the end block; counted numbers come only from Raided
 
 **Claim.** `Seat.counted` and `PlayerRaid.counted` sum `Raided.countedAdded` and are provisional.
@@ -204,3 +270,34 @@ storing them would be noise and HyperSync cost.
 
 **Reverses it.** Indexing a market's full tape for the results page (cheaper asks filled vs wall);
 then keep a summary entity rather than every row.
+
+## D24. The live frame is a full raid snapshot, version 1
+
+**Claim.** Every SSE frame carries the whole raid at one block: terms in token units, wall status,
+remaining and sold, counted, end block, outcome, every buy and every seat. There are no deltas, so a
+reconnect needs no replay. Market prices (`bestBid`, `bestAsk`) are gone from the frame; `capPrice`
+stays inside `terms` because the confirm sheet must show it.
+
+**Why.** The raid and results screens need the feed and the per-seat split, and the frontend has no
+RPC access by design. Snapshots keep the client trivially correct across drops and reorgs. A frame
+with four buys is about 4 KB; a raid with 100 raiders stays well under 100 KB.
+
+**Reverses it.** Raids large enough that full snapshots every 400 ms cost too much bandwidth; then
+send the buy list on change only.
+
+## D25. `SeatBound` carries the Star's token id
+
+**Claim.** `SeatBound(raidId, seatKey, player, kind, holder, tokenId)`; `tokenId` is 0 for personhood
+seats.
+
+**Why.** The raid feed shows each raider's Lil Star, and no event said which Star opened the seat.
+Changed before the first testnet deploy, so nothing on chain has the old shape.
+
+## D26. `wallSold` survives the wall being cancelled
+
+**Claim.** Once the wall reads cancelled, `wallSold` comes from the vault's `Settled` event, or from
+the last reading while the wall was live (an admin cancel mid-raid).
+
+**Why.** The first fork capture showed the full 100k wall as sold after settle swept it, when the raid
+had bought 40,385. A cancelled order has no size left on the book, so status alone cannot say what it
+sold.
