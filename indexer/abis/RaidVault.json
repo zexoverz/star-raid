@@ -1,0 +1,446 @@
+[
+ {
+  "type": "event",
+  "name": "Aborted",
+  "inputs": [
+   {
+    "name": "raidId",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   },
+   {
+    "name": "reason",
+    "type": "uint8",
+    "indexed": false,
+    "internalType": "uint8"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "CloseRequested",
+  "inputs": [
+   {
+    "name": "raidId",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   },
+   {
+    "name": "sequence",
+    "type": "uint64",
+    "indexed": false,
+    "internalType": "uint64"
+   },
+   {
+    "name": "fee",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "EndDrawn",
+  "inputs": [
+   {
+    "name": "raidId",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   },
+   {
+    "name": "endBlock",
+    "type": "uint64",
+    "indexed": false,
+    "internalType": "uint64"
+   },
+   {
+    "name": "randomNumber",
+    "type": "bytes32",
+    "indexed": false,
+    "internalType": "bytes32"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "KeeperSet",
+  "inputs": [
+   {
+    "name": "keeper",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "MarketAllowed",
+  "inputs": [
+   {
+    "name": "market",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   },
+   {
+    "name": "allowed",
+    "type": "bool",
+    "indexed": false,
+    "internalType": "bool"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "Opened",
+  "inputs": [
+   {
+    "name": "raidId",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   },
+   {
+    "name": "capPrice",
+    "type": "uint32",
+    "indexed": false,
+    "internalType": "uint32"
+   },
+   {
+    "name": "wallId",
+    "type": "uint40",
+    "indexed": false,
+    "internalType": "uint40"
+   },
+   {
+    "name": "maker",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   },
+   {
+    "name": "anchor",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   },
+   {
+    "name": "mid",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "OracleSet",
+  "inputs": [
+   {
+    "name": "market",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   },
+   {
+    "name": "chainlink",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   },
+   {
+    "name": "pyth",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   },
+   {
+    "name": "pythId",
+    "type": "bytes32",
+    "indexed": false,
+    "internalType": "bytes32"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "OwnershipTransferStarted",
+  "inputs": [
+   {
+    "name": "previousOwner",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   },
+   {
+    "name": "newOwner",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "OwnershipTransferred",
+  "inputs": [
+   {
+    "name": "previousOwner",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   },
+   {
+    "name": "newOwner",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "Paused",
+  "inputs": [
+   {
+    "name": "paused",
+    "type": "bool",
+    "indexed": false,
+    "internalType": "bool"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "Posted",
+  "inputs": [
+   {
+    "name": "raidId",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   },
+   {
+    "name": "sponsor",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   },
+   {
+    "name": "market",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   },
+   {
+    "name": "terms",
+    "type": "tuple",
+    "indexed": false,
+    "internalType": "struct Terms",
+    "components": [
+     {
+      "name": "market",
+      "type": "address",
+      "internalType": "address"
+     },
+     {
+      "name": "prizeToken",
+      "type": "address",
+      "internalType": "address"
+     },
+     {
+      "name": "wallSize",
+      "type": "uint96",
+      "internalType": "uint96"
+     },
+     {
+      "name": "bounty",
+      "type": "uint128",
+      "internalType": "uint128"
+     },
+     {
+      "name": "target",
+      "type": "uint128",
+      "internalType": "uint128"
+     },
+     {
+      "name": "seatCap",
+      "type": "uint128",
+      "internalType": "uint128"
+     },
+     {
+      "name": "w0",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "w1",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "hold",
+      "type": "uint32",
+      "internalType": "uint32"
+     },
+     {
+      "name": "capBps",
+      "type": "uint16",
+      "internalType": "uint16"
+     },
+     {
+      "name": "anchorMode",
+      "type": "uint8",
+      "internalType": "enum AnchorMode"
+     },
+     {
+      "name": "anchorParam",
+      "type": "uint256",
+      "internalType": "uint256"
+     }
+    ]
+   },
+   {
+    "name": "fromRollover",
+    "type": "uint128",
+    "indexed": false,
+    "internalType": "uint128"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "RolloverCredited",
+  "inputs": [
+   {
+    "name": "sponsor",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   },
+   {
+    "name": "token",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   },
+   {
+    "name": "amount",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   },
+   {
+    "name": "raidId",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "RouterSet",
+  "inputs": [
+   {
+    "name": "router",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "Settled",
+  "inputs": [
+   {
+    "name": "raidId",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   },
+   {
+    "name": "won",
+    "type": "bool",
+    "indexed": false,
+    "internalType": "bool"
+   },
+   {
+    "name": "countedTotal",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   },
+   {
+    "name": "wallSold",
+    "type": "uint96",
+    "indexed": false,
+    "internalType": "uint96"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "WallRecovered",
+  "inputs": [
+   {
+    "name": "raidId",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   },
+   {
+    "name": "baseOut",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   },
+   {
+    "name": "quoteOut",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "WallRecoveryFailed",
+  "inputs": [
+   {
+    "name": "raidId",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   },
+   {
+    "name": "reason",
+    "type": "bytes",
+    "indexed": false,
+    "internalType": "bytes"
+   }
+  ],
+  "anonymous": false
+ }
+]
