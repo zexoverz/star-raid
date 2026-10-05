@@ -1,0 +1,8 @@
+node_modules/
+.env
+build
+logs
+generated
+*.res.js
+*.res.mjs
+.pnpm-store
