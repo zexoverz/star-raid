@@ -270,3 +270,34 @@ storing them would be noise and HyperSync cost.
 
 **Reverses it.** Indexing a market's full tape for the results page (cheaper asks filled vs wall);
 then keep a summary entity rather than every row.
+
+## D24. The live frame is a full raid snapshot, version 1
+
+**Claim.** Every SSE frame carries the whole raid at one block: terms in token units, wall status,
+remaining and sold, counted, end block, outcome, every buy and every seat. There are no deltas, so a
+reconnect needs no replay. Market prices (`bestBid`, `bestAsk`) are gone from the frame; `capPrice`
+stays inside `terms` because the confirm sheet must show it.
+
+**Why.** The raid and results screens need the feed and the per-seat split, and the frontend has no
+RPC access by design. Snapshots keep the client trivially correct across drops and reorgs. A frame
+with four buys is about 4 KB; a raid with 100 raiders stays well under 100 KB.
+
+**Reverses it.** Raids large enough that full snapshots every 400 ms cost too much bandwidth; then
+send the buy list on change only.
+
+## D25. `SeatBound` carries the Star's token id
+
+**Claim.** `SeatBound(raidId, seatKey, player, kind, holder, tokenId)`; `tokenId` is 0 for personhood
+seats.
+
+**Why.** The raid feed shows each raider's Lil Star, and no event said which Star opened the seat.
+Changed before the first testnet deploy, so nothing on chain has the old shape.
+
+## D26. `wallSold` survives the wall being cancelled
+
+**Claim.** Once the wall reads cancelled, `wallSold` comes from the vault's `Settled` event, or from
+the last reading while the wall was live (an admin cancel mid-raid).
+
+**Why.** The first fork capture showed the full 100k wall as sold after settle swept it, when the raid
+had bought 40,385. A cancelled order has no size left on the book, so status alone cannot say what it
+sold.
