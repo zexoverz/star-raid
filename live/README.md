@@ -34,3 +34,12 @@ pnpm test && pnpm typecheck
 
 Env: `CHAIN` (`testnet` | `mainnet`), `RPC_WS`, `RPC_HTTP` (default to the public Monad endpoints),
 `VAULT`, `ROUTER` or `DEPLOYMENT`, `PORT` (8787). See `.env.example`.
+
+## Frame v1
+
+`GET /raids/:id/stream` sends `event: frame` messages whose `data` is a `Frame` (`src/frames.ts`, the
+source of truth for field names). Each frame is a complete snapshot of the raid at `block`, so clients
+replace, never merge. A stream opens with the latest finalized frame, then the latest proposed one, and
+sets `retry: 1000`. `GET /raids/:id` returns `{ proposed, finalized }` with the same shape.
+
+All amounts are decimal strings of integer token units. No market price is ever sent.
