@@ -4,6 +4,7 @@ pragma solidity 0.8.30;
 import {Test, Vm} from "forge-std/Test.sol";
 import {KuruBook, IKuruOrderBook, IKuruMarginAccount} from "../../src/lib/KuruBook.sol";
 import {SpineProbe} from "../utils/SpineProbe.sol";
+import {BookDepth} from "../utils/BookDepth.sol";
 
 /// Fork tests against Kuru's live MON/USDC market on chain 143.
 /// Run: forge test --fork-url $MONAD_RPC --match-path "test/fork/*"
@@ -52,6 +53,11 @@ contract KuruSpineForkTest is Test {
         id = probe.placeAsk(price, size, baseWei);
     }
 
+    /// Clears every ask under the cap and the wall, then overshoots by one wall.
+    function _throughWall(uint32 cap, uint96 wall) internal view returns (uint96) {
+        return uint96(BookDepth.sizeUnder(BOOK, cap, tick, 2000) + 2 * uint256(wall));
+    }
+
     function _quoteFor(uint32 price, uint96 size) internal view returns (uint256) {
         return KuruBook.quoteFor(size, price, sizePrecision, pricePrecision, 6) + 1e6;
     }
@@ -73,13 +79,13 @@ contract KuruSpineForkTest is Test {
     function test_fork_statusPartialFilledCancelled() public {
         uint32 cap = _wallPrice();
         uint40 partialWall = _placeWall(cap, minSize * 5);
-        uint256 quoteIn = _quoteFor(cap, minSize * 1000);
+        uint256 quoteIn = _quoteFor(cap, _throughWall(cap, minSize * 5));
         deal(usdc, address(probe), quoteIn * 3);
 
         // buy everything under the cap plus part of the wall
         SpineProbe taker = new SpineProbe(BOOK, MARGIN);
         deal(usdc, address(taker), quoteIn);
-        uint96 under = _sizeUnder(cap);
+        uint96 under = uint96(BookDepth.sizeUnder(BOOK, cap, tick, 2000));
         taker.cappedBuy(cap, under + minSize * 2, quoteIn, partialWall);
         assertEq(uint8(KuruBook.status(BOOK, partialWall)), uint8(KuruBook.Status.Active));
         assertEq(KuruBook.remaining(BOOK, partialWall), minSize * 3);
@@ -96,17 +102,6 @@ contract KuruSpineForkTest is Test {
         assertEq(uint8(KuruBook.status(BOOK, next)), uint8(KuruBook.Status.Cancelled));
     }
 
-    function _sizeUnder(uint32 cap) internal view returns (uint96 total) {
-        for (uint256 p = cap - tick; p > cap - 400 * tick; p -= tick) {
-            (uint40 id,) = BOOK.s_sellPricePoints(p);
-            while (id != 0) {
-                (, uint96 size,, uint40 nxt,,,,) = BOOK.s_orders(id);
-                total += size;
-                id = nxt;
-            }
-        }
-    }
-
     /// Rule 5: the capped buy pays at most the cap on every level, with cheaper asks present,
     /// and never touches an ask one tick above the cap.
     function test_fork_cappedBuyNeverFillsAboveCap() public {
@@ -114,7 +109,7 @@ contract KuruSpineForkTest is Test {
         uint40 wall = _placeWall(cap, minSize * 5);
         uint40 above = _placeWall(uint32(_emptyLevel(cap + tick)), minSize * 5);
 
-        uint96 size = minSize * 1000; // far more than the asks under the cap
+        uint96 size = _throughWall(cap, minSize * 5); // more than every ask under the cap
         uint256 quoteIn = _quoteFor(cap, size);
         deal(usdc, address(probe), quoteIn);
 
@@ -139,7 +134,7 @@ contract KuruSpineForkTest is Test {
     function test_fork_overshootRemainderCancelledSameTx() public {
         uint32 cap = _wallPrice();
         uint40 wall = _placeWall(cap, minSize * 5);
-        uint96 size = minSize * 1000;
+        uint96 size = _throughWall(cap, minSize * 5);
         uint256 quoteIn = _quoteFor(cap, size);
         deal(usdc, address(probe), quoteIn);
 
@@ -156,7 +151,7 @@ contract KuruSpineForkTest is Test {
     function test_fork_marginDifferenceEqualsBaseReceived() public {
         uint32 cap = _wallPrice();
         uint40 wall = _placeWall(cap, minSize * 5);
-        uint96 size = minSize * 1000;
+        uint96 size = _throughWall(cap, minSize * 5);
         uint256 quoteIn = _quoteFor(cap, size);
         deal(usdc, address(probe), quoteIn);
 

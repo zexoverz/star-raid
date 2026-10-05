@@ -149,12 +149,7 @@ contract RaidRouter is IRaidRouter, ReentrancyGuardTransient {
         uint40 c1 = book.s_orderIdCounter();
         if (c1 > c0) {
             (address owner,,,,,,, bool isBuy) = book.s_orders(c1);
-            if (owner == address(this) && isBuy && KuruBook.status(book, c1) == KuruBook.Status.Active) {
-                uint40[] memory ids = new uint40[](1);
-                ids[0] = c1;
-                book.batchCancelOrders(ids);
-                b.cancelledId = c1;
-            }
+            if (owner == address(this) && isBuy && KuruBook.cancelIfActive(book, c1)) b.cancelledId = c1;
         }
 
         b.baseOut = margin.getBalance(address(this), v.base) - b0;

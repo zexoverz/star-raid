@@ -301,3 +301,40 @@ the last reading while the wall was live (an admin cancel mid-raid).
 **Why.** The first fork capture showed the full 100k wall as sold after settle swept it, when the raid
 had bought 40,385. A cancelled order has no size left on the book, so status alone cannot say what it
 sold.
+
+## D27. Rules 4 to 8 are pinned on chain 143, each checked by deleting its guard
+
+**Claim.** `contracts/test/fork/Rules.fork.t.sol` holds one test per rule against Kuru's live MON/USDC
+book, real Lil Stars and real Entropy. Each guard was deleted in a scratch worktree and its named test
+run on a 143 fork (5 Oct, blocks ~110,726,900 to 110,727,200). All nine mutants went red.
+
+| Rule | Guard deleted | Red with |
+|---|---|---|
+| 4 | status read from size instead of the level head | `OrderAlreadyFilledOrCancelled()` from Kuru, in the sweep |
+| 5 | buy placed above the cap | "filled above the cap" (a Trade above `capPrice`) |
+| 5 | remainder left resting | "the router's remainder is still on the book" |
+| 5 | `placeAndExecuteMarketBuy` instead of `addBuyOrder` | "router code contains placeAndExecuteMarketBuy" |
+| 6 | fill assumed from the size asked | `InsufficientBalance()` from Kuru's MarginAccount |
+| 6 | absolute margin balance instead of the difference | "escrow equals the fills" (off by the donation) |
+| 7 | cancel without the status check | `OrderAlreadyFilledOrCancelled()` from Kuru, in the sweep |
+| 8 | callback accepted from anyone | expected `OnlyEntropy()`, call did not revert |
+| 8 | end block from prevrandao | "prevrandao changed E" |
+
+A first pass found two tests that were decoration: the remainder mutant and the assumed-fill mutant
+left the suite green, because the buy happened to fill completely. Both tests now buy through the wall
+with an overshoot. The router's own status check before cancelling (D12) was unreachable, so the check
+now lives in one place, `KuruBook.cancelIfActive`, used by the router and the sweep.
+
+Where no custom error exists for a failure (paying above the cap is not an error anywhere, it is a
+wrong result), the test fails on the exact invariant instead.
+
+## D28. sMON has no ERC-4626 view; its rate reads as totalPooled / totalSupply
+
+**Claim.** Kintsu sMON (`0xa3227c5969757783154c60bf0bc1944180ed81b9`, proxy to `0x6a45…f21f`)
+reverts on `convertToAssets` and the usual rate getters. `totalPooled() / totalSupply()` read 1.1141 MON
+per sMON on 5 Oct, against an sMON/MON book at ~1.100. Not wired: an sMON raid uses the Fixed anchor.
+
+**Why.** The ratio is plausible but has not been checked against Kintsu's source (still CONFIRM), and the
+sMON market is soft-paused anyway (D2).
+
+**Reverses it.** Reading Kintsu's source; then add a small rate adapter and use VaultRate.

@@ -67,11 +67,7 @@ contract WallMaker {
     /// balance and sends base and quote to `to`. Works on active, filled, partial and admin-cancelled
     /// walls.
     function sweep(address to) external onlyVault returns (uint256 baseOut, uint256 quoteOut) {
-        if (KuruBook.status(book, wallId) == KuruBook.Status.Active) {
-            uint40[] memory ids = new uint40[](1);
-            ids[0] = wallId;
-            book.batchCancelOrders(ids);
-        }
+        KuruBook.cancelIfActive(book, wallId);
         baseOut = _drain(base, to);
         quoteOut = _drain(quote, to);
     }

@@ -8,6 +8,7 @@ import {RaidVault, IEntropyV2} from "../../src/RaidVault.sol";
 import {RaidRouter} from "../../src/RaidRouter.sol";
 import {SeatGate} from "../../src/SeatGate.sol";
 import {KuruBook, IKuruOrderBook, IKuruMarginAccount} from "../../src/lib/KuruBook.sol";
+import {BookDepth} from "../utils/BookDepth.sol";
 import {Terms, AnchorMode, RaidStatus, RaidView, IRaidRouter, IRaidVault} from "../../src/interfaces/IRaid.sol";
 
 /// A whole raid on chain 143 against Kuru's live MON/USDC book, real Lil Stars and real Pyth Entropy.
@@ -72,7 +73,11 @@ contract RaidFlowForkTest is Test {
 
         // a real Lil Stars holder raids with USDC; cheaper live asks fill first
         address holder = LIL_STARS.ownerOf(1);
-        deal(usdc, holder, 30_000e6);
+        // through every live ask under the wall and the wall itself, sized from the book at this block
+        uint128 through = uint128(
+            KuruBook.quoteFor(BookDepth.sizeUnder(BOOK, v.capPrice, tick, 2000) + 2 * uint256(t.wallSize), v.capPrice, sp, pp, 6)
+        );
+        deal(usdc, holder, uint256(through) + 10_000e6);
         vm.prank(holder);
         IERC20(usdc).approve(address(router), type(uint256).max);
         SeatGate.Seat memory s;
@@ -81,7 +86,7 @@ contract RaidFlowForkTest is Test {
         s.tokenId = 1;
         uint256 monBefore = holder.balance;
         vm.prank(holder);
-        router.raid(id, 20_000e6, s);
+        router.raid(id, through, s);
         assertEq(holder.balance, monBefore, "seat base is escrowed, not sent");
         assertEq(uint8(KuruBook.status(BOOK, v.wallId)), uint8(KuruBook.Status.Filled), "reached the wall");
 
@@ -103,6 +108,6 @@ contract RaidFlowForkTest is Test {
         vm.prank(holder);
         router.claim(id);
         assertGt(holder.balance, monBefore, "MON released after the hold");
-        assertApproxEqAbs(IERC20(usdc).balanceOf(holder), 30_000e6 - 20_000e6 + t.bounty, 20_000e6);
+        assertGt(IERC20(usdc).balanceOf(holder), 10_000e6 + t.bounty - 1, "refund and the whole prize");
     }
 }
