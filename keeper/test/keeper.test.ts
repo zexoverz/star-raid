@@ -1,0 +1,66 @@
+import { describe, expect, it } from "vitest";
+import { Keeper } from "../src/keeper.js";
+import type { Signer, Tx } from "../src/signer.js";
+
+const VAULT = "0x00000000000000000000000000000000000000aa" as const;
+const MARKET = "0x00000000000000000000000000000000000000bb" as const;
+
+function reader(status: number, guardCalls: { n: number }) {
+  return {
+    finalizedBlock: async () => 1000n,
+    raids: async () => [{ id: 1n, status, w0: 1000n, w1: 1200n, requestBlock: 0n, wallRecovered: false, market: MARKET }],
+    entropyFee: async () => 3n,
+    guardInput: async () => {
+      guardCalls.n++;
+      return { mids: [100n, 200n], tradePrices: [], lastTradeBlock: null, head: 1000n };
+    },
+  };
+}
+
+class FakeSigner implements Signer {
+  address = VAULT;
+  sent: Tx[] = [];
+  constructor(private fail = false) {}
+  async send(tx: Tx) {
+    this.sent.push(tx);
+    if (this.fail) throw new Error("boom");
+    return { hash: "0x01" as const, ok: true };
+  }
+}
+
+describe("keeper", () => {
+  it("does not open a liquid market while the guard refuses", async () => {
+    const g = { n: 0 };
+    const s = new FakeSigner();
+    const k = new Keeper(reader(1, g) as never, s, VAULT, new Set(), async () => {}, () => {});
+    await k.tick();
+    expect(g.n).toBe(1);
+    expect(s.sent).toHaveLength(0);
+  });
+  it("skips the trade guard on thin markets and opens", async () => {
+    const g = { n: 0 };
+    const s = new FakeSigner();
+    const k = new Keeper(reader(1, g) as never, s, VAULT, new Set([MARKET]), async () => {}, () => {});
+    const { acted } = await k.tick();
+    expect(g.n).toBe(0);
+    expect(acted).toEqual([{ id: 1n, action: "open", ok: true }]);
+  });
+  it("pays the Entropy fee on close", async () => {
+    const s = new FakeSigner();
+    const r = { ...reader(2, { n: 0 }), finalizedBlock: async () => 1201n };
+    await new Keeper(r as never, s, VAULT, new Set(), async () => {}, () => {}).tick();
+    expect(s.sent[0].value).toBe(3n);
+  });
+  it("alerts once when a step fails twice", async () => {
+    const alerts: string[] = [];
+    const k = new Keeper(reader(4, { n: 0 }) as never, new FakeSigner(true), VAULT, new Set(), async (t) => {
+      alerts.push(t);
+    }, () => {});
+    await k.tick();
+    expect(alerts).toHaveLength(0);
+    await k.tick();
+    expect(alerts).toHaveLength(1);
+    await k.tick();
+    expect(alerts).toHaveLength(1);
+  });
+});
