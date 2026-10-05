@@ -95,10 +95,15 @@ contract RulesForkTest is Test {
         router.raid(id, quoteIn, _seat());
     }
 
-    /// Buys straight through the wall with an overshoot, so Kuru keeps the wall's old size.
+    /// Buys straight through the wall with an overshoot, so Kuru keeps the wall's old size. Kuru's
+    /// own cancel check (OrderBook.sol:604-622) is what says the wall is filled, not ours.
     function _fillWallWithOvershoot() internal {
         _raid(30_000e6);
-        require(KuruBook.status(BOOK, v.wallId) == KuruBook.Status.Filled, "wall filled");
+        uint40[] memory ids = new uint40[](1);
+        ids[0] = v.wallId;
+        vm.prank(v.maker);
+        vm.expectRevert(OrderBookErrors.OrderAlreadyFilledOrCancelled.selector);
+        BOOK.batchCancelOrders(ids);
     }
 
     // ---------------------------------------------------------------- rule 4
@@ -110,12 +115,7 @@ contract RulesForkTest is Test {
         (, uint96 size,,,,,,) = BOOK.s_orders(v.wallId);
         assertEq(size, minSize * 10, "Kuru kept the filled wall's size");
 
-        uint40[] memory ids = new uint40[](1);
-        ids[0] = v.wallId;
-        vm.prank(v.maker);
-        vm.expectRevert(OrderBookErrors.OrderAlreadyFilledOrCancelled.selector);
-        BOOK.batchCancelOrders(ids);
-
+        // reading size would call it live and try a cancel, which Kuru reverts
         vm.prank(address(vault));
         (, uint256 quoteOut) = WallMaker(payable(v.maker)).sweep(sponsor);
         assertGt(quoteOut, 0, "the wall's proceeds came back");
@@ -133,8 +133,14 @@ contract RulesForkTest is Test {
         uint40 aboveId = asker.placeAsk(above, minSize, uint256(minSize) * 1e18 / sp);
 
         uint256 before = IERC20(usdc).balanceOf(holder);
+        uint40 c0 = BOOK.s_orderIdCounter();
         vm.recordLogs();
         _raid(30_000e6);
+        // the overshoot rested as the router's own bid (the last id created) and was cancelled
+        uint40 rest = BOOK.s_orderIdCounter();
+        assertGt(rest, c0, "a remainder rested");
+        (address restOwner,,,,,,,) = BOOK.s_orders(rest);
+        assertTrue(restOwner != address(router), "the router's remainder is still on the book");
         Vm.Log[] memory logs = vm.getRecordedLogs();
         for (uint256 i; i < logs.length; ++i) {
             if (logs[i].emitter != address(BOOK) || logs[i].topics[0] != TRADE_TOPIC) continue;
@@ -168,7 +174,7 @@ contract RulesForkTest is Test {
         MARGIN.deposit{value: donation}(address(router), address(0), donation);
 
         vm.recordLogs();
-        _raid(2_000e6); // ends partly filled at cheaper asks, so assumed size and real fill differ
+        _raid(30_000e6); // overshoots the wall: the size asked for is more than the size filled
         Vm.Log[] memory logs = vm.getRecordedLogs();
         uint256 filled;
         for (uint256 i; i < logs.length; ++i) {
@@ -188,6 +194,10 @@ contract RulesForkTest is Test {
     /// raid whose wall was bought out still settles and recovers its proceeds.
     function test_rule7_settleNeverCancelsAFilledWall() public {
         _fillWallWithOvershoot();
+        // the sweep alone first, outside settle's try/catch, so a regression shows Kuru's own error
+        vm.prank(address(vault));
+        WallMaker(payable(v.maker)).sweep(sponsor);
+
         vm.roll(v.w1 + 1);
         uint256 fee = ENTROPY.getFeeV2();
         vm.deal(keeper, fee);
@@ -197,10 +207,6 @@ contract RulesForkTest is Test {
         vault.closeWithoutEntropy(id);
         vault.settle(id);
         assertTrue(vault.raid(id).wallRecovered, "the sweep ran without cancelling");
-
-        // the sweep alone, outside settle's try/catch, so a regression shows Kuru's own error
-        vm.prank(address(vault));
-        WallMaker(payable(v.maker)).sweep(sponsor);
     }
 
     // ---------------------------------------------------------------- rule 8
