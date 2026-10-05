@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=./node_modules/envio/evm.schema.json
+name: star-raid-indexer
+description: Star Raid raids, seats, buys, wall fills and leaderboards
+contracts:
+  - name: RaidVault
+    abi_file_path: abis/RaidVault.json
+    events:
+      - event: Posted
+      - event: Opened
+      - event: Aborted
+      - event: CloseRequested
+      - event: EndDrawn
+      - event: Settled
+      - event: WallRecovered
+      - event: RolloverCredited
+  - name: RaidRouter
+    abi_file_path: abis/RaidRouter.json
+    events:
+      - event: Raided
+      - event: PrizeFunded
+      - event: Claimed
+      - event: ExitedEarly
+  - name: SeatGate
+    abi_file_path: abis/SeatGate.json
+    events:
+      - event: SeatBound
+  # Kuru markets are registered from Posted (terms.market). Only fills whose maker is one of our
+  # WallMaker clones become WallFill rows; every other Trade on the market is ignored.
+  - name: KuruOrderBook
+    abi_file_path: abis/KuruOrderBook.json
+    events:
+      - event: Trade
+chains:
+  # Monad testnet. TODO-DEPLOY: fill the three addresses and start_block from the testnet deploy
+  # (contracts/script/DeployTestnet.s.sol logs them).
+  - id: 10143
+    start_block: 0 # TODO-DEPLOY: the deploy block
+    contracts:
+      - name: RaidVault
+        address: "0x0000000000000000000000000000000000000000" # TODO-DEPLOY
+      - name: RaidRouter
+        address: "0x0000000000000000000000000000000000000000" # TODO-DEPLOY
+      - name: SeatGate
+        address: "0x0000000000000000000000000000000000000000" # TODO-DEPLOY
+      - name: KuruOrderBook
+  # Monad mainnet, once deployed there:
+  # - id: 143
+  #   start_block: 0
+  #   contracts:
+  #     - name: RaidVault
+  #       address: 0x...
+  #     - name: RaidRouter
+  #       address: 0x...
+  #     - name: SeatGate
+  #       address: 0x...
+  #     - name: KuruOrderBook
