@@ -6,7 +6,7 @@ import { privateKeyToAccount } from "viem/accounts";
 const run = promisify(execFile);
 
 export type Tx = { to: Address; data: Hex; value?: bigint; gas: bigint };
-export type Sent = { hash: Hex; ok: boolean };
+export type Sent = { hash: Hex; ok: boolean; block: bigint };
 
 export interface Signer {
   readonly address: Address;
@@ -35,8 +35,12 @@ export class CastSigner implements Signer {
       "--password-file", this.passwordFile, "--rpc-url", this.rpcUrl, "--json"];
     if (tx.value && tx.value > 0n) args.push("--value", tx.value.toString());
     const { stdout } = await run(this.castBin, args, { maxBuffer: 1 << 22 });
-    const receipt = JSON.parse(stdout) as { transactionHash: Hex; status: string };
-    return { hash: receipt.transactionHash, ok: receipt.status === "0x1" || receipt.status === "1" };
+    const receipt = JSON.parse(stdout) as { transactionHash: Hex; status: string; blockNumber: string };
+    return {
+      hash: receipt.transactionHash,
+      ok: receipt.status === "0x1" || receipt.status === "1",
+      block: BigInt(receipt.blockNumber),
+    };
   }
 }
 
@@ -44,9 +48,9 @@ export class CastSigner implements Signer {
 export class KeySigner implements Signer {
   readonly address: Address;
   private wallet;
-  private publicWait: (hash: Hex) => Promise<{ status: string }>;
+  private publicWait: (hash: Hex) => Promise<{ status: string; blockNumber: bigint }>;
 
-  constructor(privateKey: Hex, chain: Chain, rpcUrl: string, wait: (hash: Hex) => Promise<{ status: string }>) {
+  constructor(privateKey: Hex, chain: Chain, rpcUrl: string, wait: (hash: Hex) => Promise<{ status: string; blockNumber: bigint }>) {
     const account = privateKeyToAccount(privateKey);
     this.address = account.address;
     this.wallet = createWalletClient({ account, chain, transport: http(rpcUrl) });
@@ -57,6 +61,6 @@ export class KeySigner implements Signer {
     requireGas(tx);
     const hash = await this.wallet.sendTransaction({ to: tx.to, data: tx.data, value: tx.value, gas: tx.gas });
     const r = await this.publicWait(hash);
-    return { hash, ok: r.status === "success" };
+    return { hash, ok: r.status === "success", block: r.blockNumber };
   }
 }

@@ -11,6 +11,9 @@ export const ALERT_AFTER_FAILURES = 2;
 export class Keeper {
   private failures = new Map<string, number>();
   private lastWait = new Map<bigint, string>();
+  // A sent action is in flight until the finalized block reaches its receipt; finalized state still
+  // shows the old status until then, and acting on it would send the same step twice.
+  private inflight = new Map<bigint, bigint>();
 
   constructor(
     private reader: ChainReader,
@@ -26,6 +29,9 @@ export class Keeper {
     const raids = await this.reader.raids(block);
     const acted: { id: bigint; action: Action; ok: boolean }[] = [];
     for (const r of raids) {
+      const until = this.inflight.get(r.id);
+      if (until !== undefined && block < until) continue;
+      this.inflight.delete(r.id);
       let guardOk = true;
       if (r.status === 1 && !this.thinMarkets.has(r.market.toLowerCase())) {
         const g = startGuard(await this.reader.guardInput(r.market, block));
@@ -58,6 +64,7 @@ export class Keeper {
       if (!sent.ok) throw new Error(`reverted ${sent.hash}`);
       this.log(`raid ${id}: ${action} ${sent.hash}`);
       this.failures.delete(key);
+      this.inflight.set(id, sent.block);
       return true;
     } catch (e) {
       const n = (this.failures.get(key) ?? 0) + 1;

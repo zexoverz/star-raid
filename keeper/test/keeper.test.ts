@@ -24,7 +24,7 @@ class FakeSigner implements Signer {
   async send(tx: Tx) {
     this.sent.push(tx);
     if (this.fail) throw new Error("boom");
-    return { hash: "0x01" as const, ok: true };
+    return { hash: "0x01" as const, ok: true, block: 1005n };
   }
 }
 
@@ -44,6 +44,17 @@ describe("keeper", () => {
     const { acted } = await k.tick();
     expect(g.n).toBe(0);
     expect(acted).toEqual([{ id: 1n, action: "open", ok: true }]);
+  });
+  it("does not resend a step until finality reaches its receipt", async () => {
+    const s = new FakeSigner();
+    const r = reader(1, { n: 0 });
+    const k = new Keeper(r as never, s, VAULT, new Set([MARKET]), async () => {}, () => {});
+    await k.tick(); // sends open, receipt at 1005; finalized is still 1000 and still says Posted
+    await k.tick();
+    expect(s.sent).toHaveLength(1);
+    (r as { finalizedBlock: () => Promise<bigint> }).finalizedBlock = async () => 1005n;
+    await k.tick();
+    expect(s.sent).toHaveLength(2);
   });
   it("pays the Entropy fee on close", async () => {
     const s = new FakeSigner();
