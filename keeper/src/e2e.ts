@@ -2,7 +2,8 @@
 //   sponsor (zexo-main) mints test tokens and posts; the keeper (zexo-secondary) opens at w0, closes
 //   after w1 with a real Entropy request, settles on the callback; the raider (zexo-secondary, which
 //   holds a test Star) buys during the window and claims after the hold.
-import { createPublicClient, http, encodeFunctionData, parseAbi, type Address, type Hex } from "viem";
+import { createPublicClient, createWalletClient, http, encodeFunctionData, parseAbi, parseEther, type Address, type Hex } from "viem";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { loadConfig } from "./config.js";
 import { ChainReader } from "./chain.js";
 import { CastSigner } from "./signer.js";
@@ -65,6 +66,35 @@ await send(raider, d.lilStars, call(starsAbi, "mint", [raider.address]), GAS.min
 await send(raider, d.quoteToken, call(erc20Abi, "mint", [raider.address, BUY]), GAS.mint, "mint tUSDC");
 await send(raider, d.quoteToken, call(erc20Abi, "approve", [d.router, BUY]), GAS.approve, "approve router");
 
+// 2b. throwaway raiders (testnet only): fresh keys funded with a little MON from the sponsor wallet.
+// All but the last get a Star; the last has none, so its buy goes through uncounted.
+const EXTRA = Number(process.env.RAIDERS ?? 3);
+const EXTRA_BUY = 150_000_000n; // 150 tUSDC each
+const extras = Array.from({ length: EXTRA }, (_, i) => {
+  const account = privateKeyToAccount(generatePrivateKey());
+  return { account, seat: i < EXTRA - 1, wallet: createWalletClient({ account, chain: cfg.chain, transport: http(cfg.rpcUrl) }) };
+});
+async function extraSend(x: (typeof extras)[number], to: Address, data: Hex, gas: bigint, label: string) {
+  const hash = await x.wallet.sendTransaction({ to, data, gas });
+  const r = await client.waitForTransactionReceipt({ hash });
+  if (r.status !== "success") throw new Error(`${label} reverted ${hash}`);
+  console.log(`${label} ${hash}`);
+}
+const extraTokens: bigint[] = [];
+for (const x of extras) {
+  const fund = await sponsor.send({ to: x.account.address, data: "0x", value: parseEther(process.env.RAIDER_MON ?? "0.5"), gas: 21_000n });
+  if (!fund.ok) throw new Error("fund raider");
+  let tok = 0n;
+  if (x.seat) {
+    tok = await client.readContract({ address: d.lilStars, abi: starsAbi, functionName: "nextId" });
+    await extraSend(x, d.lilStars, call(starsAbi, "mint", [x.account.address]), GAS.mint, `mint Star #${tok}`);
+  }
+  extraTokens.push(tok);
+  await extraSend(x, d.quoteToken, call(erc20Abi, "mint", [x.account.address, EXTRA_BUY]), GAS.mint, "mint tUSDC");
+  await extraSend(x, d.quoteToken, call(erc20Abi, "approve", [d.router, EXTRA_BUY]), GAS.approve, "approve router");
+}
+let extrasBought = 0;
+
 // 3. keeper loop; the raider buys once the raid is open and the window has started
 const keeper = new Keeper(new ChainReader(client as never, d.vault), keeperSigner, d.vault, cfg.thinMarkets, telegramAlerter(cfg.telegram));
 let bought = false;
@@ -80,6 +110,17 @@ for (;;) {
     const estimate = await client.estimateGas({ account: raider.address, to: d.router, data });
     await send(raider, d.router, data, raidGasLimit(1, estimate), `raid buy (estimate ${estimate})`);
     bought = true;
+  }
+  // the throwaway raiders buy one per block after the main raider
+  if (bought && extrasBought < extras.length && v.status === Status.Open && latest <= v.w1) {
+    const x = extras[extrasBought];
+    const seat = x.seat
+      ? { kind: 1, holder: x.account.address, tokenId: extraTokens[extrasBought], humanId: `0x${"0".repeat(64)}` as Hex, expiry: 0n, sig: "0x" as Hex }
+      : { kind: 0, holder: "0x0000000000000000000000000000000000000000" as Address, tokenId: 0n, humanId: `0x${"0".repeat(64)}` as Hex, expiry: 0n, sig: "0x" as Hex };
+    const data = call(routerAbi, "raid", [raidId, EXTRA_BUY, seat]);
+    const estimate = await client.estimateGas({ account: x.account.address, to: d.router, data });
+    await extraSend(x, d.router, data, raidGasLimit(1, estimate), x.seat ? "raid buy (seat)" : "raid buy (no seat)");
+    extrasBought++;
   }
   if (v.status === Status.Aborted) throw new Error("raid aborted");
   if (v.status === Status.Settled) {
