@@ -179,3 +179,49 @@ stays in the router.
 The MON/USDC fork raid (`test_fork_fullRaidOnLiveBook`) needed about $20k of buying to get through the
 cheaper live asks to a wall at mid + 50 bps; $5k did not reach it. That confirms C1's consequence:
 raids on deep markets almost never reach the wall.
+
+## D17. Testnet Entropy is `0x825c…3c07`, not the mainnet address
+
+**Claim.** On Monad testnet the Pyth Entropy contract is `0x825c0390f379C631f3Cf11A82a37D20BddF93c07`
+(fee ~0.128 MON on 5 Oct). Mainnet is `0xD458261E832415CFd3BAE5E416FdF3230ce6F134`.
+
+**Why.** `0xD458…` also has code on testnet, but its default provider is unregistered there and
+`requestV2()` reverts `NoSuchProvider()` (`0xdf51c431`). This was caught by the testnet fork raid,
+and Pyth's chainlist confirms the address. The vault takes Entropy as a constructor argument, so this
+is deploy config.
+
+## D18. The start guard runs on liquid markets only
+
+**Claim.** The keeper applies the trade-based start guard only to markets not listed in
+`THIN_MARKETS`. The testnet market is thin by default.
+
+**Why.** The guard exists so outside buyers on a busy book do not lift the wall during the window.
+On a thin market the wall is the whole ask side and nothing trades, so "last trade ≤300 blocks" would
+refuse every raid forever. The contract's own mid guard (D4) still runs everywhere.
+
+**Reverses it.** A thin market that starts trading; move it off the list.
+
+## D19. No on-chain reschedule; a guard refusal lets the raid expire
+
+**Claim.** The E4 ticket "reschedule inside the sponsor's slide range" is not built. If the guard
+refuses through `w0 + 30`, the keeper calls `expire` and the sponsor's funds come back in full.
+
+**Why.** Terms are immutable after post (SPEC §6). A slide range would need new terms fields and a new
+code path in the vault for a case the sponsor can handle by posting again. Cut for time.
+
+**Reverses it.** Guard refusals being common on mainnet; then add `slideMax` to the terms.
+
+## D20. The local keeper signs through `cast`, never with an exported key
+
+**Claim.** `CastSigner` shells out to `cast send --account zexo-secondary --password-file …` with raw
+calldata. `KeySigner` (`PRIVATE_KEY`) is for a hosted run only.
+
+**Why.** The dev wallet rule forbids exporting a keystore to a private key.
+
+## D21. Railway is not set up yet
+
+**Claim.** The keeper and live service run locally for the testnet rehearsal. The Railway project with
+a fixed domain (E4 ticket) waits.
+
+**Why.** Creating the project needs his Railway login, and nothing in the testnet run needs a public
+URL. The app (E5) will need `live/` hosted before the demo.
