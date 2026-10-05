@@ -97,6 +97,16 @@ library KuruBook {
         return size;
     }
 
+    /// Rule 7: batchCancelOrders reverts on a filled or cancelled order (OrderBook.sol:534-535), so
+    /// every cancel in Star Raid goes through this one check. Returns whether it cancelled.
+    function cancelIfActive(IKuruOrderBook book, uint40 id) internal returns (bool) {
+        if (status(book, id) != Status.Active) return false;
+        uint40[] memory ids = new uint40[](1);
+        ids[0] = id;
+        book.batchCancelOrders(ids);
+        return true;
+    }
+
     function roundUpToTick(uint256 price, uint32 tick) internal pure returns (uint256) {
         uint256 r = price % tick;
         return r == 0 ? price : price + (tick - r);
