@@ -23,8 +23,10 @@ contract VaultFixture is KuruFixture {
         _deployKuru();
         entropy = new MockEntropy();
         vault = new RaidVault(owner, _marginAccount(), IEntropyV2(address(entropy)), keeper);
-        vm.prank(owner);
+        vm.startPrank(owner);
         vault.setRouter(router);
+        vault.setMarket(address(book), true);
+        vm.stopPrank();
         vm.deal(keeper, 100 ether);
     }
 

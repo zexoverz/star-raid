@@ -110,3 +110,72 @@ than the maker's margin. The sweep also drains the maker's raw token balance to 
 **Why.** The keeper holds MON for fees (DESIGN §4); this avoids a fee reserve inside the vault.
 
 **Reverses it.** Wanting closes to be free for third parties; then add a fee reserve funded at post.
+
+## D10. Bind signs the holder and player only, not token ids; ERC-1271 is accepted
+
+**Claim.** `Bind(address holder, address player, uint64 expiry)`. The seat is the holder wallet; any
+Star it owns at raid time proves it. `SignatureChecker` accepts contract-wallet holders (Safes).
+
+**Why.** After C2 a seat is one per holder, so which Star proves it does not change anything, and a
+token list would make a Bind go stale when the holder buys or sells a Star. A token id is still
+nullified per raid to its first holder, so a Star moved mid-raid cannot open a second seat.
+
+**Reverses it.** A need to let one holder split its Stars across players; that would undo C2.
+
+## D11. Raids run only on owner-allowlisted markets
+
+**Claim.** `post` requires `marketAllowed[market]`, set by the vault owner.
+
+**Why.** `market` is sponsor input. A fake book could report fake wall fills to the router, or feed
+the maker clone hostile calls. The margin account is fixed at deploy, so raiders' funds were not at
+risk, but counts and the prize were.
+
+**Reverses it.** Reading Kuru's Router `verifiedMarket` on chain instead; equivalent, and it removes
+an admin step, but it trusts Kuru's registry for markets we have not looked at.
+
+## D12. The router's status check before cancelling its own remainder is defensive
+
+**Claim.** The router still checks the head before `batchCancelOrders` on its remainder, but no test
+fails without it, and that is expected.
+
+**Why.** The remainder is created at the end of `addBuyOrder` in the same call (`OrderBook.sol:205-209`)
+and nothing can fill it before our cancel, so it is always active there. Rule 7 bites in settle, where
+the wall may be filled or admin-cancelled; that path has its test (`test_settleFilledWallDoesNotCancel`,
+mutation killed).
+
+**Reverses it.** Nothing; the check costs one SLOAD pair.
+
+## D13. MON-quoted markets take native MON; USDC markets refuse it
+
+**Claim.** The router takes the market's quote: ERC-20 by allowance with `msg.value == 0`
+(`NativeNotAccepted` otherwise, rule 9's test), or native MON only when the quote is native.
+
+**Why.** SPEC §16 moves mainnet raids to MON-quoted LST markets, where paying in MON is the only way to
+buy. Rule 9 still holds on every USDC market. Raider accounts on MON markets keep 10 MON (reserve
+balance), which is app copy.
+
+**Reverses it.** Mainnet staying on USDC markets only; then drop the native path.
+
+## D14. A lost raid releases base at settle, with no hold
+
+**Claim.** `claim` checks the hold only when the raid was won.
+
+**Why.** The hold protects the prize from instant dumpers. With no prize there is nothing to protect,
+and keeping raiders' tokens locked would only cost them.
+
+**Reverses it.** A sponsor asking for a hold on every raid regardless of outcome.
+
+## D15. Pro-rata rounding dust stays in the router
+
+**Claim.** Each share is `pot × counted / total`, rounded down. Dust (at most one unit per seat)
+stays in the router.
+
+**Why.** Sweeping it adds a code path for less than a cent.
+
+**Reverses it.** Prize tokens with few decimals, where the dust is real money.
+
+## D16. Live check of SPEC §2.4 on 5 Oct
+
+The MON/USDC fork raid (`test_fork_fullRaidOnLiveBook`) needed about $20k of buying to get through the
+cheaper live asks to a wall at mid + 50 bps; $5k did not reach it. That confirms C1's consequence:
+raids on deep markets almost never reach the wall.

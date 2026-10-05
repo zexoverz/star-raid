@@ -65,10 +65,13 @@ contract RaidVault is IRaidVault, Ownable2Step, ReentrancyGuardTransient {
     /// Unwon bounties, spendable only by post (SPEC §4.2 step 7). There is no withdraw.
     mapping(address => mapping(address => uint256)) public rollover;
     mapping(address => OracleConfig) public oracleOf;
+    /// Kuru markets raids may run on. A sponsor-supplied fake book could report fake wall fills.
+    mapping(address => bool) public marketAllowed;
 
     event RouterSet(address router);
     event KeeperSet(address keeper);
     event Paused(bool paused);
+    event MarketAllowed(address indexed market, bool allowed);
     event OracleSet(address indexed market, address chainlink, address pyth, bytes32 pythId);
     event Posted(uint256 indexed raidId, address indexed sponsor, address indexed market, Terms terms, uint128 fromRollover);
     event Opened(uint256 indexed raidId, uint32 capPrice, uint40 wallId, address maker, uint256 anchor, uint256 mid);
@@ -98,6 +101,7 @@ contract RaidVault is IRaidVault, Ownable2Step, ReentrancyGuardTransient {
     error RefundFailed();
     error AlreadyRecovered();
     error NotSelf();
+    error MarketNotAllowed();
 
     uint8 internal constant ABORT_MID_OVER_ANCHOR = 10;
     uint8 internal constant ABORT_NO_EMPTY_LEVEL = 11;
@@ -130,6 +134,11 @@ contract RaidVault is IRaidVault, Ownable2Step, ReentrancyGuardTransient {
     function setPaused(bool paused_) external onlyOwner {
         paused = paused_;
         emit Paused(paused_);
+    }
+
+    function setMarket(address market, bool allowed) external onlyOwner {
+        marketAllowed[market] = allowed;
+        emit MarketAllowed(market, allowed);
     }
 
     function setOracle(address market, OracleConfig calldata cfg) external onlyOwner {
@@ -175,6 +184,7 @@ contract RaidVault is IRaidVault, Ownable2Step, ReentrancyGuardTransient {
     }
 
     function _checkTerms(Terms calldata t) internal view {
+        if (!marketAllowed[t.market]) revert MarketNotAllowed();
         if (t.w0 <= block.number + OPEN_EARLY || t.w1 < t.w0 + MIN_WINDOW || t.w1 > t.w0 + MAX_WINDOW) {
             revert BadWindow();
         }

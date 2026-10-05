@@ -28,6 +28,13 @@ contract RaidVaultTest is VaultFixture {
         assertTrue(vault.isExcluded(id, sponsor));
     }
 
+    function test_postRejectsUnlistedMarket() public {
+        Terms memory t = _terms(uint64(block.number + 20));
+        t.market = address(new StubRouter()); // anything that is not an allowed Kuru book
+        vm.expectRevert(RaidVault.MarketNotAllowed.selector);
+        vault.post(t, new address[](0));
+    }
+
     function test_postRejectsBadWindow() public {
         Terms memory t = _terms(uint64(block.number + 5)); // too close to now
         vm.expectRevert(RaidVault.BadWindow.selector);
