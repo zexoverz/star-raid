@@ -225,3 +225,23 @@ a fixed domain (E4 ticket) waits.
 
 **Why.** Creating the project needs his Railway login, and nothing in the testnet run needs a public
 URL. The app (E5) will need `live/` hosted before the demo.
+
+## D22. A raid buy's gas limit is max(800k + 40k per maker, 1.5 × estimate), capped at 2M
+
+**Claim.** `raidGasLimit(makers, estimate)` keeps rule 10's figure as a floor and applies SPEC §16 M8
+(estimate at `latest` × 1.5) above it, never over 2,000,000.
+
+**Why.** The anvil rehearsal on a testnet fork ran a first buy out of gas at 840k: a cold seat costs
+864,189 (seat binding, two checkpoint arrays, a Kuru order created and cancelled). Rule 10's 800k came
+from a bare Kuru buy measured on 26 Sep, before the router existed.
+
+**Reverses it.** Profiling that brings a cold seat under 800k; then the floor alone is enough.
+
+## D23. The keeper treats a sent step as in flight until finality reaches its receipt
+
+**Claim.** After a successful send the keeper skips that raid until the finalized block is at or past
+the receipt's block.
+
+**Why.** Rule 12 has the keeper read finalized state, which lags `latest` by 2-3 blocks on Monad. The
+rehearsal showed the keeper sending `open` a second time (reverted) because finalized still said
+Posted.
