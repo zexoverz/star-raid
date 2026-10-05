@@ -179,3 +179,28 @@ stays in the router.
 The MON/USDC fork raid (`test_fork_fullRaidOnLiveBook`) needed about $20k of buying to get through the
 cheaper live asks to a wall at mid + 50 bps; $5k did not reach it. That confirms C1's consequence:
 raids on deep markets almost never reach the wall.
+
+## D30. The indexer recounts each seat at the end block; counted numbers come only from Raided
+
+**Claim.** `Seat.counted` and `PlayerRaid.counted` sum `Raided.countedAdded` and are provisional.
+On `EndDrawn` each seat is recounted from its own buys at or before `E` into `countedAtEnd`, and only
+that figure is added to the player's lifetime `counted`. Kuru `Trade` logs feed `WallFill`, a display
+of which part of the wall sold, and are never used to attribute or count a raider's buys (rule 6).
+
+**Why.** `countedAdded` includes buys after `E`, which settle does not count. Summing it into lifetime
+totals would overstate players. The per-seat buy lists (`buyBlocks`, `buyCounted`) make the recount
+possible inside one handler without a query.
+
+**Reverses it.** A router event that emits each seat's counted value at settle; then the recount goes.
+
+## D31. Kuru markets are registered from Posted, and fills are kept only for our makers
+
+**Claim.** `contractRegister` on `Posted` adds `terms.market` as a `KuruOrderBook` address. The
+`Trade` handler drops every fill whose maker is not a `Maker` row created from `Opened`.
+
+**Why.** `Opened` names the maker but not the market, and dynamic registration is by emitter address,
+so the market has to come from `Posted`. On a liquid market most `Trade` rows are other people's;
+storing them would be noise and HyperSync cost.
+
+**Reverses it.** Indexing a market's full tape for the results page (cheaper asks filled vs wall);
+then keep a summary entity rather than every row.
