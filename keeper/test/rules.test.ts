@@ -24,6 +24,11 @@ describe("rule 10: explicit gas limits", () => {
     expect(raidGasLimit(3)).toBe(920_000n);
     expect(() => raidGasLimit(-1)).toThrow();
   });
+  it("a buy estimate is padded 1.5x above the floor, capped at the ceiling (M8)", () => {
+    expect(raidGasLimit(1, 400_000n)).toBe(840_000n);
+    expect(raidGasLimit(1, 864_189n)).toBe(1_296_283n);
+    expect(raidGasLimit(1, 5_000_000n)).toBe(2_000_000n);
+  });
   it("the signer refuses a send without a limit", async () => {
     const s = new CastSigner(VAULT, "none", "/nonexistent", "http://127.0.0.1:1", "/bin/false");
     await expect(s.send({ to: VAULT, data: "0x", gas: 0n })).rejects.toThrow("explicit gas limit required");

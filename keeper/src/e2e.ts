@@ -76,7 +76,9 @@ for (;;) {
   const latest = await client.getBlockNumber();
   if (!bought && v.status === Status.Open && latest >= v.w0) {
     const seat = { kind: 1, holder: raider.address, tokenId, humanId: `0x${"0".repeat(64)}` as Hex, expiry: 0n, sig: "0x" as Hex };
-    await send(raider, d.router, call(routerAbi, "raid", [raidId, BUY, seat]), raidGasLimit(1), "raid buy");
+    const data = call(routerAbi, "raid", [raidId, BUY, seat]);
+    const estimate = await client.estimateGas({ account: raider.address, to: d.router, data });
+    await send(raider, d.router, data, raidGasLimit(1, estimate), `raid buy (estimate ${estimate})`);
     bought = true;
   }
   if (v.status === Status.Aborted) throw new Error("raid aborted");
