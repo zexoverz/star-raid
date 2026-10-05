@@ -20,3 +20,4 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
 | Ticket | Files written or changed (all by Claude Code) | What the human reviewed |
 |---|---|---|
 | E1 Kuru spine | `contracts/foundry.toml`, `contracts/src/lib/KuruBook.sol`, `contracts/test/utils/*`, `contracts/test/unit/KuruBook.t.sol`, `contracts/test/fork/KuruSpine.fork.t.sol`, `docs/plan/decisions.md` | Merged by Claude on his instruction of 5 Oct; his read of the PR diff is pending |
+| E2 RaidVault | `contracts/src/RaidVault.sol`, `contracts/src/WallMaker.sol`, `contracts/src/lib/PriceAnchor.sol`, `contracts/src/interfaces/IRaid.sol`, `contracts/test/unit/RaidVault.t.sol`, `contracts/test/unit/PriceAnchor.t.sol`, `contracts/test/invariant/VaultInvariant.t.sol`, `contracts/test/utils/{Mocks,VaultFixture}.sol`, `docs/plan/decisions.md` | Merged by Claude on his instruction of 5 Oct; his read of the PR diff is pending |
