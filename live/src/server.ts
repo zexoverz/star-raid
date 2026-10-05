@@ -1,5 +1,6 @@
 import { createServer, type Server, type ServerResponse } from "node:http";
 import type { Hub } from "./hub.js";
+import type { Frame } from "./frames.js";
 
 const HEARTBEAT_MS = 15_000;
 
@@ -38,8 +39,11 @@ export function startServer(hub: Hub, port: number, health: () => unknown): Serv
       Connection: "keep-alive",
       "X-Accel-Buffering": "no",
     });
-    res.write(": connected\n\n"); // flush headers so clients and proxies open the stream now
-    const send = (f: unknown) => res.write(`event: frame\ndata: ${JSON.stringify(f)}\n\n`);
+    // flush headers now; ask EventSource to reconnect after 1 s if the stream drops
+    res.write("retry: 1000\n: connected\n\n");
+    // Every frame is a full snapshot of the raid, so a reconnect needs no replay: the stream always
+    // opens with the latest finalized frame, then the latest proposed one. The id is informational.
+    const send = (f: Frame) => res.write(`event: frame\nid: ${f.block}-${f.state === "finalized" ? "f" : "p"}\ndata: ${JSON.stringify(f)}\n\n`);
     const { proposed, finalized } = hub.latest(raidId);
     if (finalized) send(finalized);
     if (proposed) send(proposed);
