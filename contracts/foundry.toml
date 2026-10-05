@@ -1,0 +1,28 @@
+[profile.default]
+src = "src"
+test = "test"
+script = "script"
+out = "out"
+libs = ["lib"]
+solc_version = "0.8.30"
+evm_version = "prague"
+via_ir = true
+optimizer = true
+optimizer_runs = 1000
+bytecode_hash = "none"
+fs_permissions = [{ access = "read", path = "./" }]
+
+[fuzz]
+runs = 256
+
+[invariant]
+runs = 64
+depth = 32
+fail_on_revert = false
+
+[rpc_endpoints]
+monad = "${MONAD_RPC}"
+monad_testnet = "${MONAD_TESTNET_RPC}"
+
+[lint]
+lint_on_build = false

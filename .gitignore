@@ -19,3 +19,8 @@ broadcast/
 .DS_Store
 HANDOFF.md
 BRIEF.md
+
+# foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/
