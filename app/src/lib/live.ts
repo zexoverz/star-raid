@@ -1,6 +1,8 @@
 import { queryOptions, useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { LIVE_URL } from './config'
+import { phaseOf } from './phase'
+import { nextRaidAt } from './schedule'
 import type { Frame, LobbyRaid, RaidPair } from './types'
 
 export const raidsQuery = queryOptions({
@@ -10,7 +12,14 @@ export const raidsQuery = queryOptions({
     if (!r.ok) throw new Error(`live /raids ${r.status}`)
     return r.json()
   },
-  refetchInterval: 5_000,
+  // Poll every second around the expected start so the lobby flips to JOIN NOW without a gap,
+  // otherwise every 5 s. This hits our live service, not the rate-limited RPC.
+  refetchInterval: (q) => {
+    const rows = q.state.data
+    if (rows?.some((r) => ['live', 'danger', 'upcoming'].includes(phaseOf(r)))) return 5_000
+    const at = nextRaidAt(rows)
+    return at !== null && at - Date.now() < 60_000 ? 1_000 : 5_000
+  },
 })
 
 export const raidQuery = (id: string) =>
