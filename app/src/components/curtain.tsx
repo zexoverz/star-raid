@@ -7,6 +7,7 @@ import { STAR_NAMES, starArt } from '../lib/stars'
 import type { Frame, FrameBuy } from '../lib/types'
 import { GameBar, Sprite, StarAvatar } from './game'
 import { CrewRow, Guide, Mascot } from './mascots'
+import { PlayerPill } from './profile'
 
 /**
  * The draw, told as a show in five beats. Every number comes from the frame (the chain), the show
@@ -230,6 +231,9 @@ function JudgedHit({ b, decimals }: { b: FrameBuy; decimals: number }) {
       <div className="min-w-0 flex-1 text-sm">
         <span className={`font-bold ${late ? 'text-grape-300 line-through' : 'text-white'}`}>{art ? `${STAR_NAMES[art.character] ?? art.character} #${b.tokenId}` : 'Seat'}</span>
         <span className="text-grape-300"> · block {Number(b.block).toLocaleString()}</span>
+        <div className="text-[11px] text-grape-300">
+          <PlayerPill address={b.holder ?? b.player} size={14} />
+        </div>
       </div>
       <motion.span initial={{ scale: 2.2, rotate: -12 }} animate={{ scale: 1, rotate: 0 }} className={`chip ${late ? 'bg-grape-700 text-grape-300' : 'bg-mint text-grape-900'}`}>
         {late ? 'too late · +0' : `counted · +${fmt(b.countedAdded, decimals)}`}
@@ -249,6 +253,7 @@ function TopSeat({ seat, frame }: { seat: Frame['seats'][number]; frame: Frame }
       <div className="text-left">
         <div className="text-xs font-bold uppercase tracking-widest text-gold">Top seat</div>
         <div className="font-display text-lg text-white">{art ? `${STAR_NAMES[art.character] ?? art.character} #${seat.tokenId}` : 'Human'}</div>
+        <PlayerPill address={seat.holder ?? seat.player} className="text-xs text-grape-300" />
         <div className="text-xs text-grape-300">
           {fmt(seat.counted, t.quoteDecimals)} counted · about {fmt(share, t.quoteDecimals)} tUSDC of the prize
         </div>
