@@ -507,3 +507,15 @@ service; it is public by design since it ships in the bundle). Our own pill butt
 modal, so the Lil Stars look stays. The transport is `fallback([http(RPC_URL)])` so AppKit does not
 add its WalletConnect RPC leg. Analytics, email and social logins are off. One-tap is unchanged: it
 signs with the raid key, and the connected wallet only signs Bind and funds the key.
+
+## D41. One-tap waits for Monad's newly-funded-account delay (6 Oct)
+
+Raid #9: arm sent tUSDC and 1.36 MON to a fresh raid key, then the key's approve was refused at
+once with an insufficient-balance error, shown as "not enough MON for gas". The holder retried and
+the same happened on a second fresh key. Both keys hold 10 tUSDC + 1.36 MON at nonce 0. Cause: Monad
+consensus checks balances against delayed state, so an account that had zero balance cannot spend a
+transfer until it is Verified (docs: asynchronous execution, "Transactions from newly-funded
+accounts"). Fix: after funding, wait until 5 blocks past the funding block, and retry a send refused
+for balance up to 5 times with backoff. The key is saved to localStorage before any funds move, so a
+retry resumes the same key and tops up only what is missing, and any unfinished key with funds shows
+a "Send it back" button. The two raid #9 keys predate this and their private keys were never stored.

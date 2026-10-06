@@ -62,6 +62,7 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
   if (one.session) {
     return (
       <Shell>
+        <StrandedNotice one={one} />
         <HitPad
           tokenId={one.session.tokenId}
           decimals={t.quoteDecimals}
@@ -96,6 +97,7 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
   // ---- Not armed: setup
   return (
     <Shell>
+      <StrandedNotice one={one} />
       <Guide who={needStar ? 'chog' : 'fox'} pose={needStar ? 'wait' : open ? 'attack' : 'think'} size="h-28">
         {needStar || needUsdc ? 'First, grab a test Star and some test USDC. They are free on testnet!' : open ? 'The wall is up! Arm one-tap and start hitting.' : 'Arm now, so you are ready the second it opens.'}
       </Guide>
@@ -235,4 +237,19 @@ function Shell({ children }: { children: React.ReactNode }) {
 
 function Label({ children }: { children: React.ReactNode }) {
   return <div className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-grape-300">{children}</div>
+}
+
+/** A raid key from an arm that did not finish still holds funds: one tap sends them back. */
+function StrandedNotice({ one }: { one: ReturnType<typeof useOneTap> }) {
+  if (one.stranded.length === 0) return null
+  return (
+    <div className="dashed-card mb-4 flex items-center gap-3 p-3 text-sm" style={{ ['--card-color' as string]: '#FFB84D' }}>
+      <div className="flex-1 text-grape-100">
+        An earlier setup did not finish, so a raid key still holds your tUSDC and MON.
+      </div>
+      <button className="btn btn-primary shrink-0 px-3 py-1.5 text-xs" disabled={!!one.status} onClick={() => one.recover()}>
+        Send it back
+      </button>
+    </div>
+  )
 }

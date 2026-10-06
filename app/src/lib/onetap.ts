@@ -75,6 +75,72 @@ const HIT_GAS = raidGasLimit(1, 865_000n)
 /** MON to send the key: enough for ~8 hits at a 1.25x base fee plus the approve and the sweep. */
 const KEY_HITS = 8n
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+const refusedForBalance = (e: unknown) => /insufficient (funds|balance)|reserve balance|Missing or invalid parameters/i.test(String((e as { details?: string })?.details ?? '') + String((e as Error)?.message ?? e))
+
+/**
+ * Monad consensus checks balances against state a few blocks old, so a key that was empty cannot
+ * spend MON it just received until that transfer is Verified (about 5 blocks, ~2 s). Wait for that,
+ * then retry a refused send a few times instead of failing (docs: asynchronous execution, newly
+ * funded accounts).
+ */
+async function waitSpendable(fundedBlock: bigint) {
+  for (let i = 0; i < 40; i++) {
+    if ((await pub.getBlockNumber({ cacheTime: 0 })) >= fundedBlock + 5n) return
+    await sleep(400)
+  }
+}
+async function sendWhenFunded<T>(send: () => Promise<T>): Promise<T> {
+  for (let i = 0; ; i++) {
+    try {
+      return await send()
+    } catch (e) {
+      if (i >= 5 || !refusedForBalance(e)) throw e
+      await sleep(800 * (i + 1))
+    }
+  }
+}
+
+/**
+ * A key created by arm() is kept here before any funds move, so a failed arm (or a closed tab) resumes
+ * the same key instead of stranding its funds. localStorage on purpose: it can hold funds.
+ */
+const pending = {
+  key: (raidId: string, holder: string) => `starraid.pending.${raidId}.${holder.toLowerCase()}`,
+  load: (raidId: string, holder: string) => localStorage.getItem(pending.key(raidId, holder)) as Hex | null,
+  save: (raidId: string, holder: string, pk: Hex) => localStorage.setItem(pending.key(raidId, holder), pk),
+  clear: (raidId: string, holder: string) => localStorage.removeItem(pending.key(raidId, holder)),
+  all(holder: string) {
+    const out: { raidId: string; pk: Hex }[] = []
+    const suffix = `.${holder.toLowerCase()}`
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i)
+      if (k?.startsWith('starraid.pending.') && k.endsWith(suffix)) out.push({ raidId: k.slice(17, -suffix.length), pk: localStorage.getItem(k) as Hex })
+    }
+    return out
+  },
+}
+
+/** Send every tUSDC, tSTAR and MON on a raid key to `to`. */
+async function sweepKey(pk: Hex, to: Hex) {
+  const acct = privateKeyToAccount(pk)
+  const wallet = createWalletClient({ account: acct, chain: monadTestnet, transport: http(RPC_URL, { retryCount: 4, retryDelay: 400 }) })
+  const f = await fees()
+  for (const token of [ADDR.quote, ADDR.base]) {
+    const bal = (await pub.readContract({ address: token, abi: ERC20_ABI, functionName: 'balanceOf', args: [acct.address] })) as bigint
+    if (bal > 0n) {
+      const h = await sendWhenFunded(() => wallet.writeContract({ address: token, abi: ERC20_ABI, functionName: 'transfer', args: [to, bal], gas: GAS.approve, ...f }))
+      await pub.waitForTransactionReceipt({ hash: h })
+    }
+  }
+  const fee = 21_000n * f.maxFeePerGas
+  const mon = await pub.getBalance({ address: acct.address })
+  if (mon > fee) {
+    const h = await sendWhenFunded(() => wallet.sendTransaction({ to, value: mon - fee, gas: 21_000n, ...f }))
+    await pub.waitForTransactionReceipt({ hash: h })
+  }
+}
+
 export function useOneTap(raidId: string) {
   const { address } = useConnection()
   const [session, setSession] = useState<Session | null>(() => store.load(raidId))
@@ -135,7 +201,9 @@ export function useOneTap(raidId: string) {
       if (!address || !client) return false
       setError(null)
       try {
-        const pk = generatePrivateKey()
+        // Resume a key from an earlier arm that did not finish, so its funds are never stranded.
+        const pk = pending.load(raidId, address) ?? generatePrivateKey()
+        pending.save(raidId, address, pk)
         const acct = privateKeyToAccount(pk)
         const expiry = BigInt(Math.floor(Date.now() / 1000) + BIND_TTL)
         setStatus('Sign the seat pass in your wallet')
@@ -145,23 +213,34 @@ export function useOneTap(raidId: string) {
           primaryType: 'Bind',
           message: { holder: address, player: acct.address, expiry },
         })
-        setStatus('Send tUSDC to your raid key')
-        const h1 = await write({ address: ADDR.quote, abi: ERC20_ABI, functionName: 'transfer', args: [acct.address, budget], gas: GAS.approve })
-        await client.waitForTransactionReceipt({ hash: h1 })
-        setStatus('Send a little MON for gas')
+        const [haveUsdc, haveMon] = await Promise.all([
+          pub.readContract({ address: ADDR.quote, abi: ERC20_ABI, functionName: 'balanceOf', args: [acct.address] }) as Promise<bigint>,
+          pub.getBalance({ address: acct.address }),
+        ])
+        if (haveUsdc < budget) {
+          setStatus('Send tUSDC to your raid key')
+          const h1 = await write({ address: ADDR.quote, abi: ERC20_ABI, functionName: 'transfer', args: [acct.address, budget - haveUsdc], gas: GAS.approve })
+          await client.waitForTransactionReceipt({ hash: h1 })
+        }
         const { sendTransaction } = await import('wagmi/actions')
         const { wagmiConfig } = await import('./wagmi')
         const f = await fees()
         const gasMon = (HIT_GAS * KEY_HITS + GAS.approve + 3n * GAS.approve + 21_000n) * f.maxFeePerGas
-        const h2 = await sendTransaction(wagmiConfig, { to: acct.address, value: gasMon, gas: 21_000n })
-        await client.waitForTransactionReceipt({ hash: h2 })
+        let fundedBlock = 0n
+        if (haveMon < gasMon / 2n) {
+          setStatus('Send a little MON for gas')
+          const h2 = await sendTransaction(wagmiConfig, { to: acct.address, value: gasMon - haveMon, gas: 21_000n })
+          fundedBlock = (await client.waitForTransactionReceipt({ hash: h2 })).blockNumber
+        }
         // Approve the router once, for exactly the budget, from the key. Taps then send only raid().
         setStatus('Getting your raid key ready')
+        if (fundedBlock > 0n) await waitSpendable(fundedBlock)
         const keyWallet = createWalletClient({ account: acct, chain: monadTestnet, transport: http(RPC_URL, { retryCount: 4, retryDelay: 400 }) })
-        const h3 = await keyWallet.writeContract({ address: ADDR.quote, abi: ERC20_ABI, functionName: 'approve', args: [ADDR.router, budget], gas: GAS.approve, ...f })
+        const h3 = await sendWhenFunded(() => keyWallet.writeContract({ address: ADDR.quote, abi: ERC20_ABI, functionName: 'approve', args: [ADDR.router, budget], gas: GAS.approve, ...f }))
         await pub.waitForTransactionReceipt({ hash: h3 })
         const s: Session = { pk, address: acct.address, holder: address, tokenId, raidId, expiry: expiry.toString(), sig }
         store.save(s)
+        pending.clear(raidId, address)
         setSession(s)
         nonce.current = null
         setStatus(null)
@@ -230,10 +309,10 @@ export function useOneTap(raidId: string) {
           const { sendTransaction } = await import('wagmi/actions')
           const { wagmiConfig } = await import('./wagmi')
           const h0 = await sendTransaction(wagmiConfig, { to: account.address, value: need - have, gas: 21_000n })
-          await client.waitForTransactionReceipt({ hash: h0 })
+          await waitSpendable((await client.waitForTransactionReceipt({ hash: h0 })).blockNumber)
         }
         setStatus(fn === 'claim' ? 'Opening the chest' : 'Exiting early')
-        const hash = await wallet.writeContract({ address: ADDR.router, abi: ROUTER_ABI, functionName: fn, args: [BigInt(raidId)], gas: GAS.claim, ...f })
+        const hash = await sendWhenFunded(() => wallet.writeContract({ address: ADDR.router, abi: ROUTER_ABI, functionName: fn, args: [BigInt(raidId)], gas: GAS.claim, ...f }))
         const r = await pub.waitForTransactionReceipt({ hash })
         setStatus(null)
         if (r.status !== 'success') setError('The claim reverted on chain.')
@@ -253,20 +332,7 @@ export function useOneTap(raidId: string) {
     setError(null)
     try {
       setStatus('Returning leftovers to your wallet')
-      const f = await fees()
-      for (const token of [ADDR.quote, ADDR.base]) {
-        const bal = (await pub.readContract({ address: token, abi: ERC20_ABI, functionName: 'balanceOf', args: [account.address] })) as bigint
-        if (bal > 0n) {
-          const h = await wallet.writeContract({ address: token, abi: ERC20_ABI, functionName: 'transfer', args: [session.holder, bal], gas: GAS.approve, ...f })
-          await pub.waitForTransactionReceipt({ hash: h })
-        }
-      }
-      const fee = 21_000n * f.maxFeePerGas
-      const mon = await pub.getBalance({ address: account.address })
-      if (mon > fee) {
-        const h = await wallet.sendTransaction({ to: session.holder, value: mon - fee, gas: 21_000n, ...f })
-        await pub.waitForTransactionReceipt({ hash: h })
-      }
+      await sweepKey(session.pk, session.holder)
       setStatus(null)
       await refresh()
       return true
@@ -277,10 +343,48 @@ export function useOneTap(raidId: string) {
     }
   }, [wallet, account, session, refresh])
 
+  // Keys from an arm that never finished (any raid) still hold funds: offer to send them back.
+  const [stranded, setStranded] = useState<{ raidId: string; pk: Hex }[]>([])
+  const findStranded = useCallback(async () => {
+    if (!address) return setStranded([])
+    const found: { raidId: string; pk: Hex }[] = []
+    for (const { raidId: r, pk } of pending.all(address)) {
+      if (r === raidId && !session) continue // this raid's arm can still resume it
+      const a = privateKeyToAccount(pk).address
+      const [u, m] = await Promise.all([
+        pub.readContract({ address: ADDR.quote, abi: ERC20_ABI, functionName: 'balanceOf', args: [a] }) as Promise<bigint>,
+        pub.getBalance({ address: a }),
+      ])
+      if (u > 0n || m > 21_000n * 200_000_000_000n) found.push({ raidId: r, pk })
+      else pending.clear(r, address)
+    }
+    setStranded(found)
+  }, [address, raidId, session])
+  useEffect(() => void findStranded(), [findStranded])
+  const recover = useCallback(async () => {
+    if (!address) return false
+    setError(null)
+    try {
+      setStatus('Returning funds from an unfinished raid key')
+      for (const s of stranded) {
+        await sweepKey(s.pk, address)
+        pending.clear(s.raidId, address)
+      }
+      setStatus(null)
+      notify.success('Funds returned to your wallet.')
+      await findStranded()
+      return true
+    } catch (e) {
+      setStatus(null)
+      setError(explainError(e))
+      return false
+    }
+  }, [address, stranded, findStranded])
+
   const forget = useCallback(() => {
     store.clear(raidId)
     setSession(null)
   }, [raidId])
 
-  return { session: valid ? session : null, keyAddress: account?.address, usdc, mon, arm, tap, sweep, keyCall, forget, status, error, inflight, hits }
+  return { session: valid ? session : null, keyAddress: account?.address, usdc, mon, arm, tap, sweep, keyCall, forget, status, error, inflight, hits, stranded, recover }
 }
