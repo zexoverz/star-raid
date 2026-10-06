@@ -187,7 +187,7 @@ export function LootPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
             </div>
           )}
           {viaKey && <p className="mt-2 text-xs text-grape-300">Claimed from your one-tap raid key, then everything is returned to your wallet.</p>}
-          {(one.error || one.status) && <p className="mt-2 text-sm text-candy-300">{one.error ?? `${one.status}…`}</p>}
+          {one.status && <p className="mt-2 text-sm text-ember-300">{one.status}…</p>}
           <TxSteps steps={act.steps} error={act.error} />
         </div>
       </div>
