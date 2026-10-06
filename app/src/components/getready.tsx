@@ -82,7 +82,7 @@ export function GetReady({ live }: { live: boolean }) {
                   🎁 {!hasStar && !hasUsdc ? 'Mint a Star + 50 tUSDC' : !hasStar ? 'Mint a test Star' : 'Mint 50 tUSDC'}
                 </button>
               ) : (
-                <p className="text-sm text-mint">You're ready. When the raid appears, open it and arm one-tap.</p>
+                <p className="text-sm text-mint">You're ready. Open the next raid and set up one-tap once; it then works for every raid.</p>
               )}
               <TxSteps steps={act.steps} error={act.error} />
               <Link to="/practice" className="mt-2 block text-center text-xs text-candy-300 underline">

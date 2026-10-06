@@ -84,7 +84,7 @@ function Practice() {
                 footer={
                   <div className="mt-4 border-t border-grape-700 pt-3">
                     <Guide who="fox" pose={open ? 'attack' : 'think'} size="h-20">
-                      {phase === 'upcoming' ? 'This is a practice run. Get your finger ready!' : open ? 'Tap HIT! In a real raid, each tap is one on-chain buy with no wallet popup.' : 'Practice over. In a real raid you arm once, then just tap.'}
+                      {phase === 'upcoming' ? 'This is a practice run. Get your finger ready!' : open ? 'Tap HIT! In a real raid, each tap is one on-chain buy with no wallet popup.' : 'Practice over. In a real raid you set up one-tap once, then just tap.'}
                     </Guide>
                   </div>
                 }

@@ -64,7 +64,7 @@ export function Arena({ frame, phase, tentative }: { frame: Frame; phase: Phase;
   const tip =
     line ??
     (phase === 'upcoming'
-      ? 'Arm one-tap now so you are ready the second the window opens!'
+      ? 'Set up one-tap now (once, it works for every raid) so you are ready the second the window opens!'
       : phase === 'live'
         ? 'Hit early! The end block can land anywhere in the danger zone.'
         : phase === 'danger'
