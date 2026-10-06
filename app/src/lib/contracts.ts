@@ -38,6 +38,7 @@ export function explainError(e: unknown): string {
   if (/User rejected|denied/i.test(msg)) return 'You cancelled it in your wallet. Nothing was sent.'
   // Monad's RPC answers "Missing or invalid parameters" + "Signer had insufficient balance" when the
   // sender cannot cover gas limit x max fee (Monad bills the limit).
+  if (/reserve balance/i.test(msg)) return 'The network is still crediting the MON that was just sent (Monad needs a couple of seconds). Try again in a moment.'
   if (/insufficient (funds|balance)/i.test(msg)) return 'Not enough MON for gas. Monad charges the full gas limit up front, so top up a little MON and try again.'
   if (/requests limited|429|rate limit/i.test(msg)) return 'The testnet RPC is busy (rate limited). Wait a second and try again.'
   if (/Missing or invalid parameters/i.test(msg)) return 'The network refused the transaction, usually because there is not enough MON for gas. Top up and try again.'

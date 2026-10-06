@@ -60,6 +60,7 @@ describe('explainError', () => {
     expect(explainError(monad)).toMatch(/Not enough MON for gas/)
     expect(explainError(new Error('Missing or invalid parameters.'))).toMatch(/not enough MON/)
     expect(explainError(Object.assign(new Error('RPC Request failed.'), { details: 'requests limited to 15/sec' }))).toMatch(/rate limited/)
+    expect(explainError(Object.assign(new Error('RPC Request failed.'), { details: 'reserve balance violation' }))).toMatch(/still crediting/)
   })
 })
 
