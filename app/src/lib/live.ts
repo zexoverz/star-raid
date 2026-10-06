@@ -13,13 +13,16 @@ export const raidsQuery = queryOptions({
     return r.json()
   },
   // Poll every second around the expected start so the lobby flips to JOIN NOW without a gap,
-  // otherwise every 5 s. This hits our live service, not the rate-limited RPC.
+  // otherwise every 5 s. This hits our live service, not the rate-limited RPC, so it keeps polling
+  // in a background tab and refetches the moment the tab is focused again.
   refetchInterval: (q) => {
     const rows = q.state.data
     if (rows?.some((r) => ['live', 'danger', 'upcoming'].includes(phaseOf(r)))) return 5_000
     const at = nextRaidAt(rows)
     return at !== null && at - Date.now() < 60_000 ? 1_000 : 5_000
   },
+  refetchIntervalInBackground: true,
+  refetchOnWindowFocus: 'always',
 })
 
 export const raidQuery = (id: string) =>
