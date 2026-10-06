@@ -7,6 +7,7 @@ import { PHASE_LABEL, blocksToSec, isActive, phaseOf, sortLobby, type Phase } fr
 import { CrewRow, Guide, Mascot } from '../components/mascots'
 import { GetReady } from '../components/getready'
 import { NextRaidCountdown } from '../components/countdown'
+import { EmptyState } from '../components/empty'
 import { PREVIEW_GALLERY } from '../lib/stars'
 import type { LobbyRaid } from '../lib/types'
 
@@ -55,7 +56,13 @@ function Lobby() {
                     <RaidRow raid={r} head={head} />
                   </li>
                 ))}
-                {!raids.isLoading && recent.length === 0 && <li className="text-sm text-grape-300">No earlier raids yet.</li>}
+                {!raids.isLoading && recent.length === 0 && (
+                  <li>
+                    <EmptyState scene="no-recent" title="No earlier raids yet" size="sm">
+                      Past raids land here once they settle.
+                    </EmptyState>
+                  </li>
+                )}
               </ul>
             </div>
           </div>

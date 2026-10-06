@@ -8,6 +8,7 @@ import type { Frame, FrameBuy } from '../lib/types'
 import { GameBar, Sprite, StarAvatar } from './game'
 import { CrewRow, Guide, Mascot } from './mascots'
 import { PlayerPill } from './profile'
+import { EmptyState } from './empty'
 
 /**
  * The draw, told as a show in five beats. Every number comes from the frame (the chain), the show
@@ -131,7 +132,13 @@ export function DrawCurtain({ frame, phase, replay, onDone }: { frame: Frame; ph
                     </span>
                   </div>
                   <ul className="max-h-[32vh] space-y-1.5 overflow-y-auto pr-1">
-                    {hits.length === 0 && <li className="rounded-xl bg-grape-950/40 px-3 py-2 text-sm text-grape-300">No Star landed a hit in this raid, so there is nothing to count.</li>}
+                    {hits.length === 0 && (
+                      <li>
+                        <EmptyState scene="no-count" title="Nothing to count" size="sm">
+                          No Star landed a hit in this raid.
+                        </EmptyState>
+                      </li>
+                    )}
                     <AnimatePresence initial={false}>
                       {shown.map((b) => (
                         <JudgedHit key={b.id} b={b} decimals={t.quoteDecimals} />
