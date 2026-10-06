@@ -469,3 +469,15 @@ no secrets in the image.
 `main` (since PR #30 merged): every push to `main` that touches `app/**`, `deployments/**` or
 `.dockerignore` rebuilds and redeploys from `app/Dockerfile` (service setting, not a config file;
 Railway has deprecated `railway.json`).
+
+## D38. Share cards from a small Node server, not Next (6 Oct)
+
+**Claim.** The app is Vite, so the ticket's `opengraph-image.tsx` has no home. `app/server/index.mjs`
+serves `dist/` and adds: `/r/:raid/:seat` (the SPA with `og:*` and `twitter:card=summary_large_image`
+meta for that seat) and `/og/:raid/:seat.png` (1200x630, satori to resvg, fonts loaded from file).
+`seat` is the Star token id, or `raid` for a raid card. Every number on the card is from the live
+frame: counted vs target, seats, wall share, no-seat buys. No price. The share page has Post on X (web
+intent with UTM `utm_source=x&utm_medium=share&utm_campaign=raid<id>`), Save image and Copy link.
+Practice raids have no share link. Caddy is gone; the `web` image runs `node server/index.mjs`.
+
+**Reverses it.** Moving the app to Next; then the card tree in `renderCard` ports to `ImageResponse`.

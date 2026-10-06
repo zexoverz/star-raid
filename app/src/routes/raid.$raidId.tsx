@@ -106,7 +106,7 @@ function RaidPage() {
 
         {settled && (
           <div className="mb-6 space-y-6">
-            <ResultBanner frame={view} phase={phase} onReplay={() => setReplay((r) => r + 1)} />
+            <ResultBanner frame={view} phase={phase} me={address} onReplay={() => setReplay((r) => r + 1)} />
             <LootPanel frame={view} phase={phase} />
           </div>
         )}

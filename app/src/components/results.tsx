@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import { motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { fmt, duration, ratio } from '../lib/format'
@@ -12,9 +13,10 @@ import { CrewRow, Guide } from './mascots'
 import { TxSteps } from './join'
 
 /** VICTORY / WALL HELD banner. Every number is one the chain shows. */
-export function ResultBanner({ frame, phase, onReplay }: { frame: Frame; phase: Phase; onReplay: () => void }) {
+export function ResultBanner({ frame, phase, onReplay, me, shareable = true }: { frame: Frame; phase: Phase; onReplay: () => void; me?: string; shareable?: boolean }) {
   const t = frame.terms
   const won = phase === 'victory'
+  const mySeat = me ? (frame.seats.find((s) => s.player.toLowerCase() === me.toLowerCase())?.tokenId ?? null) : null
   const share = ratio(frame.totals.wallFillQuote, frame.totals.quoteSpent)
   const countedBuys = frame.buys.filter((b) => b.seatKey && b.afterEnd === false).length
   const lateBuys = frame.buys.filter((b) => b.afterEnd).length
@@ -55,6 +57,11 @@ export function ResultBanner({ frame, phase, onReplay }: { frame: Frame; phase: 
               🎭 Replay the draw
             </button>
           )}
+          {shareable && (
+            <Link to="/r/$raidId/$seat" params={{ raidId: frame.raidId, seat: mySeat ?? 'raid' }} className="btn btn-candy px-5 py-2 text-sm">
+              📣 {mySeat ? 'Share your card' : 'Share this raid'}
+            </Link>
+          )}
         </div>
       </div>
     </motion.div>
@@ -71,7 +78,7 @@ function Big({ label, value, hint }: { label: string; value: string; hint?: stri
 }
 
 /** The seat split, podium style. */
-export function Podium({ frame }: { frame: Frame }) {
+export function Podium({ frame, shareable = true }: { frame: Frame; shareable?: boolean }) {
   const t = frame.terms
   const top = frame.seats.slice(0, 3)
   if (!top.length) return null
@@ -96,6 +103,11 @@ export function Podium({ frame }: { frame: Frame }) {
               <div className={`mt-2 w-full rounded-t-2xl ${heights[rank]} grid place-items-start justify-center pt-2 font-display text-3xl text-white`} style={{ background: ['linear-gradient(#ffd27a,#ff8c42)', 'linear-gradient(#ece8ff,#b8aee6)', 'linear-gradient(#ffb48a,#c56a3a)'][rank], boxShadow: '0 4px 0 #2d2250' }}>
                 {rank + 1}
               </div>
+              {shareable && s.tokenId && (
+                <Link to="/r/$raidId/$seat" params={{ raidId: frame.raidId, seat: s.tokenId }} className="mt-2 text-xs font-bold text-candy-300 underline">
+                  share card
+                </Link>
+              )}
             </motion.div>
           )
         })}
