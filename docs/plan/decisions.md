@@ -391,3 +391,16 @@ show the mechanism working, not demand.
 The first real-RPC run also showed `live/` sending finalized frames only: on public testnet a read takes
 longer than the finalized poll, and finalized reads always won the queue. Proposed and finalized now
 take turns (raid 4 stream: 32 proposed, 33 finalized frames).
+
+## D33. `live/` is hosted on Railway; the keeper is not
+
+**Claim.** Railway project `star-raid`, service `live`, deployed from `live/` with `CHAIN=testnet` and
+the D29 addresses: https://live-production-e50b.up.railway.app (`/health`, `/raids/:id`,
+`/raids/:id/stream`). The keeper still runs locally (`keeper/`, `pnpm start`).
+
+**Why.** The frontend needs a public SSE endpoint. A hosted keeper needs a private key in Railway, and the
+dev wallet rule forbids exporting `zexo-secondary`; the clean way is a fresh keeper key set with
+`vault.setKeeper`, which is his call, and it is only needed once raids run on a schedule.
+
+**Reverses it.** Scheduled raids; then create a dedicated keeper key, fund it, `setKeeper`, and add a
+`keeper` service with `PRIVATE_KEY` as a Railway secret.
