@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as HowRouteImport } from './routes/how'
+import { Route as KeyRouteImport } from './routes/key'
 import { Route as PracticeRouteImport } from './routes/practice'
 import { Route as RaidsRouteImport } from './routes/raids'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -25,6 +26,11 @@ const IndexRoute = IndexRouteImport.update({
 const HowRoute = HowRouteImport.update({
   id: '/how',
   path: '/how',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KeyRoute = KeyRouteImport.update({
+  id: '/key',
+  path: '/key',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PracticeRoute = PracticeRouteImport.update({
@@ -56,6 +62,7 @@ const RRaidIdSeatRoute = RRaidIdSeatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/how': typeof HowRoute
+  '/key': typeof KeyRoute
   '/practice': typeof PracticeRoute
   '/raids': typeof RaidsRoute
   '/terms': typeof TermsRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/how': typeof HowRoute
+  '/key': typeof KeyRoute
   '/practice': typeof PracticeRoute
   '/raids': typeof RaidsRoute
   '/terms': typeof TermsRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/how': typeof HowRoute
+  '/key': typeof KeyRoute
   '/practice': typeof PracticeRoute
   '/raids': typeof RaidsRoute
   '/terms': typeof TermsRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/how'
+    | '/key'
     | '/practice'
     | '/raids'
     | '/terms'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/how'
+    | '/key'
     | '/practice'
     | '/raids'
     | '/terms'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/how'
+    | '/key'
     | '/practice'
     | '/raids'
     | '/terms'
@@ -114,6 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   HowRoute: typeof HowRoute
+  KeyRoute: typeof KeyRoute
   PracticeRoute: typeof PracticeRoute
   RaidsRoute: typeof RaidsRoute
   TermsRoute: typeof TermsRoute
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/how'
       fullPath: '/how'
       preLoaderRoute: typeof HowRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/key': {
+      id: '/key'
+      path: '/key'
+      fullPath: '/key'
+      preLoaderRoute: typeof KeyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/practice': {
@@ -178,6 +198,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HowRoute: HowRoute,
+  KeyRoute: KeyRoute,
   PracticeRoute: PracticeRoute,
   RaidsRoute: RaidsRoute,
   TermsRoute: TermsRoute,

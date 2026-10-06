@@ -43,7 +43,7 @@ export function NextRaidChip() {
     )
   if (n.at === null) return null
   return (
-    <span className="chip hidden bg-grape-900/80 text-cream-100 lg:inline-flex" title={`Next demo raid at about ${n.clock} (estimate)`}>
+    <span className="chip hidden whitespace-nowrap bg-grape-900/80 text-cream-100 xl:inline-flex" title={`Next demo raid at about ${n.clock} (estimate)`}>
       ⏳ next raid {n.due ? 'soon' : n.mmss}
     </span>
   )

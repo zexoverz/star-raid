@@ -5,7 +5,7 @@ import { blocksToSec, type Phase } from '../lib/phase'
 import { STAR_NAMES, starArt } from '../lib/stars'
 import type { Frame } from '../lib/types'
 import { BotAvatar, Sprite, StarAvatar } from './game'
-import { Mascot } from './mascots'
+import { EmptyState } from './empty'
 import { PlayerPill } from './profile'
 
 /**
@@ -129,10 +129,9 @@ export function Party({ frame, me }: { frame: Frame; me?: string }) {
 
 function EmptyParty() {
   return (
-    <div className="dashed-card flex items-end gap-3 p-3 text-sm text-grape-300" style={{ ['--card-color' as string]: '#7a6eb2' }}>
-      <Mascot who="chog" pose="wait" className="h-24 w-auto" />
-      <span className="pb-2">No seats yet. The first Star to hit the wall opens the party!</span>
-    </div>
+    <EmptyState scene="no-seats" title="No seats yet" size="sm">
+      The first Star to hit the wall opens the party!
+    </EmptyState>
   )
 }
 
@@ -149,7 +148,9 @@ export function HitFeed({ frame }: { frame: Frame }) {
         <span className="chip bg-grape-700 text-grape-100">{plural(frame.buys.length, 'hit')}</span>
       </div>
       {buys.length === 0 ? (
-        <p className="text-sm text-grape-300">No hits yet.</p>
+        <EmptyState scene="no-hits" title="No hits yet" size="sm">
+          Every buy from the wall shows up here the block it lands.
+        </EmptyState>
       ) : (
         <ul className="max-h-[360px] space-y-1.5 overflow-y-auto pr-1">
           <AnimatePresence initial={false}>

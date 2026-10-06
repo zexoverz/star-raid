@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { motion } from 'motion/react'
 import { useState } from 'react'
+import { EmptyState, type EmptyScene } from '../components/empty'
 import { Guide } from '../components/mascots'
 import { useRaids } from '../lib/live'
 import { isActive, phaseOf, sortLobby } from '../lib/phase'
@@ -15,6 +16,12 @@ const FILTERS: { id: Filter; label: string }[] = [
   { id: 'victory', label: 'Walls broken' },
   { id: 'held', label: 'Wall held' },
 ]
+const EMPTY: Record<Filter, { scene: EmptyScene; title: string; body: string }> = {
+  all: { scene: 'no-raids', title: 'No raids posted yet', body: 'When a sponsor puts up a wall, it shows up here. Demo raids post about every hour.' },
+  active: { scene: 'no-live', title: 'Nothing live right now', body: 'The next demo raid opens about every hour. A toast pops up the moment it does, on any page.' },
+  victory: { scene: 'no-wins', title: 'No walls broken yet', body: 'Be the crew that breaks the first one. Hit early, the end block is drawn at random.' },
+  held: { scene: 'no-held', title: 'Every wall fell!', body: 'No raid here ended with the wall still standing. Keep it that way.' },
+}
 const PAGE = 12
 
 /** Every raid on record, newest first, filterable, paged so the list can grow forever. */
@@ -33,8 +40,8 @@ function RaidBoard() {
   const wins = (raids.data ?? []).filter((r) => r.won).length
 
   return (
-    <main className="pb-6 pt-28">
-      <BrickBackdrop className="pb-10 pt-6">
+    <main className="flex min-h-dvh flex-col pt-28">
+      <BrickBackdrop className="flex-1 pb-16 pt-6">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
             <div>
@@ -59,7 +66,11 @@ function RaidBoard() {
 
           <div className="mt-6">
             {raids.isError && <ErrorCard />}
-            {!raids.isLoading && rows.length === 0 && <p className="panel p-6 text-grape-300">No raids here yet.</p>}
+            {!raids.isLoading && rows.length === 0 && (
+              <EmptyState scene={EMPTY[filter].scene} title={EMPTY[filter].title} size="lg" action={filter !== 'all' ? <button className="btn btn-ghost px-5 py-2 text-sm" onClick={() => setFilter('all')}>Show all raids</button> : undefined}>
+                {EMPTY[filter].body}
+              </EmptyState>
+            )}
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {rows.slice(0, shown).map((r, i) => (
                 <motion.div key={r.raidId} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i, 8) * 0.04 }}>
