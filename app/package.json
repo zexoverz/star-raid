@@ -13,6 +13,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@reown/appkit": "^1.8.24",
+    "@reown/appkit-adapter-wagmi": "^1.8.24",
     "@resvg/resvg-js": "^2.6.2",
     "@tanstack/react-query": "^5.104.1",
     "@tanstack/react-router": "^1.170.41",
