@@ -18,6 +18,9 @@ describe("demo raids", () => {
     expect(shouldPostDemo([r(Status.Settled)], 10_000, 6_000, 5_000)).toBe(false);
     expect(shouldPostDemo([], 1, 0, 1)).toBe(true);
   });
+  it("waits for the last raid's wall to be swept (it would sit in front of the new wall)", () => {
+    expect(shouldPostDemo([{ ...r(Status.Settled), wallRecovered: false }], 10_000, 0, 1)).toBe(false);
+  });
   it("posts terms the vault accepts, with explicit gas on every step", () => {
     const txs = demoTxs({ vault: A, market: A, baseToken: A, quoteToken: A }, A, 1000n);
     expect(txs.every((t) => t.gas > 0n)).toBe(true);

@@ -18,6 +18,7 @@ type RaidOut = {
   endBlock: bigint;
   settledAt: bigint;
   won: boolean;
+  wallRecovered: boolean;
   countedTotal: bigint;
 };
 
@@ -47,7 +48,10 @@ export class MulticallReader implements Reader {
   /** Called after a finalized frame is published, so terminal raids stop costing reads. */
   retire(raidId: bigint) {
     const r = this.known.get(raidId);
-    if (r && (r.status === SETTLED || r.status === ABORTED) && this.complete.has(raidId)) this.done.add(raidId);
+    if (!r || !this.complete.has(raidId)) return;
+    // a settled raid keeps changing until its wall is swept: the wall goes from active to cancelled
+    const settledAndSwept = Number(r.status) === SETTLED && (r.wallRecovered || r.wallId === 0);
+    if (Number(r.status) === ABORTED || settledAndSwept) this.done.add(raidId);
   }
 
   async readAt(block: bigint): Promise<RaidSnapshot[]> {
