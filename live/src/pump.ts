@@ -5,6 +5,7 @@ import type { BuyLog, SeatLog } from "./events.js";
 
 export interface Logs {
   sync(head: bigint, finalized: bigint): Promise<void>;
+  backfill?(raid: { raidId: bigint; w0: bigint; w1: bigint; settled: boolean }): Promise<void>;
   forRaid(raidId: bigint, block: bigint): { buys: BuyLog[]; seats: SeatLog[] };
 }
 
@@ -77,6 +78,7 @@ export class Pump {
           await this.logs.sync(head, this.lastFinalized);
           const snaps = await this.reader.readAt(block);
           for (const s of snaps) {
+            await this.logs.backfill?.({ raidId: s.raidId, w0: s.w0, w1: s.w1, settled: s.status === 5 });
             this.hub.publish(buildFrame(s, this.logs.forRaid(s.raidId, block), block, state));
             if (state === "finalized") this.reader.retire?.(s.raidId);
           }
