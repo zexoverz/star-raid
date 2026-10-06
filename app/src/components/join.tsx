@@ -8,11 +8,11 @@ import { useActions, usePlayerSeat, useWalletKit } from '../lib/player'
 import { play } from '../lib/sfx'
 import { STAR_NAMES, starArt } from '../lib/stars'
 import type { Frame } from '../lib/types'
-import { Sprite, StarAvatar } from './game'
+import { StarAvatar } from './game'
+import { HitPad } from './hitpad'
 import { Guide } from './mascots'
 import { WalletButton } from './wallet'
 
-const HIT_SIZES = [3, 5, 10]
 const BUDGETS = [10, 25, 50]
 
 /**
@@ -31,9 +31,7 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
   const open = phase === 'live' || phase === 'danger'
   const [pick, setPick] = useState<string | null>(null)
   const [budget, setBudget] = useState(25)
-  const [hit, setHit] = useState(5)
   const [confirm, setConfirm] = useState(false)
-  const [burst, setBurst] = useState(0)
   const isSponsor = kit.address && kit.address.toLowerCase() === t.sponsor.toLowerCase()
   const myStar = useMemo(() => one.session?.tokenId ?? pick ?? kit.myStars[0] ?? null, [one.session, pick, kit.myStars])
 
@@ -52,7 +50,7 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
   if (isSponsor)
     return (
       <Shell>
-        <Guide who="bear">This wallet posted the raid. Sponsors can't hit their own wall. Cheer from the side!</Guide>
+        <Guide who="bear" pose="cheer">This wallet posted the raid. Sponsors can't hit their own wall. Cheer from the side!</Guide>
       </Shell>
     )
 
@@ -61,62 +59,33 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
 
   // ---- Armed: the one-tap pad
   if (one.session) {
-    const hitUnits = parseUnits(String(hit), t.quoteDecimals)
-    const canHit = open && one.usdc >= hitUnits && one.mon > 0n
     return (
       <Shell>
-        <div className="flex items-center gap-3">
-          <StarAvatar tokenId={one.session.tokenId} size={56} />
-          <div className="min-w-0 flex-1">
-            <div className="font-display text-lg leading-tight text-white">One-tap armed</div>
-            <div className="text-xs text-grape-300">
-              Star #{one.session.tokenId} · {fmt(one.usdc, t.quoteDecimals)} tUSDC left · {one.hits} hits landed
-            </div>
-          </div>
-          <span className="chip bg-mint/20 text-mint">⚡ no popups</span>
-        </div>
-
-        <div className="mt-4 flex gap-2">
-          {HIT_SIZES.map((h) => (
-            <button key={h} onClick={() => (setHit(h), play('click'))} className={`flex-1 rounded-2xl py-2 font-display text-lg transition ${hit === h ? 'bg-ember-500 text-white shadow-[0_4px_0_#b4470a]' : 'bg-grape-800 text-grape-100 hover:bg-grape-700'}`}>
-              {h}
-              <span className="ml-1 text-xs opacity-70">tUSDC</span>
-            </button>
-          ))}
-        </div>
-
-        <motion.button
-          whileTap={{ scale: 0.92 }}
-          disabled={!canHit}
-          onClick={async () => {
-            play('hit')
-            setBurst((b) => b + 1)
-            await one.tap(hitUnits)
-          }}
-          className="btn btn-primary relative mt-4 h-28 w-full overflow-visible text-4xl"
-        >
-          <AnimatePresence>
-            <motion.span key={burst} className="pointer-events-none absolute inset-0 grid place-items-center" initial={{ scale: 0.4, opacity: 1 }} animate={{ scale: 1.8, opacity: 0 }} transition={{ duration: 0.5 }}>
-              {burst > 0 && <Sprite name="hit_spark" className="h-40 w-40" />}
-            </motion.span>
-          </AnimatePresence>
-          {open ? '⚔ HIT!' : phase === 'upcoming' ? 'Get ready…' : 'Window closed'}
-        </motion.button>
-        <div className="mt-2 flex justify-between text-xs text-grape-300">
-          <span>{one.inflight > 0 ? `${one.inflight} hit(s) flying…` : 'Tap as fast as you like'}</span>
-          <span>gas {Number(one.mon) / 1e18 < 0.01 ? 'low!' : `${(Number(one.mon) / 1e18).toFixed(2)} MON`}</span>
-        </div>
-        {one.usdc < hitUnits && open && <p className="mt-2 text-xs text-candy-300">Budget used up. Sweep back and arm again to keep hitting.</p>}
-        {one.error && <p className="mt-3 rounded-xl bg-candy-600/30 p-2 text-sm text-candy-300">{one.error}</p>}
-        {one.status && <p className="mt-3 text-sm text-grape-300">{one.status}…</p>}
-
-        <div className="mt-4 flex items-center justify-between gap-2 border-t border-grape-700 pt-3 text-xs text-grape-300">
-          <span title={one.keyAddress}>Raid key {one.keyAddress?.slice(0, 8)}… lives only in this tab</span>
-          <button className="underline hover:text-white" disabled={!!one.status} onClick={() => one.sweep()}>
-            Return leftovers
-          </button>
-        </div>
-        {keySeat.seatKey && <p className="mt-1 text-[11px] text-grape-300">Your bought tSTAR is held for this seat; claim it from here after settle.</p>}
+        <HitPad
+          tokenId={one.session.tokenId}
+          decimals={t.quoteDecimals}
+          balance={one.usdc}
+          open={open && one.mon > 0n}
+          label={open ? '⚔ HIT!' : phase === 'upcoming' ? 'Get ready…' : 'Window closed'}
+          hits={one.hits}
+          inflight={one.inflight}
+          onHit={(amount) => one.tap(amount)}
+          error={one.error}
+          footer={
+            <>
+              {one.status && <p className="mt-3 text-sm text-grape-300">{one.status}…</p>}
+              <div className="mt-4 flex items-center justify-between gap-2 border-t border-grape-700 pt-3 text-xs text-grape-300">
+                <span title={one.keyAddress}>
+                  Raid key {one.keyAddress?.slice(0, 8)}… lives only in this tab · gas {(Number(one.mon) / 1e18).toFixed(2)} MON
+                </span>
+                <button className="underline hover:text-white" disabled={!!one.status} onClick={() => one.sweep()}>
+                  Return leftovers
+                </button>
+              </div>
+              {keySeat.seatKey && <p className="mt-1 text-[11px] text-grape-300">Your bought tSTAR is held for this seat; claim it from here after settle.</p>}
+            </>
+          }
+        />
       </Shell>
     )
   }
@@ -124,7 +93,7 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
   // ---- Not armed: setup
   return (
     <Shell>
-      <Guide who={needStar ? 'chog' : 'fox'} size="h-24">
+      <Guide who={needStar ? 'chog' : 'fox'} pose={needStar ? 'wait' : open ? 'attack' : 'think'} size="h-28">
         {needStar || needUsdc ? 'First, grab a test Star and some test USDC. They are free on testnet!' : open ? 'The wall is up! Arm one-tap and start hitting.' : 'Arm now, so you are ready the second it opens.'}
       </Guide>
 

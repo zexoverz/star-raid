@@ -11,6 +11,7 @@ import { LootPanel, Podium, ResultBanner } from '../components/results'
 import { fmt, duration, short } from '../lib/format'
 import { useRaidStream } from '../lib/live'
 import { PHASE_LABEL, phaseOf } from '../lib/phase'
+import { Guide } from '../components/mascots'
 import { PhaseChip, useHead } from './index'
 
 export const Route = createFileRoute('/raid/$raidId')({ component: RaidPage })
@@ -90,6 +91,17 @@ function RaidPage() {
               <p className="text-grape-300">It never opened (for example the start check failed or setup ran late). The sponsor's wall and prize went back in full and nobody could buy.</p>
             </div>
           </Panel>
+        )}
+
+        {(settled || phase === 'called-off') && (
+          <div className="panel mb-6 flex flex-wrap items-center justify-between gap-4 p-4">
+            <Guide who="fox" size="h-16">
+              This raid is over, so there is nothing to hit. Try the one-tap HIT pad in a practice raid while the next one is set up!
+            </Guide>
+            <Link to="/practice" className="btn btn-candy px-6 py-3">
+              ⚡ Try one-tap
+            </Link>
+          </div>
         )}
 
         {settled && (

@@ -16,6 +16,7 @@ export function TopBar() {
         </Link>
         <nav className="glass hidden items-center gap-1 rounded-full px-2 py-1.5 md:flex">
           <NavLink to="/">Lobby</NavLink>
+          <NavLink to="/practice">Practice</NavLink>
           <NavLink to="/how">How it works</NavLink>
           <NavLink to="/terms">Terms</NavLink>
         </nav>
@@ -35,7 +36,7 @@ export function TopBar() {
   )
 }
 
-function NavLink({ to, children }: { to: '/' | '/how' | '/terms'; children: React.ReactNode }) {
+function NavLink({ to, children }: { to: '/' | '/how' | '/terms' | '/practice'; children: React.ReactNode }) {
   return (
     <Link
       to={to}
@@ -55,11 +56,11 @@ export function Footer() {
         <div className="flex items-center gap-3">
           <img src="/art/lilstars/logo.webp" alt="Lil Stars" className="h-14 w-14" />
           <p className="max-w-md">
-            Lil Stars characters and art are the work of the{' '}
+            Lil Stars characters are the creation of the{' '}
             <a className="font-bold text-candy-300 underline" href="https://lilstars.xyz" target="_blank" rel="noreferrer">
               Lil Stars team
             </a>
-            , shown unaltered. Testnet seats show preview art.
+            . Raid poses and outfits are Star Raid event art made from their designs. Testnet seats show preview art from the collection.
           </p>
         </div>
         <p className="max-w-sm">Monad testnet. Orders on Kuru's on-chain book. End block drawn by Pyth Entropy. No prices, no returns: only what the chain shows.</p>
