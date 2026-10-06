@@ -114,3 +114,19 @@ describe("pump on a slow RPC", () => {
     expect(states.filter((s) => s === "finalized").length).toBeGreaterThan(2);
   });
 });
+
+describe("raid list", () => {
+  it("lists every raid newest first, finalized when known, without the long lists", () => {
+    const hub = new Hub();
+    const f = (id: bigint, state: "proposed" | "finalized", block: bigint) =>
+      ({ ...JSON.parse(JSON.stringify({ raidId: id.toString(), state, block: block.toString(), buys: [1, 2], seats: [1] })) });
+    hub.publish(f(1n, "finalized", 10n));
+    hub.publish(f(2n, "proposed", 12n));
+    hub.publish(f(2n, "finalized", 11n));
+    const l = hub.list() as Array<Record<string, unknown>>;
+    expect(l.map((x) => x.raidId)).toEqual(["2", "1"]);
+    expect(l[0].state).toBe("finalized");
+    expect(l[0].buyCount).toBe(2);
+    expect(l[0]).not.toHaveProperty("buys");
+  });
+});

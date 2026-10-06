@@ -15,7 +15,7 @@ function json(res: ServerResponse, code: number, body: unknown) {
   res.end(JSON.stringify(body));
 }
 
-/** GET /health, GET /raids/:id, GET /raids/:id/stream. Serves cached frames only. */
+/** GET /health, GET /raids, GET /raids/:id, GET /raids/:id/stream. Serves cached frames only. */
 export function startServer(hub: Hub, port: number, health: () => unknown): Server {
   const server = createServer((req, res) => {
     if (req.method === "OPTIONS") {
@@ -26,6 +26,8 @@ export function startServer(hub: Hub, port: number, health: () => unknown): Serv
     if (req.method !== "GET" || !req.url) return json(res, 405, { error: "GET only" });
     const path = new URL(req.url, "http://x").pathname;
     if (path === "/health") return json(res, 200, health());
+
+    if (path === "/raids") return json(res, 200, hub.list());
 
     const m = path.match(/^\/raids\/(\d+)(\/stream)?$/);
     if (!m) return json(res, 404, { error: "not found" });
