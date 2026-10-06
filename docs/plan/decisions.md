@@ -519,3 +519,20 @@ accounts"). Fix: after funding, wait until 5 blocks past the funding block, and 
 for balance up to 5 times with backoff. The key is saved to localStorage before any funds move, so a
 retry resumes the same key and tops up only what is missing, and any unfinished key with funds shows
 a "Send it back" button. The two raid #9 keys predate this and their private keys were never stored.
+
+## D42. One-tap is set up once per wallet, not per raid (6 Oct)
+
+Raids last about a minute, so signing and funding a new raid key every raid cost players most of
+the window. Now the browser keeps one raid key per connected wallet (localStorage), the holder signs
+one Bind seat pass valid 7 days, and the key approves the router once (max allowance; the key only
+ever holds what the holder sent it). SeatGate's Bind is `(holder, player, expiry)` with no raid id or
+token id, and the Star is checked against the holder at raid time, so the same pass plays every raid
+and any of the holder's Stars. Joining a later raid needs no popup while the pass is valid and the
+key has tUSDC and gas; the panel shows key balances, pass days left, a one-popup "Top up" and
+"Return to wallet". Claiming from the key sends the tSTAR to the wallet and keeps tUSDC and MON on
+the key for the next raid. Keys from the old per-raid design are found and swept back with one
+button. The fork e2e plays a second raid with the same key, pass and approval (25/25).
+
+The lobby also polls `/raids` in background tabs and on focus, rolls a missed schedule estimate to
+the next slot instead of sitting on "soon", and a root-level watcher toasts "Raid #N just opened"
+with a Jump in button on any page.

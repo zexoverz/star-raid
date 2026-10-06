@@ -296,7 +296,7 @@ function Mini({ label, value, unit }: { label: string; value: string; unit: stri
 function HowStrip() {
   const steps = [
     { who: 'chog' as const, pose: 'wait' as const, title: 'Bring a Star', body: 'One Lil Star = one seat per raid. Wallets without a seat can buy, but count for nothing.' },
-    { who: 'fox' as const, pose: 'attack' as const, title: 'Hit the wall', body: 'Arm one-tap once, then every hit is a single tap. Buys never fill above the cap.' },
+    { who: 'fox' as const, pose: 'attack' as const, title: 'Hit the wall', body: 'Set up one-tap once, then every hit in every raid is a single tap. Buys never fill above the cap.' },
     { who: 'bunny' as const, pose: 'watch' as const, title: 'The end is drawn', body: 'Pyth Entropy picks the end block after the window. Hits after it do not count.' },
     { who: 'bear' as const, pose: 'cheer' as const, title: 'Split the prize', body: 'Beat the target and seats share the prize by what they counted, after a short hold.' },
   ]

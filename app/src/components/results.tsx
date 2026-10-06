@@ -165,7 +165,7 @@ export function LootPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
                 className="btn btn-primary px-6 py-3 text-lg"
                 disabled={!holdOver || act.busy || !!one.status}
                 onClick={async () => {
-                  const ok = viaKey ? (await one.keyCall('claim')) && (await one.sweep()) : await act.claim(frame.raidId)
+                  const ok = viaKey ? (await one.keyCall('claim')) && (await one.sweep(false)) : await act.claim(frame.raidId)
                   if (ok) {
                     play('coin')
                     seat.refetch()
@@ -179,7 +179,7 @@ export function LootPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
                   className="btn btn-ghost px-5 py-3 text-sm"
                   disabled={act.busy || !!one.status}
                   onClick={async () => {
-                    const ok = viaKey ? (await one.keyCall('exitEarly')) && (await one.sweep()) : await act.exitEarly(frame.raidId)
+                    const ok = viaKey ? (await one.keyCall('exitEarly')) && (await one.sweep(false)) : await act.exitEarly(frame.raidId)
                     if (ok) seat.refetch()
                   }}
                 >
@@ -188,7 +188,7 @@ export function LootPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
               )}
             </div>
           )}
-          {viaKey && <p className="mt-2 text-xs text-grape-300">Claimed from your one-tap raid key, then everything is returned to your wallet.</p>}
+          {viaKey && <p className="mt-2 text-xs text-grape-300">Claimed from your one-tap raid key. Your tSTAR goes to your wallet; the prize and leftover tUSDC stay on the key for the next raid (“Return to wallet” any time).</p>}
           {one.status && <p className="mt-2 text-sm text-ember-300">{one.status}…</p>}
           <TxSteps steps={act.steps} error={act.error} />
         </div>

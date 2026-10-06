@@ -16,7 +16,9 @@ const LOOK: Record<Kind, { who: Who; pose: Pose; border: string; title: string }
   loading: { who: 'chog', pose: 'wait', border: '#F7C873', title: 'Working on it' },
 }
 
-function StarToast({ t, kind, message, title }: { t: Toast; kind: Kind; message: string; title?: string }) {
+type Action = { label: string; onClick: () => void }
+
+function StarToast({ t, kind, message, title, action }: { t: Toast; kind: Kind; message: string; title?: string; action?: Action }) {
   const look = LOOK[kind]
   return (
     <motion.div
@@ -35,6 +37,17 @@ function StarToast({ t, kind, message, title }: { t: Toast; kind: Kind; message:
           </button>
         </div>
         <div className="text-[14px] font-semibold leading-snug">{message}</div>
+        {action && (
+          <button
+            className="btn btn-primary mt-2 px-4 py-1.5 text-sm"
+            onClick={() => {
+              toast.dismiss(t.id)
+              action.onClick()
+            }}
+          >
+            {action.label}
+          </button>
+        )}
         <div className="mt-1 text-[10px] font-bold uppercase tracking-widest text-grape-500">{CREW[look.who].name}</div>
         <span className="absolute -left-[9px] bottom-4 h-4 w-4 rotate-45 border-b-[3px] border-l-[3px] border-dashed bg-cream-100" style={{ borderColor: look.border }} />
       </div>
@@ -42,18 +55,20 @@ function StarToast({ t, kind, message, title }: { t: Toast; kind: Kind; message:
   )
 }
 
-const show = (kind: Kind, message: string, opts?: { title?: string; id?: string; duration?: number }) =>
-  toast.custom((t) => <StarToast t={t} kind={kind} message={message} title={opts?.title} />, {
+type Opts = { title?: string; id?: string; duration?: number; action?: Action }
+
+const show = (kind: Kind, message: string, opts?: Opts) =>
+  toast.custom((t) => <StarToast t={t} kind={kind} message={message} title={opts?.title} action={opts?.action} />, {
     // The same message never stacks twice: it replaces the one already on screen.
     id: opts?.id ?? `${kind}:${message}`,
-    duration: opts?.duration ?? (kind === 'error' ? 7000 : kind === 'loading' ? Infinity : 4000),
+    duration: opts?.duration ?? (opts?.action ? 15000 : kind === 'error' ? 7000 : kind === 'loading' ? Infinity : 4000),
   })
 
 export const notify = {
-  error: (m: string, o?: { title?: string; id?: string }) => (play('defeat'), show('error', m, o)),
-  success: (m: string, o?: { title?: string; id?: string }) => (play('coin'), show('success', m, o)),
-  info: (m: string, o?: { title?: string; id?: string }) => show('info', m, o),
-  loading: (m: string, o?: { title?: string; id?: string }) => show('loading', m, o),
+  error: (m: string, o?: Opts) => (play('defeat'), show('error', m, o)),
+  success: (m: string, o?: Opts) => (play('coin'), show('success', m, o)),
+  info: (m: string, o?: Opts) => show('info', m, o),
+  loading: (m: string, o?: Opts) => show('loading', m, o),
   dismiss: (id?: string) => toast.dismiss(id),
 }
 

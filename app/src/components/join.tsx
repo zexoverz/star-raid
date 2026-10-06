@@ -18,9 +18,9 @@ const BUDGETS = [10, 25, 50]
 /**
  * Joining in three beats:
  *   1. Starter kit (testnet only): mint a test Star + tUSDC.
- *   2. Arm one-tap: pick your Star and a budget, read the plain confirm sheet, sign one seat pass
- *      and fund a throwaway raid key. That is the only time the wallet pops up.
- *   3. Tap HIT as often as you like while the window is open. No popups.
+ *   2. Set up one-tap once: pick your Star and a budget, read the plain confirm sheet, sign one seat
+ *      pass (7 days, any raid) and fund one raid key kept in this browser.
+ *   3. In this raid and every later one: tap HIT as often as you like. No popups.
  */
 export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
   const kit = useWalletKit()
@@ -58,8 +58,11 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
   const needStar = kit.myStars.length === 0 && !one.session
   const needUsdc = (kit.usdc ?? 0n) < parseUnits(String(budget), t.quoteDecimals) && !one.session
 
-  // ---- Armed: the one-tap pad
+  // ---- Set up once: the one-tap pad, in this raid and every later one
   if (one.session) {
+    const lowGas = one.mon < parseUnits('0.4', 18)
+    const noUsdc = one.usdc < amount
+    const passDays = one.passExpiry ? Math.max(0, Math.round((one.passExpiry - Date.now() / 1000) / 86400)) : 0
     return (
       <Shell>
         <StrandedNotice one={one} />
@@ -67,7 +70,7 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
           tokenId={one.session.tokenId}
           decimals={t.quoteDecimals}
           balance={one.usdc}
-          open={open && one.mon > 0n}
+          open={open && one.ready}
           label={open ? '⚔ HIT!' : phase === 'upcoming' ? 'Get ready…' : 'Window closed'}
           hits={one.hits}
           inflight={one.inflight}
@@ -77,19 +80,27 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
           footer={
             <>
               {one.status && <p className="mt-3 text-sm text-grape-300">{one.status}…</p>}
-              <div className="mt-4 flex items-center justify-between gap-2 border-t border-grape-700 pt-3 text-xs text-grape-300">
-                <span title={one.keyAddress}>
-                  Raid key {one.keyAddress?.slice(0, 8)}… lives only in this tab · gas {(Number(one.mon) / 1e18).toFixed(2)} MON
-                </span>
-                <button className="underline hover:text-white" disabled={!!one.status} onClick={() => one.sweep()}>
-                  Return leftovers
+              {(lowGas || noUsdc) && (
+                <button className="btn btn-candy mt-3 w-full py-2.5" disabled={!!one.status} onClick={() => one.arm(one.session!.tokenId, parseUnits(String(budget), t.quoteDecimals)).then((ok) => ok && kit.refetch())}>
+                  ⚡ Top up {noUsdc ? `${budget} tUSDC` : ''}{noUsdc && lowGas ? ' + ' : ''}{lowGas ? 'gas' : ''} (one popup)
+                </button>
+              )}
+              <div className="mt-4 grid grid-cols-3 gap-2 border-t border-grape-700 pt-3 text-center text-xs text-grape-300">
+                <div><div className="font-display text-base text-white">{fmt(one.usdc, t.quoteDecimals)}</div>tUSDC on key</div>
+                <div><div className="font-display text-base text-white">{(Number(one.mon) / 1e18).toFixed(2)}</div>MON gas</div>
+                <div><div className="font-display text-base text-white">{passDays}d</div>pass left</div>
+              </div>
+              <div className="mt-2 flex items-center justify-between gap-2 text-xs text-grape-300">
+                <span title={one.keyAddress}>Raid key {one.keyAddress?.slice(0, 8)}… stays in this browser, set up once.</span>
+                <button className="shrink-0 underline hover:text-white" disabled={!!one.status} onClick={() => one.sweep(true)}>
+                  Return to wallet
                 </button>
               </div>
               {keySeat.seatKey && <p className="mt-1 text-[11px] text-grape-300">Your bought tSTAR is held for this seat; claim it from here after settle.</p>}
             </>
           }
         />
-        <FloatingHit open={open && one.mon > 0n && one.usdc >= amount} amount={amount} onHit={(a) => one.tap(a)} />
+        <FloatingHit open={open && one.ready && one.usdc >= amount} amount={amount} onHit={(a) => one.tap(a)} />
       </Shell>
     )
   }
@@ -99,7 +110,7 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
     <Shell>
       <StrandedNotice one={one} />
       <Guide who={needStar ? 'chog' : 'fox'} pose={needStar ? 'wait' : open ? 'attack' : 'think'} size="h-28">
-        {needStar || needUsdc ? 'First, grab a test Star and some test USDC. They are free on testnet!' : open ? 'The wall is up! Arm one-tap and start hitting.' : 'Arm now, so you are ready the second it opens.'}
+        {needStar || needUsdc ? 'First, grab a test Star and some test USDC. They are free on testnet!' : open ? 'The wall is up! Set up one-tap and start hitting.' : 'Set up one-tap now. You only do it once, then every raid is tap-to-hit.'}
       </Guide>
 
       {(needStar || needUsdc) && (
@@ -142,9 +153,9 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
       </div>
 
       <button className="btn btn-primary w-full py-4 text-2xl" disabled={!myStar || needUsdc || !!one.status || phase === 'drawing'} onClick={() => (play('click'), setConfirm(true))}>
-        ⚡ Arm one-tap
+        ⚡ Set up one-tap
       </button>
-      <p className="mt-2 text-center text-xs text-grape-300">One signature + one funding step. After that, every hit is a single tap.</p>
+      <p className="mt-2 text-center text-xs text-grape-300">Set up once: one signature + one funding step. It then works in every raid for {7} days, with no popups.</p>
       {one.status && <p className="mt-3 text-center text-sm text-ember-300">{one.status}…</p>}
 
       <AnimatePresence>
@@ -175,20 +186,21 @@ function ConfirmSheet({ frame, budget, tokenId, onCancel, onGo }: { frame: Frame
   return (
     <motion.div className="fixed inset-0 z-50 grid place-items-end bg-grape-950/80 p-3 backdrop-blur-sm sm:place-items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onCancel}>
       <motion.div className="max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-3xl bg-cream-100 p-6 text-grape-900 shadow-2xl" initial={{ y: 40 }} animate={{ y: 0 }} exit={{ y: 40 }} onClick={(e) => e.stopPropagation()}>
-        <h3 className="text-xl font-extrabold">Before you arm one-tap</h3>
+        <h3 className="text-xl font-extrabold">Before you set up one-tap</h3>
         <dl className="mt-4 space-y-2 text-sm">
-          <Row k="Budget moved to your raid key" v={`${fmt(budget, t.quoteDecimals, 6)} tUSDC + about 1.3 MON for gas (8 hits)`} />
-          <Row k="Cap price" v={t.capPrice ? `${fmt(t.capPrice, t.quoteDecimals, 6)} tUSDC per tSTAR` : 'set when the raid opens'} />
+          <Row k="Moved to your raid key" v={`${fmt(budget, t.quoteDecimals, 6)} tUSDC + about 1.4 MON for gas (8 hits)`} />
+          <Row k="Cap price (this raid)" v={t.capPrice ? `${fmt(t.capPrice, t.quoteDecimals, 6)} tUSDC per tSTAR` : 'set when the raid opens'} />
           <Row k="Seat" v={`Lil Star #${tokenId}`} />
+          <Row k="Seat pass valid for" v="7 days, every raid" />
           <Row k="Hold after settle" v={duration(t.hold)} />
         </dl>
         <ul className="mt-4 list-disc space-y-1.5 pl-5 text-sm leading-relaxed">
-          <li>You sign one seat pass that lets a raid key created in this browser tab play your Star's seat for one hour. The key is never sent anywhere and can only spend the tUSDC you move to it.</li>
-          <li>Each tap buys tSTAR at or below the cap price. Cheaper asks on the book fill first. Anything not filled is cancelled in the same transaction and refunded to the raid key.</li>
+          <li>You sign one seat pass that lets a raid key created in this browser play your Stars' seats in any raid for 7 days. The key stays in this browser, is never sent anywhere, and can only spend the tUSDC and MON you move to it.</li>
+          <li>The raid key approves the raid router once, so later raids need no popup. Each tap buys tSTAR at or below that raid's cap price. Cheaper asks on the book fill first. Anything not filled is cancelled in the same transaction and refunded to the raid key.</li>
           <li>Only buys at or before the randomly drawn end block count toward the target.</li>
           <li>The tSTAR you buy is held by the router for your seat. If the raid wins, claims open after the hold. You can exit early after settle, but you forfeit your prize share.</li>
           <li>Kuru's admin can cancel orders on the book, including the sponsor's wall.</li>
-          <li>Use "Return leftovers" to send unused tUSDC, tSTAR and MON back to your wallet. Closing the tab loses the raid key.</li>
+          <li>Use "Return to wallet" any time to send the key's tUSDC, tSTAR and MON back. Clearing this browser's site data loses the raid key, so return funds first.</li>
           <li>Testnet, test tokens. Nothing here is a price, return or investment advice.</li>
         </ul>
         <div className="mt-6 flex gap-3">
@@ -196,7 +208,7 @@ function ConfirmSheet({ frame, budget, tokenId, onCancel, onGo }: { frame: Frame
             Cancel
           </button>
           <button className="flex-1 rounded-full bg-grape-700 py-3 font-bold text-white" onClick={onGo}>
-            I understand, arm
+            I understand, set up
           </button>
         </div>
       </motion.div>
@@ -239,13 +251,13 @@ function Label({ children }: { children: React.ReactNode }) {
   return <div className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-grape-300">{children}</div>
 }
 
-/** A raid key from an arm that did not finish still holds funds: one tap sends them back. */
+/** A raid key from the old one-key-per-raid setup still holds funds: one tap sends them back. */
 function StrandedNotice({ one }: { one: ReturnType<typeof useOneTap> }) {
   if (one.stranded.length === 0) return null
   return (
     <div className="dashed-card mb-4 flex items-center gap-3 p-3 text-sm" style={{ ['--card-color' as string]: '#FFB84D' }}>
       <div className="flex-1 text-grape-100">
-        An earlier setup did not finish, so a raid key still holds your tUSDC and MON.
+        An older raid key from this browser still holds some of your tUSDC, tSTAR or MON.
       </div>
       <button className="btn btn-primary shrink-0 px-3 py-1.5 text-xs" disabled={!!one.status} onClick={() => one.recover()}>
         Send it back
