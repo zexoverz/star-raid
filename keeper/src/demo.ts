@@ -24,6 +24,9 @@ const IN_FLIGHT = new Set<number>([Status.Posted, Status.Open, Status.Closing, S
 /** Post when nothing is in flight and the last demo is at least `everyMs` old. */
 export function shouldPostDemo(raids: RaidState[], nowMs: number, lastMs: number, everyMs: number): boolean {
   if (raids.some((r) => IN_FLIGHT.has(r.status))) return false;
+  // An unswept wall from the last raid is a cheaper ask in front of the next wall: every buy would
+  // fill it first and count for nothing (D39). Wait for recoverWall.
+  if (raids.some((r) => r.status === Status.Settled && !r.wallRecovered)) return false;
   return nowMs - lastMs >= everyMs;
 }
 
