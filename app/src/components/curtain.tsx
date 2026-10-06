@@ -78,18 +78,39 @@ export function DrawCurtain({ frame, phase, replay, onDone }: { frame: Frame; ph
                 <div className="title-outline mt-3 text-5xl">Drawing the end…</div>
                 <p className="mt-3 text-cream-100/90">Pyth Entropy is picking a block inside the danger zone. Nobody, not even us, knows it yet.</p>
                 <div className="mt-6">
-                  <CrewRow size="h-24" />
+                  <CrewRow size="h-24" pose="watch" />
                 </div>
               </motion.div>
             )}
           </div>
 
-          <motion.img src="/art/curtain.webp" alt="" className="absolute inset-y-0 left-0 h-full w-1/2 object-cover object-right" initial={{ x: '-100%' }} animate={{ x: stage === 'reveal' ? '-100%' : '0%' }} transition={{ duration: stage === 'reveal' ? 1.1 : 0.8, ease: [0.7, 0, 0.3, 1] }} />
-          <motion.img src="/art/curtain.webp" alt="" className="absolute inset-y-0 right-0 h-full w-1/2 -scale-x-100 object-cover object-right" initial={{ x: '100%' }} animate={{ x: stage === 'reveal' ? '100%' : '0%' }} transition={{ duration: stage === 'reveal' ? 1.1 : 0.8, ease: [0.7, 0, 0.3, 1] }} />
+          {/* Two curtain halves: closed they meet in the middle and cover the whole screen; on reveal
+              the left one slides out to the left and the right one out to the right. The motion
+              wrapper does the slide, the inner image does the mirroring, so transforms never clash. */}
+          <motion.div
+            className="absolute inset-y-0 left-0 z-20 w-[51%] overflow-hidden shadow-[12px_0_30px_rgba(0,0,0,0.5)]"
+            initial={{ x: '-100%' }}
+            animate={{ x: stage === 'reveal' ? '-100%' : '0%' }}
+            transition={{ duration: stage === 'reveal' ? 1.2 : 0.8, ease: [0.7, 0, 0.3, 1], delay: stage === 'reveal' ? 0.2 : 0 }}
+          >
+            <img src="/art/curtain.webp" alt="" className="h-full w-full object-cover" />
+            <div className="absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-black/40 to-transparent" />
+          </motion.div>
+          <motion.div
+            className="absolute inset-y-0 right-0 z-20 w-[51%] overflow-hidden shadow-[-12px_0_30px_rgba(0,0,0,0.5)]"
+            initial={{ x: '100%' }}
+            animate={{ x: stage === 'reveal' ? '100%' : '0%' }}
+            transition={{ duration: stage === 'reveal' ? 1.2 : 0.8, ease: [0.7, 0, 0.3, 1], delay: stage === 'reveal' ? 0.2 : 0 }}
+          >
+            <img src="/art/curtain.webp" alt="" className="h-full w-full object-cover" style={{ transform: 'scaleX(-1)' }} />
+            <div className="absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-black/40 to-transparent" />
+          </motion.div>
+          {/* valance across the top */}
+          <div className="absolute inset-x-0 top-0 z-30 h-16 bg-gradient-to-b from-[#2d2250] via-[#4a4373] to-transparent" />
           {stage === 'closed' && (
-            <motion.div className="absolute inset-x-0 bottom-10 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}>
+            <motion.div className="absolute inset-x-0 bottom-10 z-30 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}>
               <div className="mb-2 flex justify-center">
-                <Guide who="bunny" size="h-24">Shh… the curtain's closed. Pyth is rolling the end block!</Guide>
+                <Guide who="bunny" pose="watch" size="h-28">Shh… the curtain's closed. Pyth is rolling the end block!</Guide>
               </div>
               <div className="title-outline text-4xl">Drawing the end…</div>
               <motion.div className="mx-auto mt-3 h-2 w-56 overflow-hidden rounded-full bg-grape-950/70">
@@ -97,7 +118,7 @@ export function DrawCurtain({ frame, phase, replay, onDone }: { frame: Frame; ph
               </motion.div>
             </motion.div>
           )}
-          <button className="btn btn-ghost absolute right-4 top-4 z-10 px-4 py-2 text-xs" onClick={() => setStage('hidden')}>
+          <button className="btn btn-ghost absolute right-4 top-20 z-40 px-4 py-2 text-xs" onClick={() => setStage('hidden')}>
             Skip
           </button>
         </motion.div>
