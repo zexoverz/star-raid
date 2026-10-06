@@ -62,6 +62,9 @@ export class EventStore {
 
   async sync(head: bigint, finalized: bigint) {
     if (finalized > head) finalized = head;
+    // The first proposed head can arrive before the first finalized poll. Starting at "finalized 0"
+    // would treat the whole chain as the tentative tail, so wait until a finalized block is known.
+    if (finalized <= 0n) return;
     if (this.finalizedTo === null) {
       this.finalizedTo = finalized;
       this.historyEnd = finalized;
