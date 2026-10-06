@@ -15,7 +15,8 @@ mkdir -p "$LOGS" "$ROOT/deployments"
 
 [ "$($F/cast chain-id --rpc-url "$RPC")" = 10143 ] || { echo "not Monad testnet"; exit 1; }
 need() { local b; b=$($F/cast balance "$1" --rpc-url "$RPC"); [ "$(echo "$b >= $2" | bc)" = 1 ] || { echo "$1 has $($F/cast from-wei "$b") MON, needs $($F/cast from-wei "$2")"; exit 1; }; }
-need $MAIN 3000000000000000000
+# a deploy costs ~1.6 MON on top of the raid itself (sponsor txs plus funding the throwaway raiders)
+if [ -f "$OUT" ]; then need $MAIN 900000000000000000; else need $MAIN 3000000000000000000; fi
 need $SECOND 600000000000000000
 
 if [ ! -f "$OUT" ]; then

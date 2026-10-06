@@ -338,3 +338,32 @@ per sMON on 5 Oct, against an sMON/MON book at ~1.100. Not wired: an sMON raid u
 sMON market is soft-paused anyway (D2).
 
 **Reverses it.** Reading Kintsu's source; then add a small rate adapter and use VaultRate.
+
+## D29. Monad testnet deployment (6 Oct)
+
+Deployed by `zexo-main` from `contracts/script/DeployTestnet.s.sol` at block 68548970 on chain 10143;
+the machine-readable copy is `deployments/testnet.json`. The keeper is `zexo-secondary`.
+
+| Contract | Address |
+|---|---|
+| vault | `0xE4C81a5717bb9E4b8C2FF87a96AcA56FA2480E89` |
+| router | `0x653363d9EfE33898DB7948FB78EB30c43e0B8498` |
+| seatGate | `0xc2aB9E8b765730bd8E540810a9fC937c7BA89472` |
+| wallMakerImpl | `0x5B6E01d2fba8D956cFAD9470baA38F97A21D8c3C` |
+| market | `0xA2D5f9feD74DB8b37322436fFcb43E672a6e396E` |
+| baseToken | `0xE291ddE058a1Fb128B8baA3a7F80BB12Eca5b171` |
+| quoteToken | `0x8cfd81e42052a502da01a0884F4De804d0C1Eb4B` |
+| lilStars | `0x5A3B6dBff7d9Eea9E2fcfd22FaAf0959D4057BFF` |
+| entropy | `0x825c0390f379C631f3Cf11A82a37D20BddF93c07` |
+| kuruRouter | `0x7EFbE105Ca7415dE98F96622173458ac1c054630` |
+| kuruMarginAccount | `0xd029C2D98ff85D8F64799017fE00a59B1159CE02` |
+| keeper | `0x720633667161625FC1d7fd86DE6eC06d814a3492` |
+
+`market` is a fresh Kuru market (tSTAR/tUSDC, price precision 1e8, size precision 1e10, tick 100, min
+size 100 tSTAR, fees 0) made through Kuru's testnet Router, so the wall is the only ask. `baseToken`,
+`quoteToken` and `lilStars` are test stand-ins anyone can mint.
+
+**Sourcify.** Vault, router, seat gate, wall maker implementation and the three test tokens are
+verified at `match`, not `exact_match`: `foundry.toml` had `bytecode_hash = "none"`, so the bytecode
+carries no metadata hash to match exactly. The setting is removed for the mainnet deploy. Redeploying
+testnet only for this would have cost the MON the end-to-end raid needed, so it was left.
