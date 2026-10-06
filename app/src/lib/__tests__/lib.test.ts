@@ -3,7 +3,7 @@ import { raidGasLimit, explainError, ERROR_TEXT } from '../contracts'
 import { fmt, ratio, duration } from '../format'
 import { phaseOf, sortLobby } from '../phase'
 import { starArt } from '../stars'
-import { nextRaidAt } from '../schedule'
+import { nextRaidAt, rollForward } from '../schedule'
 import type { Frame, LobbyRaid } from '../types'
 
 const terms = { w0: '100', w1: '200', drawFrom: '175' } as Frame['terms']
@@ -91,6 +91,14 @@ describe('nextRaidAt (hourly demo schedule estimate)', () => {
     expect(nextRaidAt([{ settledAt: null }, { settledAt: 2000 }] as unknown as LobbyRaid[])).toBe(2000 * 1000 - 90_000 + 3_600_000)
     expect(nextRaidAt([])).toBeNull()
     expect(nextRaidAt(undefined)).toBeNull()
+  })
+  it('rolls a missed slot to the next hour after a 3 minute grace, never backwards', () => {
+    const at = 10_000_000
+    expect(rollForward(at, at + 60_000)).toBe(at) // within grace: still "soon"
+    expect(rollForward(at, at + 4 * 60_000)).toBe(at + 3_600_000) // skipped slot: next hour
+    expect(rollForward(at, at + 2 * 3_600_000 + 4 * 60_000)).toBe(at + 3 * 3_600_000)
+    expect(rollForward(at, at - 1000)).toBe(at)
+    expect(rollForward(null, at)).toBeNull()
   })
 })
 

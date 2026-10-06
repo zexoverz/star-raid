@@ -17,6 +17,13 @@ export function nextRaidAt(rows: LobbyRaid[] | undefined): number | null {
   return last?.settledAt ? last.settledAt * 1000 - POST_TO_SETTLE_MS + DEMO_EVERY_MS : null
 }
 
+/** A missed slot moves the estimate on by whole hours once it is LATE_GRACE_MS overdue. */
+export function rollForward(at: number | null, now: number): number | null {
+  if (at === null) return null
+  while (now - at > LATE_GRACE_MS) at += DEMO_EVERY_MS
+  return at
+}
+
 export function useNextRaid() {
   const raids = useRaids()
   const [now, setNow] = useState(() => Date.now())
@@ -31,7 +38,7 @@ export function useNextRaid() {
   })
   let at = nextRaidAt(rows)
   // If the keeper skipped a slot, roll the estimate to the next hour instead of sitting on "soon".
-  while (at !== null && now - at > LATE_GRACE_MS) at += DEMO_EVERY_MS
+  at = rollForward(at, now)
   const left = at === null ? null : Math.max(0, Math.round((at - now) / 1000))
   const clock = at === null ? null : new Date(at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   const mmss = left === null ? '' : left >= 3600 ? `${Math.floor(left / 3600)}h ${Math.floor((left % 3600) / 60)}m` : `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`
