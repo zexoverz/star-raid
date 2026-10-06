@@ -1,0 +1,172 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-display: 'Gorditas', 'Gluten', system-ui, sans-serif;
+  --font-fun: 'Gluten', 'Gorditas', system-ui, sans-serif;
+  --font-sans: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+
+  --color-grape-950: #15122a;
+  --color-grape-900: #221d3d;
+  --color-grape-800: #2d2250;
+  --color-grape-700: #4a4373;
+  --color-grape-600: #665d96;
+  --color-grape-500: #7a6eb2;
+  --color-grape-300: #b8aee6;
+  --color-grape-100: #ece8ff;
+
+  --color-ember-600: #fd6b10;
+  --color-ember-500: #ff8c42;
+  --color-ember-400: #ffb84d;
+  --color-ember-300: #ffd27a;
+
+  --color-candy-600: #aa3686;
+  --color-candy-500: #e826b1;
+  --color-candy-300: #f7b2d9;
+
+  --color-cream-100: #fff4e4;
+  --color-cream-200: #ffe1b7;
+  --color-cream-300: #e0d1c4;
+
+  --color-mint: #a3e3c1;
+  --color-sky: #b6d6f7;
+  --color-gold: #f7c873;
+
+  --animate-float: float 4s ease-in-out infinite;
+  --animate-wiggle: wiggle 0.35s ease-in-out;
+  --animate-pulse-glow: pulse-glow 1.6s ease-in-out infinite;
+  --animate-spin-slow: spin 18s linear infinite;
+  --animate-shimmer: shimmer 2.2s linear infinite;
+  --animate-twinkle: twinkle 2.4s ease-in-out infinite;
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) }
+    50% { transform: translateY(-10px) }
+  }
+  @keyframes wiggle {
+    0%, 100% { transform: translateX(0) rotate(0) }
+    20% { transform: translateX(-6px) rotate(-2deg) }
+    40% { transform: translateX(6px) rotate(2deg) }
+    60% { transform: translateX(-4px) rotate(-1deg) }
+    80% { transform: translateX(3px) rotate(1deg) }
+  }
+  @keyframes pulse-glow {
+    0%, 100% { filter: drop-shadow(0 0 6px rgb(255 184 77 / 0.5)) }
+    50% { filter: drop-shadow(0 0 18px rgb(255 140 66 / 0.95)) }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0 }
+    100% { background-position: 200% 0 }
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; transform: scale(0.7) }
+    50% { opacity: 1; transform: scale(1) }
+  }
+}
+
+@layer base {
+  html { background: var(--color-grape-950); color-scheme: dark; }
+  body { font-family: var(--font-sans); color: var(--color-cream-100); min-height: 100dvh; -webkit-font-smoothing: antialiased; }
+  ::selection { background: var(--color-candy-500); color: white; }
+}
+
+@layer components {
+  /* Big outlined game title, like the Lil Stars footer */
+  .title-outline {
+    font-family: var(--font-display);
+    color: white;
+    -webkit-text-stroke: 6px var(--color-grape-800);
+    paint-order: stroke fill;
+    text-shadow: 0 5px 0 var(--color-grape-800), 0 10px 24px rgb(0 0 0 / 0.35);
+    letter-spacing: 0.02em;
+  }
+  .title-outline-sm {
+    font-family: var(--font-display);
+    color: white;
+    -webkit-text-stroke: 4px var(--color-grape-800);
+    paint-order: stroke fill;
+    text-shadow: 0 3px 0 var(--color-grape-800);
+  }
+  .glass {
+    background: rgb(102 93 150 / 0.72);
+    backdrop-filter: blur(14px) saturate(1.2);
+    border: 3px solid var(--color-grape-500);
+  }
+  .panel {
+    background: linear-gradient(180deg, rgb(45 34 80 / 0.92), rgb(34 29 61 / 0.94));
+    border: 3px solid var(--color-grape-500);
+    box-shadow: 0 6px 0 var(--color-grape-800), 0 18px 40px rgb(0 0 0 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.12);
+    border-radius: 28px;
+  }
+  .dashed-card {
+    border: 2.5px dashed var(--card-color, var(--color-gold));
+    background: rgb(255 255 255 / 0.08);
+    border-radius: 18px;
+  }
+  /* Chunky game button with a pressable bottom edge */
+  .btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    font-family: var(--font-display);
+    letter-spacing: 0.04em;
+    padding: 0.8rem 1.6rem;
+    transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s;
+    user-select: none;
+    cursor: pointer;
+  }
+  .btn:disabled { cursor: not-allowed; filter: grayscale(0.7) brightness(0.8); }
+  .btn:not(:disabled):active { transform: translateY(4px); }
+  .btn-primary {
+    color: white;
+    background: linear-gradient(180deg, var(--color-ember-400), var(--color-ember-500) 55%, var(--color-ember-600));
+    box-shadow: 0 6px 0 #b4470a, 0 10px 22px rgb(253 107 16 / 0.45), inset 0 2px 0 rgb(255 255 255 / 0.45);
+    -webkit-text-stroke: 1.5px #8a3506;
+    paint-order: stroke fill;
+  }
+  .btn-primary:not(:disabled):active { box-shadow: 0 2px 0 #b4470a, inset 0 2px 0 rgb(255 255 255 / 0.45); }
+  .btn-candy {
+    color: white;
+    background: linear-gradient(180deg, #ff5cd0, var(--color-candy-500) 60%, var(--color-candy-600));
+    box-shadow: 0 6px 0 #7a1f5f, 0 10px 22px rgb(232 38 177 / 0.4), inset 0 2px 0 rgb(255 255 255 / 0.4);
+  }
+  .btn-candy:not(:disabled):active { box-shadow: 0 2px 0 #7a1f5f; }
+  .btn-ghost {
+    color: var(--color-cream-100);
+    background: rgb(102 93 150 / 0.7);
+    border: 2.5px solid var(--color-grape-500);
+    box-shadow: 0 4px 0 var(--color-grape-800);
+    font-family: var(--font-sans);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .btn-ghost:not(:disabled):active { box-shadow: 0 1px 0 var(--color-grape-800); }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 999px;
+    padding: 0.2rem 0.7rem;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  /* Proposed (tentative) values are lighter until the finalized frame lands */
+  .tentative { opacity: 0.62; filter: saturate(0.7); transition: opacity 0.4s, filter 0.4s; }
+  .firm { opacity: 1; filter: none; transition: opacity 0.4s, filter 0.4s; }
+  .bar-stripes {
+    background-image: repeating-linear-gradient(-45deg, rgb(255 255 255 / 0.18) 0 10px, transparent 10px 20px);
+    background-size: 200% 100%;
+    animation: shimmer 6s linear infinite;
+  }
+  .noise-vignette {
+    background: radial-gradient(ellipse at center, transparent 40%, rgb(21 18 42 / 0.85) 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+}
