@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # One full testnet raid: deploy and verify on Sourcify, then the keeper drives post, open, raider buys,
 # close with a real Pyth Entropy request, the callback, settle and claim, while live/ records the stream.
-# Testnet only. Needs about 5 MON in zexo-main and 1 MON in zexo-secondary.
+# Testnet only. Needs about 3 MON in zexo-main and 0.6 MON in zexo-secondary at ~100 gwei.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 F=~/.foundry/bin
@@ -15,8 +15,8 @@ mkdir -p "$LOGS" "$ROOT/deployments"
 
 [ "$($F/cast chain-id --rpc-url "$RPC")" = 10143 ] || { echo "not Monad testnet"; exit 1; }
 need() { local b; b=$($F/cast balance "$1" --rpc-url "$RPC"); [ "$(echo "$b >= $2" | bc)" = 1 ] || { echo "$1 has $($F/cast from-wei "$b") MON, needs $($F/cast from-wei "$2")"; exit 1; }; }
-need $MAIN 4500000000000000000
-need $SECOND 800000000000000000
+need $MAIN 3000000000000000000
+need $SECOND 600000000000000000
 
 if [ ! -f "$OUT" ]; then
   cd "$ROOT/contracts"
@@ -36,7 +36,7 @@ NEXT=$(( $($F/cast call "$(python3 -c "import json;print(json.load(open('$OUT'))
 curl -sN "localhost:8791/raids/$NEXT/stream" > "$LOGS/stream-$NEXT.txt" &
 
 cd "$ROOT/keeper"
-DEPLOYMENT="$OUT" RPC_URL="$RPC" RAIDERS=${RAIDERS:-3} RAIDER_MON=${RAIDER_MON:-0.3} pnpm -s tsx src/e2e.ts | tee "$LOGS/e2e-$NEXT.log"
+DEPLOYMENT="$OUT" RPC_URL="$RPC" RAIDERS=${RAIDERS:-3} RAIDER_MON=${RAIDER_MON:-0.2} pnpm -s tsx src/e2e.ts | tee "$LOGS/e2e-$NEXT.log"
 sleep 3
 curl -s "localhost:8791/raids/$NEXT" > "$LOGS/frames-$NEXT.json"
 python3 "$ROOT/scripts/raid-numbers.py" "$LOGS/frames-$NEXT.json"
