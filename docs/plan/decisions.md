@@ -338,3 +338,56 @@ per sMON on 5 Oct, against an sMON/MON book at ~1.100. Not wired: an sMON raid u
 sMON market is soft-paused anyway (D2).
 
 **Reverses it.** Reading Kintsu's source; then add a small rate adapter and use VaultRate.
+
+## D29. Monad testnet deployment (6 Oct)
+
+Deployed by `zexo-main` from `contracts/script/DeployTestnet.s.sol` at block 68548970 on chain 10143;
+the machine-readable copy is `deployments/testnet.json`. The keeper is `zexo-secondary`.
+
+| Contract | Address |
+|---|---|
+| vault | `0xE4C81a5717bb9E4b8C2FF87a96AcA56FA2480E89` |
+| router | `0x653363d9EfE33898DB7948FB78EB30c43e0B8498` |
+| seatGate | `0xc2aB9E8b765730bd8E540810a9fC937c7BA89472` |
+| wallMakerImpl | `0x5B6E01d2fba8D956cFAD9470baA38F97A21D8c3C` |
+| market | `0xA2D5f9feD74DB8b37322436fFcb43E672a6e396E` |
+| baseToken | `0xE291ddE058a1Fb128B8baA3a7F80BB12Eca5b171` |
+| quoteToken | `0x8cfd81e42052a502da01a0884F4De804d0C1Eb4B` |
+| lilStars | `0x5A3B6dBff7d9Eea9E2fcfd22FaAf0959D4057BFF` |
+| entropy | `0x825c0390f379C631f3Cf11A82a37D20BddF93c07` |
+| kuruRouter | `0x7EFbE105Ca7415dE98F96622173458ac1c054630` |
+| kuruMarginAccount | `0xd029C2D98ff85D8F64799017fE00a59B1159CE02` |
+| keeper | `0x720633667161625FC1d7fd86DE6eC06d814a3492` |
+
+`market` is a fresh Kuru market (tSTAR/tUSDC, price precision 1e8, size precision 1e10, tick 100, min
+size 100 tSTAR, fees 0) made through Kuru's testnet Router, so the wall is the only ask. `baseToken`,
+`quoteToken` and `lilStars` are test stand-ins anyone can mint.
+
+**Sourcify.** Vault, router, seat gate, wall maker implementation and the three test tokens are
+verified at `match`, not `exact_match`: `foundry.toml` had `bytecode_hash = "none"`, so the bytecode
+carries no metadata hash to match exactly. The setting is removed for the mainnet deploy. Redeploying
+testnet only for this would have cost the MON the end-to-end raid needed, so it was left.
+
+## D32. Testnet raids run by the keeper (6 Oct)
+
+Driven end to end by `scripts/testnet-run.sh` on the D29 deployment: the sponsor (`zexo-main`) posts,
+the keeper opens, raiders buy through the router, the keeper closes with a real Pyth Entropy request,
+Pyth's provider delivers the end block, the keeper settles, the seat claims after a 60 s hold.
+
+| Raid | Outcome | Seats | Counted buys | Buys with no seat (uncounted) | Counted / target (tUSDC) | Wall share of spend | Wall sold | End block |
+|---|---|---|---|---|---|---|---|---|
+| 1 | expired, refunded | 0 | 0 | 0 | 0 / 500 | | 0 | |
+| 2 | expired, refunded | 0 | 0 | 0 | 0 / 500 | | 0 | |
+| 3 | won | 2 | 2 | 1 | 749.99 / 500 | 100% | 34.6% | 68,550,125 |
+| 4 | won | 1 | 1 | 1 | 599.99 / 500 | 100% | 28.9% | 68,551,043 |
+
+Raids 1 and 2 expired because raider setup ran past `w0 + 30` (the driver now posts after setup);
+the keeper refunded both in full. On this market the wall is the only ask, so every unit bought came
+out of the sponsor's wall. Raid 3's end block was requested at 68,550,153 (sequence 3948, fee 0.128 MON)
+and delivered at 68,550,161 by Pyth's provider through `0x825c…3c07`; raid 4's at 68,551,084. Both are
+real draws, not the timeout. Raiders on testnet are the team's own throwaway wallets, so these numbers
+show the mechanism working, not demand.
+
+The first real-RPC run also showed `live/` sending finalized frames only: on public testnet a read takes
+longer than the finalized poll, and finalized reads always won the queue. Proposed and finalized now
+take turns (raid 4 stream: 32 proposed, 33 finalized frames).

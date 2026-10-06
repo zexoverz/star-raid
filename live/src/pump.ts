@@ -15,7 +15,11 @@ export interface Logs {
  */
 export class Pump {
   private busy = false;
-  private pending: { block: bigint; state: FrameState } | null = null;
+  // One coalescing slot per state, so a slow RPC cannot starve either kind of frame: finalized reads
+  // used to win every time and proposed frames never went out on public testnet.
+  private pendingProposed: bigint | null = null;
+  private pendingFinalized: bigint | null = null;
+  private lastServed: FrameState = "finalized";
   lastProposed = 0n;
   lastFinalized = 0n;
   errors = 0;
@@ -30,27 +34,44 @@ export class Pump {
   onHead(block: bigint) {
     if (block <= this.lastProposed) return;
     this.lastProposed = block;
-    this.enqueue(block, "proposed");
+    this.pendingProposed = block;
+    void this.drain();
   }
 
   onFinalized(block: bigint) {
     if (block <= this.lastFinalized) return;
     this.lastFinalized = block;
-    this.enqueue(block, "finalized");
+    this.pendingFinalized = block;
+    void this.drain();
   }
 
-  private enqueue(block: bigint, state: FrameState) {
-    if (!this.pending || state === "finalized" || this.pending.state === "proposed") this.pending = { block, state };
-    void this.drain();
+  private next(): { block: bigint; state: FrameState } | null {
+    // a head at or below the finalized block adds nothing
+    if (this.pendingProposed !== null && this.pendingProposed <= this.lastFinalized) this.pendingProposed = null;
+    // when both wait, serve the one that did not go last, so neither starves on a slow RPC
+    const takeProposed =
+      this.pendingProposed !== null && (this.pendingFinalized === null || this.lastServed === "finalized");
+    if (takeProposed) {
+      const block = this.pendingProposed!;
+      this.pendingProposed = null;
+      this.lastServed = "proposed";
+      return { block, state: "proposed" };
+    }
+    if (this.pendingFinalized !== null) {
+      const block = this.pendingFinalized;
+      this.pendingFinalized = null;
+      this.lastServed = "finalized";
+      return { block, state: "finalized" };
+    }
+    return null;
   }
 
   private async drain() {
     if (this.busy) return;
     this.busy = true;
     try {
-      while (this.pending) {
-        const { block, state } = this.pending;
-        this.pending = null;
+      for (let job = this.next(); job; job = this.next()) {
+        const { block, state } = job;
         try {
           const head = this.lastProposed > block ? this.lastProposed : block;
           await this.logs.sync(head, this.lastFinalized);

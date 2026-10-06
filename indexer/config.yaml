@@ -31,17 +31,16 @@ contracts:
     events:
       - event: Trade
 chains:
-  # Monad testnet. TODO-DEPLOY: fill the three addresses and start_block from the testnet deploy
-  # (contracts/script/DeployTestnet.s.sol logs them).
+  # Monad testnet, deployed 6 Oct 2026 (deployments/testnet.json).
   - id: 10143
-    start_block: 0 # TODO-DEPLOY: the deploy block
+    start_block: 68548970
     contracts:
       - name: RaidVault
-        address: "0x0000000000000000000000000000000000000000" # TODO-DEPLOY
+        address: "0xE4C81a5717bb9E4b8C2FF87a96AcA56FA2480E89"
       - name: RaidRouter
-        address: "0x0000000000000000000000000000000000000000" # TODO-DEPLOY
+        address: "0x653363d9EfE33898DB7948FB78EB30c43e0B8498"
       - name: SeatGate
-        address: "0x0000000000000000000000000000000000000000" # TODO-DEPLOY
+        address: "0xc2aB9E8b765730bd8E540810a9fC937c7BA89472"
       - name: KuruOrderBook
   # Monad mainnet, once deployed there:
   # - id: 143

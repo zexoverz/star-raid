@@ -96,3 +96,21 @@ describe("reader", () => {
     expect(await r.readAt(9n)).toEqual([]);
   });
 });
+
+describe("pump on a slow RPC", () => {
+  it("keeps sending proposed frames while finalized blocks keep arriving", async () => {
+    const states: string[] = [];
+    const hub = { publish: (f: { state: string }) => states.push(f.state) } as never;
+    const slow = { readAt: async (b: bigint) => (await new Promise((r) => setTimeout(r, 30)), [snap({ counted: b })]) };
+    const pump = new Pump(slow, noLogs, hub);
+    // heads every 10 ms and finalized every 15 ms, both faster than one 30 ms read
+    for (let i = 1n; i <= 20n; i++) {
+      pump.onHead(100n + i);
+      if (i % 2n === 0n) pump.onFinalized(98n + i);
+      await new Promise((r) => setTimeout(r, 10));
+    }
+    await new Promise((r) => setTimeout(r, 200));
+    expect(states.filter((s) => s === "proposed").length).toBeGreaterThan(2);
+    expect(states.filter((s) => s === "finalized").length).toBeGreaterThan(2);
+  });
+});

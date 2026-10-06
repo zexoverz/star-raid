@@ -4,6 +4,8 @@ import { createTestIndexer } from "envio";
 type Hex = `0x${string}`;
 
 const CHAIN = 10143;
+// simulated blocks sit after the configured start_block (the testnet deploy block)
+const B = 68_548_970;
 const MARKET: Hex = "0x00000000000000000000000000000000000000Aa";
 const MAKER: Hex = "0x00000000000000000000000000000000000000Bb";
 const STRANGER: Hex = "0x00000000000000000000000000000000000000Cc";
@@ -58,19 +60,19 @@ async function run() {
     chains: {
       [CHAIN]: {
         simulate: [
-          { contract: "RaidVault", event: "Posted", block: { number: 90 }, params: { raidId: 1n, sponsor: SPONSOR, market: MARKET, terms, fromRollover: 0n } },
-          { contract: "RaidVault", event: "Opened", block: { number: 100 }, params: { raidId: 1n, capPrice: 2_600_000n, wallId: 7n, maker: MAKER, anchor: 2_600_000n, mid: 0n } },
-          bound(ALICE, KEY_A, 120),
-          raided(ALICE, KEY_A, 120, 100n),
-          { contract: "KuruOrderBook", event: "Trade", srcAddress: MARKET, block: { number: 120 }, params: { orderId: 7n, makerAddress: MAKER, isBuy: false, price: 26n, updatedSize: 900n, takerAddress: ALICE, txOrigin: ALICE, filledSize: 100n } },
-          { contract: "KuruOrderBook", event: "Trade", srcAddress: MARKET, block: { number: 121 }, params: { orderId: 9n, makerAddress: STRANGER, isBuy: false, price: 25n, updatedSize: 0n, takerAddress: ALICE, txOrigin: ALICE, filledSize: 400n } },
-          raided(STRANGER, NO_SEAT, 130, 0n),
-          bound(BOB, KEY_B, 190),
-          raided(BOB, KEY_B, 190, 200n), // after E: counted provisionally, not at the end
-          raided(ALICE, KEY_A, 195, 50n), // after E as well
-          { contract: "RaidVault", event: "CloseRequested", block: { number: 201 }, params: { raidId: 1n, sequence: 1n, fee: 1n } },
-          { contract: "RaidVault", event: "EndDrawn", block: { number: 203 }, params: { raidId: 1n, endBlock: 180n, randomNumber: `0x${"1".repeat(64)}` } },
-          { contract: "RaidVault", event: "Settled", block: { number: 204 }, params: { raidId: 1n, won: false, countedTotal: 100n, wallSold: 100n } },
+          { contract: "RaidVault", event: "Posted", block: { number: B + 90 }, params: { raidId: 1n, sponsor: SPONSOR, market: MARKET, terms, fromRollover: 0n } },
+          { contract: "RaidVault", event: "Opened", block: { number: B + 100 }, params: { raidId: 1n, capPrice: 2_600_000n, wallId: 7n, maker: MAKER, anchor: 2_600_000n, mid: 0n } },
+          bound(ALICE, KEY_A, B + 120),
+          raided(ALICE, KEY_A, B + 120, 100n),
+          { contract: "KuruOrderBook", event: "Trade", srcAddress: MARKET, block: { number: B + 120 }, params: { orderId: 7n, makerAddress: MAKER, isBuy: false, price: 26n, updatedSize: 900n, takerAddress: ALICE, txOrigin: ALICE, filledSize: 100n } },
+          { contract: "KuruOrderBook", event: "Trade", srcAddress: MARKET, block: { number: B + 121 }, params: { orderId: 9n, makerAddress: STRANGER, isBuy: false, price: 25n, updatedSize: 0n, takerAddress: ALICE, txOrigin: ALICE, filledSize: 400n } },
+          raided(STRANGER, NO_SEAT, B + 130, 0n),
+          bound(BOB, KEY_B, B + 190),
+          raided(BOB, KEY_B, B + 190, 200n), // after E: counted provisionally, not at the end
+          raided(ALICE, KEY_A, B + 195, 50n), // after E as well
+          { contract: "RaidVault", event: "CloseRequested", block: { number: B + 201 }, params: { raidId: 1n, sequence: 1n, fee: 1n } },
+          { contract: "RaidVault", event: "EndDrawn", block: { number: B + 203 }, params: { raidId: 1n, endBlock: BigInt(B + 180), randomNumber: `0x${"1".repeat(64)}` } },
+          { contract: "RaidVault", event: "Settled", block: { number: B + 204 }, params: { raidId: 1n, won: false, countedTotal: 100n, wallSold: 100n } },
         ],
       },
     },
@@ -88,7 +90,7 @@ describe("handlers", () => {
     const alice = await ix.Player.getOrThrow(ALICE.toLowerCase());
     t.expect(alice.buys).toBe(2);
     t.expect(alice.raidsJoined).toBe(1);
-    const buy = await ix.Buy.getOrThrow(`${CHAIN}-120-3`);
+    const buy = await ix.Buy.getOrThrow(`${CHAIN}-${B + 120}-3`);
     t.expect(buy.countedAdded).toBe(100n);
     t.expect(buy.hasSeat).toBe(true);
   });
@@ -106,8 +108,8 @@ describe("handlers", () => {
     const ix = await run();
     const raid = await ix.Raid.getOrThrow("1");
     t.expect(raid.wallFilled).toBe(100n);
-    t.expect(await ix.WallFill.get(`${CHAIN}-121-5`)).toBeUndefined();
-    t.expect((await ix.WallFill.getOrThrow(`${CHAIN}-120-4`)).filledSize).toBe(100n);
+    t.expect(await ix.WallFill.get(`${CHAIN}-${B + 121}-5`)).toBeUndefined();
+    t.expect((await ix.WallFill.getOrThrow(`${CHAIN}-${B + 120}-4`)).filledSize).toBe(100n);
   });
 
   it("Settled marks the raid with what settle counted", async (t) => {
@@ -117,7 +119,7 @@ describe("handlers", () => {
     t.expect(raid.won).toBe(false);
     t.expect(raid.countedTotal).toBe(100n);
     t.expect(raid.countedProvisional).toBe(350n);
-    t.expect(raid.endBlock).toBe(180n);
+    t.expect(raid.endBlock).toBe(BigInt(B + 180));
     t.expect(raid.seatBuys).toBe(3);
     t.expect(raid.nonSeatBuys).toBe(1);
     t.expect(raid.seats).toBe(2);

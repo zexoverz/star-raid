@@ -47,18 +47,11 @@ async function send(s: CastSigner, to: Address, data: Hex, gas: bigint, label: s
 
 const call = (abi: any, fn: string, args: unknown[]) => encodeFunctionData({ abi, functionName: fn, args } as never);
 
-// 1. sponsor mints and posts
+// 1. sponsor mints and approves (it posts once every raider is ready, so setup never eats the window)
 await send(sponsor, d.baseToken, call(erc20Abi, "mint", [sponsor.address, WALL_WEI]), GAS.mint, "mint tSTAR");
 await send(sponsor, d.quoteToken, call(erc20Abi, "mint", [sponsor.address, BOUNTY]), GAS.mint, "mint tUSDC bounty");
 await send(sponsor, d.baseToken, call(erc20Abi, "approve", [d.vault, WALL_WEI]), GAS.approve, "approve tSTAR");
 await send(sponsor, d.quoteToken, call(erc20Abi, "approve", [d.vault, BOUNTY]), GAS.approve, "approve tUSDC");
-const head = await client.getBlockNumber();
-const w0 = head + 40n;
-const terms = { market: d.market, prizeToken: d.quoteToken, wallSize: WALL, bounty: BOUNTY, target: TARGET, seatCap: BUY,
-  w0, w1: w0 + WINDOW, hold: HOLD, capBps: 0, anchorMode: 0, anchorParam: PRICE };
-await send(sponsor, d.vault, call(vaultAbi, "post", [terms, []]), GAS.post, `post w0=${w0}`);
-const raidId = await client.readContract({ address: d.vault, abi: vaultAbi, functionName: "raidCount" });
-console.log(`raid ${raidId} posted`);
 
 // 2. raider gets a Star and USDC
 const tokenId = await client.readContract({ address: d.lilStars, abi: starsAbi, functionName: "nextId" });
@@ -75,7 +68,16 @@ const extras = Array.from({ length: EXTRA }, (_, i) => {
   return { account, seat: i < EXTRA - 1, wallet: createWalletClient({ account, chain: cfg.chain, transport: http(cfg.rpcUrl) }) };
 });
 async function extraSend(x: (typeof extras)[number], to: Address, data: Hex, gas: bigint, label: string) {
-  const hash = await x.wallet.sendTransaction({ to, data, gas });
+  let hash: Hex | undefined;
+  for (let i = 0; !hash; i++) {
+    try {
+      hash = await x.wallet.sendTransaction({ to, data, gas });
+    } catch (e) {
+      // same node lag as above: retry a few times on a balance the node has not caught up with
+      if (i === 5 || !String((e as Error).message).includes("insufficient balance")) throw e;
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+  }
   const r = await client.waitForTransactionReceipt({ hash });
   if (r.status !== "success") throw new Error(`${label} reverted ${hash}`);
   console.log(`${label} ${hash}`);
@@ -84,6 +86,12 @@ const extraTokens: bigint[] = [];
 for (const x of extras) {
   const fund = await sponsor.send({ to: x.account.address, data: "0x", value: parseEther(process.env.RAIDER_MON ?? "0.5"), gas: 21_000n });
   if (!fund.ok) throw new Error("fund raider");
+  // The public RPC is several nodes; the next call can land on one that has not seen the funding yet.
+  for (let i = 0; (await client.getBalance({ address: x.account.address, blockTag: "latest" })) === 0n; i++) {
+    if (i === 60) throw new Error(`funding of ${x.account.address} never became visible`);
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  await new Promise((r) => setTimeout(r, 1500));
   let tok = 0n;
   if (x.seat) {
     tok = await client.readContract({ address: d.lilStars, abi: starsAbi, functionName: "nextId" });
@@ -95,10 +103,38 @@ for (const x of extras) {
 }
 let extrasBought = 0;
 
+// Leftover MON in the throwaway raiders goes back to the sponsor wallet, also when something fails.
+async function sweepExtras() {
+  for (const x of extras) {
+    try {
+      const bal = await client.getBalance({ address: x.account.address });
+      const fee = (await client.getGasPrice()) * 2n * 21_000n;
+      if (bal <= fee) continue;
+      const hash = await x.wallet.sendTransaction({ to: sponsor.address, value: bal - fee, gas: 21_000n, maxFeePerGas: fee / 21_000n, maxPriorityFeePerGas: fee / 42_000n });
+      await client.waitForTransactionReceipt({ hash });
+      console.log(`swept ${bal - fee} wei back from ${x.account.address}`);
+    } catch (e) {
+      console.error(`sweep of ${x.account.address} failed: ${(e as Error).message.split("\n")[0]}`);
+    }
+  }
+}
+let failed: unknown;
+let raidId = 0n;
+let claimed = false;
+try {
+
+// 2c. post now that every raider is ready
+const head = await client.getBlockNumber();
+const w0 = head + 40n;
+const terms = { market: d.market, prizeToken: d.quoteToken, wallSize: WALL, bounty: BOUNTY, target: TARGET, seatCap: BUY,
+  w0, w1: w0 + WINDOW, hold: HOLD, capBps: 0, anchorMode: 0, anchorParam: PRICE };
+await send(sponsor, d.vault, call(vaultAbi, "post", [terms, []]), GAS.post, `post w0=${w0}`);
+raidId = await client.readContract({ address: d.vault, abi: vaultAbi, functionName: "raidCount" });
+console.log(`raid ${raidId} posted`);
+
 // 3. keeper loop; the raider buys once the raid is open and the window has started
 const keeper = new Keeper(new ChainReader(client as never, d.vault), keeperSigner, d.vault, cfg.thinMarkets, telegramAlerter(cfg.telegram));
 let bought = false;
-let claimed = false;
 for (;;) {
   const { acted } = await keeper.tick();
   for (const a of acted) console.log(`keeper raid ${a.id}: ${a.action} ${a.ok ? "ok" : "FAILED"}`);
@@ -133,5 +169,10 @@ for (;;) {
   }
   await new Promise((r) => setTimeout(r, 1000));
 }
+} catch (e) {
+  failed = e;
+}
+await sweepExtras();
+if (failed) throw failed;
 const r = await client.readContract({ address: d.vault, abi: vaultAbi, functionName: "raid", args: [raidId] });
 console.log(JSON.stringify({ raidId: String(raidId), won: r.won, endBlock: String(r.endBlock), countedTotal: String(r.countedTotal), wallRecovered: r.wallRecovered, claimed }));
