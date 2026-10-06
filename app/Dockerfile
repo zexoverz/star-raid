@@ -4,12 +4,14 @@ FROM node:24-slim AS build
 RUN corepack enable
 WORKDIR /repo
 COPY deployments ./deployments
-COPY app/package.json app/pnpm-lock.yaml ./app/
+COPY app/package.json app/pnpm-lock.yaml app/pnpm-workspace.yaml ./app/
 RUN cd app && pnpm install --frozen-lockfile
 COPY app ./app
 ARG VITE_LIVE_URL=https://live-production-e50b.up.railway.app
 ARG VITE_RPC_URL=https://testnet-rpc.monad.xyz
-ENV VITE_LIVE_URL=$VITE_LIVE_URL VITE_RPC_URL=$VITE_RPC_URL
+# Public by design (it ships in the bundle); Railway passes the service variable as a build arg.
+ARG VITE_REOWN_PROJECT_ID=
+ENV VITE_LIVE_URL=$VITE_LIVE_URL VITE_RPC_URL=$VITE_RPC_URL VITE_REOWN_PROJECT_ID=$VITE_REOWN_PROJECT_ID
 RUN cd app && pnpm build && pnpm prune --prod
 
 FROM node:24-slim
