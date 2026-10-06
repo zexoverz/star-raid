@@ -35,6 +35,8 @@ export interface Pass {
 }
 
 /** One raid key per holder, in localStorage: it may hold funds, so it must survive a closed tab. */
+const KEY_EVENT = 'starraid:key'
+const changed = () => window.dispatchEvent(new Event(KEY_EVENT))
 const keys = {
   id: (holder: string) => `starraid.key.${holder.toLowerCase()}`,
   pk(holder: string): Hex | null {
@@ -42,7 +44,10 @@ const keys = {
   },
   ensure(holder: string): Hex {
     let pk = this.pk(holder)
-    if (!pk) localStorage.setItem(this.id(holder), (pk = generatePrivateKey()))
+    if (!pk) {
+      localStorage.setItem(this.id(holder), (pk = generatePrivateKey()))
+      changed()
+    }
     return pk
   },
   passId: (holder: string) => `starraid.pass.${holder.toLowerCase()}`,
@@ -56,9 +61,11 @@ const keys = {
   },
   savePass(p: Pass) {
     localStorage.setItem(this.passId(p.holder), JSON.stringify(p))
+    changed()
   },
   dropPass(holder: string) {
     localStorage.removeItem(this.passId(holder))
+    changed()
   },
 }
 
@@ -202,13 +209,24 @@ export function useOneTap(raidId: string) {
   const { mutateAsync: write } = useWriteContract()
   const client = usePublicClient()
 
-  // The key and pass follow the connected wallet.
+  // The key and pass follow the connected wallet, and every useOneTap on the page (top bar chip,
+  // key page, join panel) re-reads them when any of them sets up, renews or tops up.
   const [pk, setPk] = useState<Hex | null>(null)
+  const [rev, setRev] = useState(0)
+  useEffect(() => {
+    const on = () => setRev((n) => n + 1)
+    window.addEventListener(KEY_EVENT, on)
+    window.addEventListener('storage', on)
+    return () => {
+      window.removeEventListener(KEY_EVENT, on)
+      window.removeEventListener('storage', on)
+    }
+  }, [])
   useEffect(() => {
     setPk(address ? keys.pk(address) : null)
     setPass(address ? keys.pass(address) : null)
     nonce.current = null
-  }, [address])
+  }, [address, rev])
   useEffect(() => setHits(0), [raidId])
 
   const account = useMemo(() => (pk ? privateKeyToAccount(pk) : null), [pk])
@@ -231,7 +249,7 @@ export function useOneTap(raidId: string) {
     void refresh()
     const i = setInterval(refresh, 8000)
     return () => clearInterval(i)
-  }, [refresh])
+  }, [refresh, rev])
 
   // Hits read nothing from the chain: fee and nonce are prepared once and refreshed in the background.
   const feeRef = useRef<{ maxFeePerGas: bigint; maxPriorityFeePerGas: bigint } | null>(null)
@@ -308,6 +326,7 @@ export function useOneTap(raidId: string) {
         nonce.current = null
         setStatus(null)
         await refresh()
+        changed()
         notify.success('One-tap is ready! Every HIT is a single tap, in this raid and the next ones.')
         return true
       } catch (e) {
@@ -407,6 +426,7 @@ export function useOneTap(raidId: string) {
         nonce.current = null
         setStatus(null)
         await refresh()
+        changed()
         notify.success(all ? 'Everything is back in your wallet.' : 'Your tSTAR is in your wallet. The raid key keeps its tUSDC and gas for the next raid.')
         return true
       } catch (e) {
@@ -458,6 +478,37 @@ export function useOneTap(raidId: string) {
     setPass(null)
   }, [address])
 
+  /** Sign a fresh 7-day seat pass for the same key (nothing is sent). */
+  const renew = useCallback(
+    async (tokenId: string) => {
+      if (!address) return false
+      setError(null)
+      try {
+        const keyPk = keys.ensure(address)
+        setPk(keyPk)
+        const expiry = BigInt(Math.floor(Date.now() / 1000) + PASS_TTL)
+        setStatus('Sign the new seat pass in your wallet')
+        const sig = await signTypedDataAsync({
+          domain: { name: 'StarRaid SeatGate', version: '1', chainId: CHAIN_ID, verifyingContract: ADDR.seatGate },
+          types: { Bind: [{ name: 'holder', type: 'address' }, { name: 'player', type: 'address' }, { name: 'expiry', type: 'uint64' }] },
+          primaryType: 'Bind',
+          message: { holder: address, player: privateKeyToAccount(keyPk).address, expiry },
+        })
+        const p = { pk: keyPk, holder: address, tokenId, expiry: expiry.toString(), sig }
+        keys.savePass(p)
+        setPass(p)
+        setStatus(null)
+        notify.success('Seat pass renewed for 7 days.')
+        return true
+      } catch (e) {
+        setStatus(null)
+        setError(explainError(e))
+        return false
+      }
+    },
+    [address, signTypedDataAsync, setError, setStatus],
+  )
+
   const minGas = HIT_GAS * (feeRef.current?.maxFeePerGas ?? 130_000_000_000n)
   /** Ready to hit with no popup: valid pass, router approved, tUSDC and gas for at least one hit. */
   const ready = passValid && allowance > 0n && usdc > 0n && mon >= minGas
@@ -466,6 +517,12 @@ export function useOneTap(raidId: string) {
     /** The seat pass when valid for the connected wallet (kept name for callers). */
     session: passValid ? pass : null,
     ready,
+    passValid,
+    hasKey: !!pk,
+    allowance,
+    minGas,
+    refresh,
+    renew,
     keyAddress: account?.address,
     usdc,
     star,
