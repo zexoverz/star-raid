@@ -1,30 +1,29 @@
 import { useEffect, useState } from 'react'
-import { useChainId, useConnect, useConnection, useDisconnect, useSwitchChain } from 'wagmi'
+import { useAppKit, useAppKitState } from '@reown/appkit/react'
+import { useChainId, useConnection, useSwitchChain } from 'wagmi'
 import { CHAIN_ID } from '../lib/config'
 import { short } from '../lib/format'
 import { onSound, play, setSound, soundOn } from '../lib/sfx'
 
 export function WalletButton({ big = false }: { big?: boolean }) {
   const { address, isConnected } = useConnection()
-  const { connect, connectors, isPending } = useConnect()
-  const { disconnect } = useDisconnect()
+  const { open } = useAppKit()
+  const { open: modalOpen } = useAppKitState()
   const chainId = useChainId()
   const { switchChain } = useSwitchChain()
   const wrong = isConnected && chainId !== CHAIN_ID
 
   if (!isConnected) {
-    const hasWallet = connectors.length > 0 && typeof window !== 'undefined' && 'ethereum' in window
     return (
       <button
         className={`btn btn-primary ${big ? 'text-xl px-8 py-4' : 'text-sm px-4 py-2'}`}
-        disabled={isPending}
+        disabled={modalOpen}
         onClick={() => {
           play('click')
-          if (!hasWallet) return window.open('https://metamask.io/download/', '_blank')
-          connect({ connector: connectors[0], chainId: CHAIN_ID })
+          void open({ view: 'Connect' })
         }}
       >
-        {isPending ? 'Connecting…' : hasWallet ? 'Connect wallet' : 'Get a wallet'}
+        {modalOpen ? 'Connecting…' : 'Connect wallet'}
       </button>
     )
   }
@@ -35,7 +34,7 @@ export function WalletButton({ big = false }: { big?: boolean }) {
       </button>
     )
   return (
-    <button className="btn btn-ghost px-4 py-2 text-sm" title="Disconnect" onClick={() => disconnect()}>
+    <button className="btn btn-ghost px-4 py-2 text-sm" title="Wallet" onClick={() => void open({ view: 'Account' })}>
       <span className="h-2.5 w-2.5 rounded-full bg-mint shadow-[0_0_8px_#a3e3c1]" />
       {short(address)}
     </button>
