@@ -497,3 +497,13 @@ keeper's `recoverWall(5)` has failed 589+ times with "Missing or invalid paramet
 rests, the next raid's wall sits behind it in FIFO and every seat counts 0: the first fork run lost
 with 0 counted until `recoverWall(5)` was sent. Funding the keeper fixes both: it recovers #5 first,
 then posts.
+
+## D40. Reown AppKit for wallet connect (6 Oct)
+
+The injected-only connector sent anyone without a browser extension (every phone) to a MetaMask
+download page. The app now uses Reown AppKit with the wagmi adapter, set up the way KERB does it and
+with the same Reown project id (`VITE_REOWN_PROJECT_ID`, in `app/.env` and the Railway `web`
+service; it is public by design since it ships in the bundle). Our own pill buttons open the AppKit
+modal, so the Lil Stars look stays. The transport is `fallback([http(RPC_URL)])` so AppKit does not
+add its WalletConnect RPC leg. Analytics, email and social logins are off. One-tap is unchanged: it
+signs with the raid key, and the connected wallet only signs Bind and funds the key.
