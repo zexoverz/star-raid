@@ -1,4 +1,5 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
+import { motion } from 'motion/react'
 import { useHealth } from '../lib/live'
 import { NextRaidChip } from './countdown'
 import { SoundToggle, WalletButton } from './wallet'
@@ -17,6 +18,7 @@ export function TopBar() {
         </Link>
         <nav className="glass hidden items-center gap-1 rounded-full px-2 py-1.5 md:flex">
           <NavLink to="/">Lobby</NavLink>
+          <NavLink to="/raids">Raid board</NavLink>
           <NavLink to="/practice">Practice</NavLink>
           <NavLink to="/how">How it works</NavLink>
           <NavLink to="/terms">Terms</NavLink>
@@ -38,14 +40,21 @@ export function TopBar() {
   )
 }
 
-function NavLink({ to, children }: { to: '/' | '/how' | '/terms' | '/practice'; children: React.ReactNode }) {
+type NavTo = '/' | '/raids' | '/how' | '/terms' | '/practice'
+
+/** The active pill is one shared element that glides between links (motion layoutId). */
+function NavLink({ to, children }: { to: NavTo; children: React.ReactNode }) {
+  const path = useRouterState({ select: (s) => s.location.pathname })
+  const active = to === '/' ? path === '/' : path === to || (to === '/raids' && path.startsWith('/raid/'))
   return (
-    <Link
-      to={to}
-      className="rounded-full px-4 py-1.5 text-sm font-bold tracking-wide text-white/85 transition hover:text-white"
-      activeProps={{ className: 'bg-ember-500 text-white shadow-[0_3px_0_#b4470a]' }}
-      activeOptions={{ exact: true }}
-    >
+    <Link to={to} className={`relative rounded-full px-4 py-1.5 text-sm font-bold tracking-wide transition-colors ${active ? 'text-white' : 'text-white/80 hover:text-white'}`}>
+      {active && (
+        <motion.span
+          layoutId="nav-pill"
+          className="absolute inset-0 -z-10 rounded-full bg-ember-500 shadow-[0_3px_0_#b4470a]"
+          transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+        />
+      )}
       {children}
     </Link>
   )

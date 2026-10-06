@@ -34,9 +34,8 @@ export function WalletButton({ big = false }: { big?: boolean }) {
       </button>
     )
   return (
-    <button className="btn btn-ghost px-4 py-2 text-sm" title="Wallet" onClick={() => void open({ view: 'Account' })}>
-      <span className="h-2.5 w-2.5 rounded-full bg-mint shadow-[0_0_8px_#a3e3c1]" />
-      <PlayerPill address={address} size={22} className="max-w-[11rem]" />
+    <button className="btn btn-ghost py-1.5 pl-1.5 pr-4 text-sm" title="Wallet" onClick={() => void open({ view: 'Account' })}>
+      <PlayerPill address={address} size={28} className="max-w-[11rem]" />
     </button>
   )
 }

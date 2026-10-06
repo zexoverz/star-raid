@@ -22,47 +22,106 @@ function Lobby() {
   const head = useHead()
   const rows = raids.data ? sortLobby(raids.data, head) : []
   const featured = rows.find((r) => isActive(phaseOf(r, head))) ?? rows[0]
-  const rest = rows.filter((r) => r !== featured)
+  const recent = rows.filter((r) => r !== featured).slice(0, 3)
   const wins = rows.filter((r) => r.won).length
+  const live = featured ? isActive(phaseOf(featured, head)) : false
 
   return (
     <main>
-      <Hero featured={featured} head={head} wins={wins} total={rows.length} />
+      <Hero featured={featured} head={head} />
 
-      <section className="relative z-10 mx-auto mt-10 max-w-7xl px-4 sm:px-6">
-        <GetReady live={featured ? phaseOf(featured, head) === 'live' || phaseOf(featured, head) === 'danger' || phaseOf(featured, head) === 'upcoming' : false} />
-      </section>
+      <BrickBackdrop className="pt-10">
+        <section className="relative z-10 mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-[1.25fr_1fr]">
+          {featured ? <FeaturedStage raid={featured} head={head} /> : <Panel className="h-80 animate-pulse">{null}</Panel>}
+          <div className="flex flex-col gap-4">
+            <Guide who="fox" pose={live ? 'attack' : 'think'} size="h-28">
+              {live ? 'A raid is live right now! Grab your Star and jump in.' : featured ? `The last raid ${featured.won ? 'broke the wall!' : featured.status === 'Aborted' ? 'was called off.' : 'is over.'} The next one is coming. Warm up in a practice raid!` : 'Loading the raid board…'}
+            </Guide>
+            <div className="grid grid-cols-2 gap-3">
+              <Stat value={wins} label="walls broken" tone="text-ember-400" />
+              <Stat value={rows.length} label="raids posted" tone="text-white" />
+            </div>
+            <div className="panel flex-1 p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="font-display text-lg text-white">Recent raids</div>
+                <Link to="/raids" className="text-sm font-bold text-candy-300 hover:text-candy-200">
+                  Raid board →
+                </Link>
+              </div>
+              {raids.isError && <ErrorCard />}
+              <ul className="space-y-2">
+                {recent.map((r) => (
+                  <li key={r.raidId}>
+                    <RaidRow raid={r} head={head} />
+                  </li>
+                ))}
+                {!raids.isLoading && recent.length === 0 && <li className="text-sm text-grape-300">No earlier raids yet.</li>}
+              </ul>
+            </div>
+          </div>
+        </section>
 
-      <section className="relative z-10 mx-auto mt-12 max-w-7xl px-4 sm:px-6">
-        <HowStrip />
-      </section>
+        <section className="relative z-10 mx-auto mt-10 max-w-7xl px-4 sm:px-6">
+          <GetReady live={live} />
+        </section>
+
+        <section className="relative z-10 mx-auto mt-12 max-w-7xl px-4 pb-4 sm:px-6">
+          <HowStrip />
+        </section>
+      </BrickBackdrop>
 
       <section className="relative z-10 mx-auto mt-14 max-w-7xl px-4 sm:px-6">
-        <div className="mb-5 flex items-end justify-between gap-4">
-          <h2 className="title-outline-sm -rotate-1 text-4xl">Raid board</h2>
-          <span className="text-sm text-grape-300">{raids.isLoading ? 'Loading raids…' : `${rows.length} raids on record`}</span>
-        </div>
-        {raids.isError && <ErrorCard />}
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {rest.map((r, i) => (
-            <motion.div key={r.raidId} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-              <RaidCard raid={r} head={head} />
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      <section className="relative z-10 mx-auto mt-16 max-w-7xl px-4 sm:px-6">
         <Marquee />
       </section>
     </main>
   )
 }
 
-function Hero({ featured, head, wins, total }: { featured?: LobbyRaid; head?: bigint; wins: number; total: number }) {
+/** Lil Stars brick wall behind the lobby content, faded into the page at both ends. */
+export function BrickBackdrop({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`relative isolate ${className}`}>
+      <div className="absolute inset-0 -z-10 bg-[url('/art/brick_wall.svg')] bg-[length:240px_160px] bg-repeat opacity-90" />
+      {/* warm glow from below, like the hero's street lamps, then fade into the page at both ends */}
+      <div className="absolute inset-0 -z-10" style={{ background: 'radial-gradient(ellipse at 50% 110%, rgba(255,140,66,0.18), transparent 60%)' }} />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-grape-950 via-grape-950/30 to-grape-950" />
+      {children}
+    </div>
+  )
+}
+
+function Stat({ value, label, tone }: { value: number; label: string; tone: string }) {
+  return (
+    <div className="panel px-4 py-3 text-center">
+      <div className={`font-display text-4xl ${tone}`}>{value}</div>
+      <div className="text-xs font-bold uppercase tracking-widest text-grape-300">{label}</div>
+    </div>
+  )
+}
+
+/** Compact raid line for the lobby's recent list. */
+export function RaidRow({ raid, head }: { raid: LobbyRaid; head?: bigint }) {
+  const phase = phaseOf(raid, head)
+  const t = raid.terms
+  const art = phase === 'victory' ? 'trophy' : phase === 'defeat' ? 'defeat' : phase === 'called-off' ? 'lock' : phase === 'drawing' ? 'orb' : 'wall_boss'
+  return (
+    <Link to="/raid/$raidId" params={{ raidId: raid.raidId }} className="group flex items-center gap-3 rounded-2xl bg-grape-950/60 px-3 py-2 transition hover:bg-grape-800/70">
+      <BossImg name={art} className="h-10 w-10 shrink-0 object-contain transition-transform group-hover:rotate-6" />
+      <div className="min-w-0 flex-1">
+        <div className="font-display text-white">Raid #{raid.raidId}</div>
+        <div className="truncate text-xs text-grape-300">
+          {fmt(raid.counted, t.quoteDecimals)} / {fmt(t.target, t.quoteDecimals)} counted · {raid.seatCount} seats
+        </div>
+      </div>
+      <PhaseChip phase={phase} />
+    </Link>
+  )
+}
+
+function Hero({ featured, head }: { featured?: LobbyRaid; head?: bigint }) {
   const live = featured ? isActive(phaseOf(featured, head)) : false
   return (
-    <section className="relative isolate pb-10">
+    <section className="relative isolate">
       {/* One coherent scene: the Lil Stars street on raid night, the crew facing the wall. */}
       <div className="relative h-[min(92vh,820px)] min-h-[560px] overflow-hidden">
         <motion.img
@@ -91,41 +150,22 @@ function Hero({ featured, head, wins, total }: { featured?: LobbyRaid; head?: bi
             </div>
           </div>
 
-          <div className="flex flex-col items-center gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="flex flex-wrap justify-center gap-3">
-              {featured && (
-                <Link to="/raid/$raidId" params={{ raidId: featured.raidId }} className="btn btn-primary px-8 py-4 text-xl">
-                  {live ? '⚔ Join the raid' : '▶ Watch the last raid'}
-                </Link>
-              )}
-              {!live && (
-                <Link to="/practice" className="btn btn-candy px-6 py-4 text-lg">
-                  ⚡ Try one-tap
-                </Link>
-              )}
-              <Link to="/how" className="btn btn-ghost px-6 py-4">
-                How it works
+          <div className="flex flex-wrap justify-center gap-3 lg:justify-start">
+            {featured && (
+              <Link to="/raid/$raidId" params={{ raidId: featured.raidId }} className="btn btn-primary px-8 py-4 text-xl">
+                {live ? '⚔ Join the raid' : '▶ Watch the last raid'}
               </Link>
-            </div>
-            <div className="flex gap-3 text-sm">
-              <div className="glass rounded-2xl px-4 py-2 text-center">
-                <div className="font-display text-3xl text-ember-400">{wins}</div>
-                <div className="text-cream-100">walls broken</div>
-              </div>
-              <div className="glass rounded-2xl px-4 py-2 text-center">
-                <div className="font-display text-3xl text-white">{total}</div>
-                <div className="text-cream-100">raids posted</div>
-              </div>
-            </div>
+            )}
+            {!live && (
+              <Link to="/practice" className="btn btn-candy px-6 py-4 text-lg">
+                ⚡ Try one-tap
+              </Link>
+            )}
+            <Link to="/how" className="btn btn-ghost px-6 py-4">
+              How it works
+            </Link>
           </div>
         </div>
-      </div>
-
-      <div className="relative z-10 mx-auto -mt-6 grid max-w-7xl items-center gap-6 px-4 sm:px-6 lg:grid-cols-[1fr_1.2fr]">
-        <Guide who="fox" pose="think" size="h-40 sm:h-48">
-          {live ? 'A raid is live right now! Grab your Star and jump in.' : featured ? `The last raid ${featured.won ? 'broke the wall!' : featured.status === 'Aborted' ? 'was called off.' : 'is over.'} The next one is coming. Warm up in a practice raid!` : 'Loading the raid board…'}
-        </Guide>
-        {featured ? <FeaturedStage raid={featured} head={head} /> : <Panel className="h-80 animate-pulse">{null}</Panel>}
       </div>
     </section>
   )
@@ -204,7 +244,7 @@ export function PhaseChip({ phase }: { phase: Phase }) {
   )
 }
 
-function RaidCard({ raid, head }: { raid: LobbyRaid; head?: bigint }) {
+export function RaidCard({ raid, head }: { raid: LobbyRaid; head?: bigint }) {
   const phase = phaseOf(raid, head)
   const t = raid.terms
   const progress = ratio(raid.counted, t.target)
@@ -296,7 +336,7 @@ function Marquee() {
   )
 }
 
-function ErrorCard() {
+export function ErrorCard() {
   return (
     <Panel className="mb-6 flex items-center gap-4">
       <Sprite name="defeat" className="h-16 w-16" />
