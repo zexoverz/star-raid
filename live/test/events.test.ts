@@ -46,6 +46,15 @@ describe("event store", () => {
     expect(calls).toEqual([[999_999n, 1_000_000n]]); // only the tentative tail
   });
 
+  it("reads nothing until a finalized block is known", async () => {
+    const { client, calls } = chainOf(() => []);
+    const s = new EventStore(client as never, R, G, R);
+    await s.sync(1_000_000n, 0n); // a proposed head before the first finalized poll
+    expect(calls).toHaveLength(0);
+    await s.sync(1_000_001n, 999_999n);
+    expect(calls).toEqual([[1_000_000n, 1_000_001n]]);
+  });
+
   it("reads an old raid's history inside its own window and stops at its Settled log", async () => {
     const { client, calls } = chainOf(() => [raided(5_010n, "1"), raided(5_090n, "2"), settled(5_160n), raided(9_000n, "9", 2n)]);
     const s = new EventStore(client as never, R, G, R);
