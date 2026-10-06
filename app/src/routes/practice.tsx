@@ -54,7 +54,7 @@ function Practice() {
 
         {settled && (
           <div className="mb-6">
-            <ResultBanner frame={view} phase={phase} onReplay={() => setReplay((r) => r + 1)} />
+            <ResultBanner frame={view} phase={phase} shareable={false} onReplay={() => setReplay((r) => r + 1)} />
             <div className="mt-4 flex justify-center">
               <button className="btn btn-primary px-8 py-3 text-xl" onClick={() => (sim.restart(), setHits(0), (spent.current = 0n))}>
                 ↻ Play again
@@ -67,7 +67,7 @@ function Practice() {
           <div className="space-y-6">
             <Arena frame={view} phase={phase} tentative={false} />
             <Timeline frame={view} head={sim.head} phase={phase} />
-            {settled && <Podium frame={view} />}
+            {settled && <Podium frame={view} shareable={false} />}
           </div>
           <aside className="space-y-6">
             <div className="panel p-5">
