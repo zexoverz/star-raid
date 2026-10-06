@@ -35,6 +35,8 @@ export class MulticallReader implements Reader {
   private markets = new Map<Address, MarketParams>();
   private count = 0n;
   private lastSold = new Map<bigint, bigint>();
+  // raids whose latest read had everything (wall reads, or no wall at all); only these can retire
+  private complete = new Set<bigint>();
 
   constructor(
     private client: Pick<PublicClient, "multicall" | "readContract">,
@@ -45,7 +47,7 @@ export class MulticallReader implements Reader {
   /** Called after a finalized frame is published, so terminal raids stop costing reads. */
   retire(raidId: bigint) {
     const r = this.known.get(raidId);
-    if (r && (r.status === SETTLED || r.status === ABORTED)) this.done.add(raidId);
+    if (r && (r.status === SETTLED || r.status === ABORTED) && this.complete.has(raidId)) this.done.add(raidId);
   }
 
   async readAt(block: bigint): Promise<RaidSnapshot[]> {
@@ -86,6 +88,8 @@ export class MulticallReader implements Reader {
       this.known.set(id, r);
       const m = await this.market(r.terms.market);
       const w = wallReads.get(id);
+      if (w || r.wallId === 0) this.complete.add(id);
+      else this.complete.delete(id);
       let lastSold = this.lastSold.get(id) ?? 0n;
       if (w && Number(w.order[5]) !== 0) {
         const head = w.head;
