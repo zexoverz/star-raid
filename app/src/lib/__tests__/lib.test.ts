@@ -55,6 +55,12 @@ describe('explainError', () => {
     expect(explainError(new Error('User rejected the request.'))).toMatch(/cancelled/)
     expect(explainError(new Error('insufficient funds for gas * price + value'))).toMatch(/MON for gas/)
   })
+  it('explains Monad "Missing or invalid parameters" (insufficient balance) and the 15 req/s limit', () => {
+    const monad = Object.assign(new Error('Missing or invalid parameters.\nDouble check you have provided the correct parameters.'), { details: 'Signer had insufficient balance' })
+    expect(explainError(monad)).toMatch(/Not enough MON for gas/)
+    expect(explainError(new Error('Missing or invalid parameters.'))).toMatch(/not enough MON/)
+    expect(explainError(Object.assign(new Error('RPC Request failed.'), { details: 'requests limited to 15/sec' }))).toMatch(/rate limited/)
+  })
 })
 
 describe('format (no price, no PnL: token amounts only)', () => {

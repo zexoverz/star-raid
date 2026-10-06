@@ -72,7 +72,7 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
           inflight={one.inflight}
           onAmount={setAmount}
           onHit={(amount) => one.tap(amount)}
-          error={one.error}
+          error={null}
           footer={
             <>
               {one.status && <p className="mt-3 text-sm text-grape-300">{one.status}…</p>}
@@ -144,7 +144,6 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
       </button>
       <p className="mt-2 text-center text-xs text-grape-300">One signature + one funding step. After that, every hit is a single tap.</p>
       {one.status && <p className="mt-3 text-center text-sm text-ember-300">{one.status}…</p>}
-      {one.error && <p className="mt-3 rounded-xl bg-candy-600/30 p-2 text-sm text-candy-300">{one.error}</p>}
 
       <AnimatePresence>
         {confirm && myStar && (
@@ -176,7 +175,7 @@ function ConfirmSheet({ frame, budget, tokenId, onCancel, onGo }: { frame: Frame
       <motion.div className="max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-3xl bg-cream-100 p-6 text-grape-900 shadow-2xl" initial={{ y: 40 }} animate={{ y: 0 }} exit={{ y: 40 }} onClick={(e) => e.stopPropagation()}>
         <h3 className="text-xl font-extrabold">Before you arm one-tap</h3>
         <dl className="mt-4 space-y-2 text-sm">
-          <Row k="Budget moved to your raid key" v={`${fmt(budget, t.quoteDecimals, 6)} tUSDC + 0.6 MON for gas`} />
+          <Row k="Budget moved to your raid key" v={`${fmt(budget, t.quoteDecimals, 6)} tUSDC + about 1.3 MON for gas (8 hits)`} />
           <Row k="Cap price" v={t.capPrice ? `${fmt(t.capPrice, t.quoteDecimals, 6)} tUSDC per tSTAR` : 'set when the raid opens'} />
           <Row k="Seat" v={`Lil Star #${tokenId}`} />
           <Row k="Hold after settle" v={duration(t.hold)} />
@@ -225,7 +224,7 @@ export function TxSteps({ steps, error }: { steps: { label: string; state: strin
           </span>
         </div>
       ))}
-      {error && <p className="rounded-xl bg-candy-600/30 p-2 text-candy-300">{error}</p>}
+      {error && <p className="text-xs text-candy-300">Something went wrong, see the message from Bunnystar.</p>}
     </div>
   )
 }

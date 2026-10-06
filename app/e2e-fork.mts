@@ -90,23 +90,25 @@ const key = privateKeyToAccount(generatePrivateKey())
 const expiry = BigInt(Math.floor(Date.now() / 1000) + 3600)
 const sig = await holder.signTypedData({ domain: { name: 'StarRaid SeatGate', version: '1', chainId: 10143, verifyingContract: A.gate }, types: { Bind: [{ name: 'holder', type: 'address' }, { name: 'player', type: 'address' }, { name: 'expiry', type: 'uint64' }] }, primaryType: 'Bind', message: { holder: holder.address, player: key.address, expiry } })
 await send(holder, A.usdc, enc(erc20Abi, 'transfer', [key.address, 560_000_000n]), 80_000n)
-{ const w = createWalletClient({ chain, transport: http(RPC), account: holder }); const h = await w.sendTransaction({ to: key.address, value: parseEther('0.6'), gas: 21_000n }); await mine(1); await pub.waitForTransactionReceipt({ hash: h }) }
-check('arm: raid key funded with 560 tUSDC + 0.6 MON', ((await read(A.usdc, erc20Abi, 'balanceOf', [key.address])) as bigint) === 560_000_000n)
+{ const w = createWalletClient({ chain, transport: http(RPC), account: holder }); const h = await w.sendTransaction({ to: key.address, value: parseEther('1.4'), gas: 21_000n }); await mine(1); await pub.waitForTransactionReceipt({ hash: h }) }
+check('arm: raid key funded with 560 tUSDC + 1.4 MON', ((await read(A.usdc, erc20Abi, 'balanceOf', [key.address])) as bigint) === 560_000_000n)
 
-// ---- taps (app: onetap.tap): approve once for exactly the balance, then raid with raidGasLimit(1, est)
+// ---- taps (app: onetap.tap): router approved once at arm time, then a BURST of raid() sends with the
+// fixed HIT_GAS limit, consecutive nonces, and no reads in between (what the app now does).
 const seat = { kind: 1, holder: holder.address, tokenId: nextId, humanId: zeroHash, expiry, sig }
 await send(key, A.usdc, enc(erc20Abi, 'approve', [A.router, 560_000_000n]), 80_000n)
 const before = (await read(A.usdc, erc20Abi, 'balanceOf', [key.address])) as bigint
-let taps = 0
-for (const amt of [5_000_000n, 5_000_000n, 500_000_000n]) {
-  const args = [raidId, amt, seat]
-  const est = await pub.estimateContractGas({ address: A.router, abi: routerAbi as Abi, functionName: 'raid', args, account: key })
-  const gas = raidGasLimit(1, est)
-  const r = await send(key, A.router, enc(routerAbi, 'raid', args), gas)
-  if (r.status === 'success') taps++
-  if (taps === 1) check('tap gas limit is explicit, >= 840k floor and <= 2M ceiling', gas >= 840_000n && gas <= 2_000_000n, `est ${est}, limit ${gas}, used ${r.gasUsed}`)
-}
-check('three one-tap hits land on chain (no holder signature per hit)', taps === 3)
+const HIT_GAS = raidGasLimit(1, 865_000n)
+check('hit gas limit is fixed and explicit (rule 10)', HIT_GAS === 1_297_500n && HIT_GAS <= 2_000_000n, String(HIT_GAS))
+const kw = createWalletClient({ chain, transport: http(RPC), account: key })
+let n0 = await pub.getTransactionCount({ address: key.address, blockTag: 'pending' })
+const hashes: Hex[] = []
+for (const amt of [5_000_000n, 5_000_000n, 3_000_000n, 497_000_000n]) hashes.push(await kw.sendTransaction({ to: A.router, data: enc(routerAbi, 'raid', [raidId, amt, seat]), gas: HIT_GAS, nonce: n0++, maxFeePerGas: 127_000_000_000n, maxPriorityFeePerGas: 2_000_000_000n }))
+await mine(1)
+const rcpts = await Promise.all(hashes.map((hash) => pub.waitForTransactionReceipt({ hash })))
+const taps = rcpts.filter((r) => r.status === 'success').length
+check('a burst of 4 taps in one block all land', taps === 4, `gas used ${rcpts.map((r) => r.gasUsed).join(', ')} under limit ${HIT_GAS}`)
+check('every hit used less gas than the limit', rcpts.every((r) => r.gasUsed < HIT_GAS))
 const after = (await read(A.usdc, erc20Abi, 'balanceOf', [key.address])) as bigint
 check('hits spent tUSDC from the raid key only', after < before && after >= 0n, `${Number(before - after) / 1e6} tUSDC spent`)
 const seatKey = (await read(A.gate, gateAbi, 'playerSeat', [raidId, key.address])) as Hex

@@ -4,6 +4,7 @@ import { type Hex, zeroHash } from 'viem'
 import { usePublicClient, useReadContract, useReadContracts, useConnection, useWriteContract } from 'wagmi'
 import { ADDR } from './config'
 import { ERC20_ABI, GAS, ROUTER_ABI, GATE_ABI, STARS_ABI, explainError, raidGasLimit } from './contracts'
+import { notify } from './toast'
 
 /** The connected wallet's seat in a raid, its escrow and prize share (all read from chain). */
 export function usePlayerSeat(raidId: string, player?: Hex) {
@@ -105,7 +106,9 @@ export function useTxRunner() {
         return true
       } catch (e) {
         setSteps((s) => s.map((x) => (x.state === 'doing' ? { ...x, state: 'error' } : x)))
-        setError(explainError(e))
+        const m = explainError(e)
+        setError(m)
+        notify.error(m)
         return false
       } finally {
         setBusy(false)
