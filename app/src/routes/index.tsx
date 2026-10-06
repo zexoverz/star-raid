@@ -5,6 +5,7 @@ import { fmt, ratio, duration } from '../lib/format'
 import { useHealth, useRaids } from '../lib/live'
 import { PHASE_LABEL, blocksToSec, isActive, phaseOf, sortLobby, type Phase } from '../lib/phase'
 import { CrewRow, Guide, Mascot } from '../components/mascots'
+import { GetReady } from '../components/getready'
 import { PREVIEW_GALLERY } from '../lib/stars'
 import type { LobbyRaid } from '../lib/types'
 
@@ -26,6 +27,10 @@ function Lobby() {
   return (
     <main>
       <Hero featured={featured} head={head} wins={wins} total={rows.length} />
+
+      <section className="relative z-10 mx-auto mt-10 max-w-7xl px-4 sm:px-6">
+        <GetReady latest={rows.find((r) => r.status !== 'Aborted')} live={featured ? phaseOf(featured, head) === 'live' || phaseOf(featured, head) === 'danger' || phaseOf(featured, head) === 'upcoming' : false} />
+      </section>
 
       <section className="relative z-10 mx-auto mt-12 max-w-7xl px-4 sm:px-6">
         <HowStrip />
