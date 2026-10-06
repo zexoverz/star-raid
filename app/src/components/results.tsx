@@ -11,12 +11,13 @@ import type { Frame } from '../lib/types'
 import { Sprite, StarAvatar, Twinkles } from './game'
 import { CrewRow, Guide } from './mascots'
 import { TxSteps } from './join'
+import { PlayerPill } from './profile'
 
 /** VICTORY / WALL HELD banner. Every number is one the chain shows. */
 export function ResultBanner({ frame, phase, onReplay, me, shareable = true }: { frame: Frame; phase: Phase; onReplay: () => void; me?: string; shareable?: boolean }) {
   const t = frame.terms
   const won = phase === 'victory'
-  const mySeat = me ? (frame.seats.find((s) => s.player.toLowerCase() === me.toLowerCase())?.tokenId ?? null) : null
+  const mySeat = me ? (frame.seats.find((s) => [s.player, s.holder].some((a) => a?.toLowerCase() === me.toLowerCase()))?.tokenId ?? null) : null
   const share = ratio(frame.totals.wallFillQuote, frame.totals.quoteSpent)
   const countedBuys = frame.buys.filter((b) => b.seatKey && b.afterEnd === false).length
   const lateBuys = frame.buys.filter((b) => b.afterEnd).length
@@ -98,6 +99,7 @@ export function Podium({ frame, shareable = true }: { frame: Frame; shareable?: 
               <Sprite name={['medal_gold', 'medal_silver', 'medal_bronze'][rank]} className="-mb-3 h-10 w-10" />
               <StarAvatar tokenId={s.tokenId} size={rank === 0 ? 96 : 76} />
               <div className="mt-2 truncate text-center text-sm font-bold text-white">{art ? `${STAR_NAMES[art.character] ?? art.character} #${s.tokenId}` : 'Human'}</div>
+              <PlayerPill address={s.holder ?? s.player} className="max-w-full text-xs text-grape-300" />
               <div className="font-display text-ember-300">{fmt(s.counted, t.quoteDecimals)} counted</div>
               {won && <div className="text-xs text-mint">≈ {fmt(share, t.quoteDecimals)} prize</div>}
               <div className={`mt-2 w-full rounded-t-2xl ${heights[rank]} grid place-items-start justify-center pt-2 font-display text-3xl text-white`} style={{ background: ['linear-gradient(#ffd27a,#ff8c42)', 'linear-gradient(#ece8ff,#b8aee6)', 'linear-gradient(#ffb48a,#c56a3a)'][rank], boxShadow: '0 4px 0 #2d2250' }}>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAppKit, useAppKitState } from '@reown/appkit/react'
 import { useChainId, useConnection, useSwitchChain } from 'wagmi'
 import { CHAIN_ID } from '../lib/config'
-import { short } from '../lib/format'
+import { PlayerPill } from './profile'
 import { onSound, play, setSound, soundOn } from '../lib/sfx'
 
 export function WalletButton({ big = false }: { big?: boolean }) {
@@ -36,7 +36,7 @@ export function WalletButton({ big = false }: { big?: boolean }) {
   return (
     <button className="btn btn-ghost px-4 py-2 text-sm" title="Wallet" onClick={() => void open({ view: 'Account' })}>
       <span className="h-2.5 w-2.5 rounded-full bg-mint shadow-[0_0_8px_#a3e3c1]" />
-      {short(address)}
+      <PlayerPill address={address} size={22} className="max-w-[11rem]" />
     </button>
   )
 }
