@@ -6,6 +6,7 @@ import { useHealth, useRaids } from '../lib/live'
 import { PHASE_LABEL, blocksToSec, isActive, phaseOf, sortLobby, type Phase } from '../lib/phase'
 import { CrewRow, Guide, Mascot } from '../components/mascots'
 import { GetReady } from '../components/getready'
+import { NextRaidCountdown } from '../components/countdown'
 import { PREVIEW_GALLERY } from '../lib/stars'
 import type { LobbyRaid } from '../lib/types'
 
@@ -29,7 +30,7 @@ function Lobby() {
       <Hero featured={featured} head={head} wins={wins} total={rows.length} />
 
       <section className="relative z-10 mx-auto mt-10 max-w-7xl px-4 sm:px-6">
-        <GetReady latest={rows.find((r) => r.status !== 'Aborted')} live={featured ? phaseOf(featured, head) === 'live' || phaseOf(featured, head) === 'danger' || phaseOf(featured, head) === 'upcoming' : false} />
+        <GetReady live={featured ? phaseOf(featured, head) === 'live' || phaseOf(featured, head) === 'danger' || phaseOf(featured, head) === 'upcoming' : false} />
       </section>
 
       <section className="relative z-10 mx-auto mt-12 max-w-7xl px-4 sm:px-6">
@@ -85,6 +86,9 @@ function Hero({ featured, head, wins, total }: { featured?: LobbyRaid; head?: bi
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} className="glass mt-4 max-w-md rounded-3xl px-5 py-3 text-base font-semibold text-white sm:text-lg">
               A sponsor puts up a wall. The Stars hit it together for about a minute. The end is drawn at random, so hit early. Break it and the seats split the prize.
             </motion.p>
+            <div className="mt-3">
+              <NextRaidCountdown />
+            </div>
           </div>
 
           <div className="flex flex-col items-center gap-4 lg:flex-row lg:items-end lg:justify-between">

@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { useHealth } from '../lib/live'
+import { NextRaidChip } from './countdown'
 import { SoundToggle, WalletButton } from './wallet'
 
 export function TopBar() {
@@ -21,6 +22,7 @@ export function TopBar() {
           <NavLink to="/terms">Terms</NavLink>
         </nav>
         <div className="flex items-center gap-2">
+          <NextRaidChip />
           <span
             className="chip hidden bg-grape-900/80 text-grape-100 sm:inline-flex"
             title={ok ? `Live feed at block ${health.data?.finalized}` : 'Live feed unreachable'}

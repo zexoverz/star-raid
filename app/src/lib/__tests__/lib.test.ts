@@ -3,6 +3,7 @@ import { raidGasLimit, explainError, ERROR_TEXT } from '../contracts'
 import { fmt, ratio, duration } from '../format'
 import { phaseOf, sortLobby } from '../phase'
 import { starArt } from '../stars'
+import { nextRaidAt } from '../schedule'
 import type { Frame, LobbyRaid } from '../types'
 
 const terms = { w0: '100', w1: '200', drawFrom: '175' } as Frame['terms']
@@ -71,6 +72,18 @@ describe('format (no price, no PnL: token amounts only)', () => {
     expect(duration(60)).toBe('1m 00s')
     expect(duration(3725)).toBe('1h 2m')
     expect(duration(-5)).toBe('0s')
+  })
+})
+
+describe('nextRaidAt (hourly demo schedule estimate)', () => {
+  it('is one hour after the last post, using the newest settled raid', () => {
+    const rows = [{ settledAt: 1_000_000 }, { settledAt: 500 }] as unknown as LobbyRaid[]
+    expect(nextRaidAt(rows)).toBe(1_000_000 * 1000 - 90_000 + 3_600_000)
+  })
+  it('skips raids that never settled and is null with no history', () => {
+    expect(nextRaidAt([{ settledAt: null }, { settledAt: 2000 }] as unknown as LobbyRaid[])).toBe(2000 * 1000 - 90_000 + 3_600_000)
+    expect(nextRaidAt([])).toBeNull()
+    expect(nextRaidAt(undefined)).toBeNull()
   })
 })
 

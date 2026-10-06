@@ -1,9 +1,8 @@
 import { Link } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
 import { fmt } from '../lib/format'
 import { useActions, useWalletKit } from '../lib/player'
+import { useNextRaid } from '../lib/schedule'
 import { play } from '../lib/sfx'
-import type { LobbyRaid } from '../lib/types'
 import { StarAvatar } from './game'
 import { TxSteps } from './join'
 import { Guide } from './mascots'
@@ -14,21 +13,12 @@ import { WalletButton } from './wallet'
  * minutes, so players need to be ready before one appears. This panel lets them get a test Star and
  * tUSDC at any time and shows roughly when the next demo raid is due (an estimate, labelled so).
  */
-const DEMO_EVERY_MS = 60 * 60 * 1000
 
-export function GetReady({ latest, live }: { latest?: LobbyRaid; live: boolean }) {
+export function GetReady({ live }: { live: boolean }) {
   const kit = useWalletKit()
   const act = useActions()
-  const [now, setNow] = useState(Date.now())
-  useEffect(() => {
-    const i = setInterval(() => setNow(Date.now()), 1000)
-    return () => clearInterval(i)
-  }, [])
-
-  // The last demo was posted about 25 s before its w0; settledAt is the best wall-clock anchor we have.
-  const anchor = latest?.settledAt ? latest.settledAt * 1000 - 90_000 : null
-  const next = anchor ? anchor + DEMO_EVERY_MS : null
-  const left = next ? Math.max(0, Math.round((next - now) / 1000)) : null
+  const n = useNextRaid()
+  const left = n.left
   const mm = left !== null ? Math.floor(left / 60) : 0
   const ss = left !== null ? left % 60 : 0
 
