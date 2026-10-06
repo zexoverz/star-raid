@@ -453,3 +453,14 @@ the browser key without changing the screens.
 
 **Not yet verified.** A full on-chain one-tap raid: no raid was live when this was written. `/practice`
 runs the same HIT pad against a local simulation, labelled as practice.
+
+## D37. The app is hosted on Railway against testnet (6 Oct)
+
+**Claim.** Railway project `star-raid`, service `web`, built from `app/Dockerfile` at the repo root
+(the app imports `deployments/`) and served by Caddy with an SPA fallback:
+https://web-production-de387e.up.railway.app. It reads the hosted `live` service and Monad testnet
+(`VITE_LIVE_URL`, `VITE_RPC_URL` build args). Deployed with `railway up` from the `frontend` branch;
+no secrets in the image.
+
+**Reverses it.** Mainnet: rebuild with the mainnet `live` URL and RPC, switch `deployments/` and
+`IS_TESTNET` in `app/src/lib/stars.ts`.
