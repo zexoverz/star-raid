@@ -114,7 +114,7 @@ export function DrawCurtain({ frame, phase, replay, onDone }: { frame: Frame; ph
                     <Sprite name="dice_block" className={stage === 'block' ? 'h-24 w-24' : 'h-14 w-14'} />
                     <div className="text-left">
                       <div className="title-outline-sm text-2xl text-candy-300">End block</div>
-                      <div className="title-outline text-6xl text-ember-400 sm:text-7xl">{Number(end).toLocaleString()}</div>
+                      <div className="title-outline text-4xl text-ember-400 sm:text-7xl">{Number(end).toLocaleString()}</div>
                     </div>
                   </div>
                   {stage === 'block' && <p className="mx-auto mt-3 max-w-md text-lg text-cream-100">Drawn by Pyth Entropy. Every hit at or before this block counts. Let's check the hits!</p>}
