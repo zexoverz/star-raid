@@ -1,11 +1,37 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { parseUnits } from 'viem'
 import { fmt } from '../lib/format'
 import { play } from '../lib/sfx'
 import { Sprite, StarAvatar } from './game'
 
 export const HIT_SIZES = [3, 5, 10]
+
+/** Mobile only: a thumb-reach HIT button pinned to the bottom while the window is open. */
+export function FloatingHit({ open, onHit, amount, label = '⚔ HIT!' }: { open: boolean; onHit: (amount: bigint) => Promise<unknown>; amount: bigint; label?: string }) {
+  const [burst, setBurst] = useState(0)
+  if (!open) return null
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-40 bg-gradient-to-t from-grape-950 via-grape-950/90 to-transparent px-4 pb-4 pt-8 lg:hidden">
+      <motion.button
+        whileTap={{ scale: 0.92 }}
+        onClick={() => {
+          play('hit')
+          setBurst((b) => b + 1)
+          void onHit(amount)
+        }}
+        className="btn btn-primary relative h-20 w-full overflow-visible text-3xl"
+      >
+        <AnimatePresence>
+          <motion.span key={burst} className="pointer-events-none absolute inset-0 grid place-items-center" initial={{ scale: 0.4, opacity: 1 }} animate={{ scale: 1.8, opacity: 0 }} transition={{ duration: 0.5 }}>
+            {burst > 0 && <Sprite name="hit_spark" className="h-32 w-32" />}
+          </motion.span>
+        </AnimatePresence>
+        {label}
+      </motion.button>
+    </div>
+  )
+}
 
 /** The one-tap HIT pad. Same UI for a real armed raid key and the practice raid. */
 export function HitPad({
@@ -19,6 +45,7 @@ export function HitPad({
   onHit,
   footer,
   error,
+  onAmount,
 }: {
   tokenId: string
   decimals: number
@@ -30,10 +57,12 @@ export function HitPad({
   onHit: (amount: bigint) => Promise<unknown>
   footer?: React.ReactNode
   error?: string | null
+  onAmount?: (units: bigint) => void
 }) {
   const [hit, setHit] = useState(5)
   const [burst, setBurst] = useState(0)
   const units = parseUnits(String(hit), decimals)
+  useEffect(() => onAmount?.(units), [units, onAmount])
   const can = open && balance >= units
   return (
     <div>

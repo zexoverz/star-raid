@@ -3,7 +3,7 @@ import { useRef, useState } from 'react'
 import { parseUnits } from 'viem'
 import { Arena } from '../components/arena'
 import { DrawCurtain } from '../components/curtain'
-import { HitPad } from '../components/hitpad'
+import { FloatingHit, HitPad } from '../components/hitpad'
 import { Guide } from '../components/mascots'
 import { HitFeed, Party, Timeline } from '../components/raidparts'
 import { Podium, ResultBanner } from '../components/results'
@@ -18,6 +18,7 @@ function Practice() {
   const [replay, setReplay] = useState(0)
   const [hits, setHits] = useState(0)
   const [inflight, setInflight] = useState(0)
+  const [amount, setAmount] = useState(parseUnits('5', 6))
   const spent = useRef(0n)
   const budget = parseUnits('50', 6)
   const view = sim.view
@@ -25,6 +26,14 @@ function Practice() {
   const phase = phaseOf(view, sim.head)
   const open = phase === 'live' || phase === 'danger'
   const settled = phase === 'victory' || phase === 'defeat'
+  const hitOnce = async (a: bigint) => {
+    if (budget - spent.current < a) return
+    spent.current += a
+    setInflight((n) => n + 1)
+    await sim.tap(a)
+    setInflight((n) => n - 1)
+    setHits((h) => h + 1)
+  }
 
   return (
     <main className="relative pb-10 pt-24">
@@ -70,13 +79,8 @@ function Practice() {
                 label={open ? '⚔ HIT!' : phase === 'upcoming' ? 'Get ready…' : 'Window closed'}
                 hits={hits}
                 inflight={inflight}
-                onHit={async (amount) => {
-                  spent.current += amount
-                  setInflight((n) => n + 1)
-                  await sim.tap(amount)
-                  setInflight((n) => n - 1)
-                  setHits((h) => h + 1)
-                }}
+                onAmount={setAmount}
+                onHit={hitOnce}
                 footer={
                   <div className="mt-4 border-t border-grape-700 pt-3">
                     <Guide who="fox" pose={open ? 'attack' : 'think'} size="h-20">
@@ -91,6 +95,7 @@ function Practice() {
           </aside>
         </div>
       </div>
+      <FloatingHit open={open && budget - spent.current >= amount} amount={amount} onHit={hitOnce} />
       <DrawCurtain frame={view} phase={phase} replay={replay} />
     </main>
   )

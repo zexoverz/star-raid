@@ -9,7 +9,7 @@ import { play } from '../lib/sfx'
 import { STAR_NAMES, starArt } from '../lib/stars'
 import type { Frame } from '../lib/types'
 import { StarAvatar } from './game'
-import { HitPad } from './hitpad'
+import { FloatingHit, HitPad } from './hitpad'
 import { Guide } from './mascots'
 import { WalletButton } from './wallet'
 
@@ -32,6 +32,7 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
   const [pick, setPick] = useState<string | null>(null)
   const [budget, setBudget] = useState(25)
   const [confirm, setConfirm] = useState(false)
+  const [amount, setAmount] = useState(parseUnits('5', t.quoteDecimals))
   const isSponsor = kit.address && kit.address.toLowerCase() === t.sponsor.toLowerCase()
   const myStar = useMemo(() => one.session?.tokenId ?? pick ?? kit.myStars[0] ?? null, [one.session, pick, kit.myStars])
 
@@ -69,6 +70,7 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
           label={open ? '⚔ HIT!' : phase === 'upcoming' ? 'Get ready…' : 'Window closed'}
           hits={one.hits}
           inflight={one.inflight}
+          onAmount={setAmount}
           onHit={(amount) => one.tap(amount)}
           error={one.error}
           footer={
@@ -86,6 +88,7 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
             </>
           }
         />
+        <FloatingHit open={open && one.mon > 0n && one.usdc >= amount} amount={amount} onHit={(a) => one.tap(a)} />
       </Shell>
     )
   }
