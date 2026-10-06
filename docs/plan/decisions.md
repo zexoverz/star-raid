@@ -466,7 +466,6 @@ no secrets in the image.
 `IS_TESTNET` in `app/src/lib/stars.ts`.
 
 **Auto deploy (D37 addendum).** The `web` service is connected to GitHub `zexoverz/star-raid`, branch
-`frontend`: every push that touches `app/**`, `deployments/**` or `.dockerignore` rebuilds and
-redeploys from `app/Dockerfile` (service setting, not a config file; Railway has deprecated
-`railway.json`). Switch the branch to `main` with `railway service source connect --repo
-zexoverz/star-raid --branch main --service web` once the PR is merged.
+`main` (since PR #30 merged): every push to `main` that touches `app/**`, `deployments/**` or
+`.dockerignore` rebuilds and redeploys from `app/Dockerfile` (service setting, not a config file;
+Railway has deprecated `railway.json`).
