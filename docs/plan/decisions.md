@@ -367,3 +367,27 @@ size 100 tSTAR, fees 0) made through Kuru's testnet Router, so the wall is the o
 verified at `match`, not `exact_match`: `foundry.toml` had `bytecode_hash = "none"`, so the bytecode
 carries no metadata hash to match exactly. The setting is removed for the mainnet deploy. Redeploying
 testnet only for this would have cost the MON the end-to-end raid needed, so it was left.
+
+## D32. Testnet raids run by the keeper (6 Oct)
+
+Driven end to end by `scripts/testnet-run.sh` on the D29 deployment: the sponsor (`zexo-main`) posts,
+the keeper opens, raiders buy through the router, the keeper closes with a real Pyth Entropy request,
+Pyth's provider delivers the end block, the keeper settles, the seat claims after a 60 s hold.
+
+| Raid | Outcome | Seats | Counted buys | Buys with no seat (uncounted) | Counted / target (tUSDC) | Wall share of spend | Wall sold | End block |
+|---|---|---|---|---|---|---|---|---|
+| 1 | expired, refunded | 0 | 0 | 0 | 0 / 500 | | 0 | |
+| 2 | expired, refunded | 0 | 0 | 0 | 0 / 500 | | 0 | |
+| 3 | won | 2 | 2 | 1 | 749.99 / 500 | 100% | 34.6% | 68,550,125 |
+| 4 | won | 1 | 1 | 1 | 599.99 / 500 | 100% | 28.9% | 68,551,043 |
+
+Raids 1 and 2 expired because raider setup ran past `w0 + 30` (the driver now posts after setup);
+the keeper refunded both in full. On this market the wall is the only ask, so every unit bought came
+out of the sponsor's wall. Raid 3's end block was requested at 68,550,153 (sequence 3948, fee 0.128 MON)
+and delivered at 68,550,161 by Pyth's provider through `0x825c…3c07`; raid 4's at 68,551,084. Both are
+real draws, not the timeout. Raiders on testnet are the team's own throwaway wallets, so these numbers
+show the mechanism working, not demand.
+
+The first real-RPC run also showed `live/` sending finalized frames only: on public testnet a read takes
+longer than the finalized poll, and finalized reads always won the queue. Proposed and finalized now
+take turns (raid 4 stream: 32 proposed, 33 finalized frames).
