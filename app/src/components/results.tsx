@@ -35,7 +35,7 @@ export function ResultBanner({ frame, phase, onReplay }: { frame: Frame; phase: 
         </div>
         <h2 className={`title-outline mt-2 -rotate-2 text-6xl sm:text-7xl ${won ? 'text-ember-400' : 'text-grape-300'}`}>{won ? 'VICTORY!' : 'The wall held'}</h2>
         <div className="mt-3 flex justify-center">
-          {won ? <CrewRow size="h-24 sm:h-28" /> : <Guide who="bear" size="h-24">So close! The prize rolls into the sponsor's next raid. See you there?</Guide>}
+          {won ? <CrewRow size="h-28 sm:h-36" pose="cheer" /> : <Guide who="bear" pose="sad" size="h-28">So close! The prize rolls into the sponsor's next raid. See you there?</Guide>}
         </div>
         <p className="mx-auto mt-3 max-w-xl text-cream-100/90">
           {won

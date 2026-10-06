@@ -60,7 +60,7 @@ export function Arena({ frame, phase, tentative }: { frame: Frame; phase: Phase;
   }, [fresh])
 
   const boss = phase === 'victory' || frame.wall === 'filled' ? 'wall_boss_ko' : wallLeft < 0.6 || progress > 0.5 ? 'wall_boss_hurt' : 'wall_boss'
-  const crewMood = phase === 'victory' ? 'cheer' : phase === 'defeat' ? 'gloom' : phase === 'live' || phase === 'danger' ? 'fight' : 'wait'
+  const crewMood = phase === 'victory' ? 'cheer' : phase === 'defeat' ? 'gloom' : phase === 'live' || phase === 'danger' ? 'fight' : phase === 'drawing' || phase === 'revealed' ? 'watch' : 'wait'
   const tip =
     line ??
     (phase === 'upcoming'
@@ -148,7 +148,11 @@ export function Arena({ frame, phase, tentative }: { frame: Frame; phase: Phase;
       {/* Target meter */}
       <div className="relative z-10 px-5 pb-5 sm:px-8">
         <div className="-mt-2 mb-3 flex justify-center">
-          <Guide who={phase === 'danger' ? 'bunny' : phase === 'defeat' ? 'bear' : phase === 'victory' ? 'chog' : 'fox'} size="h-16">
+          <Guide
+            who={phase === 'danger' || phase === 'drawing' ? 'bunny' : phase === 'defeat' ? 'bear' : phase === 'victory' ? 'chog' : 'fox'}
+            pose={phase === 'danger' || phase === 'drawing' ? 'watch' : phase === 'defeat' ? 'sad' : phase === 'victory' ? 'cheer' : line ? 'attack' : 'think'}
+            size="h-20"
+          >
             {tip}
           </Guide>
         </div>

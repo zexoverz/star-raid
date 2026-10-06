@@ -129,7 +129,7 @@ export function Party({ frame, me }: { frame: Frame; me?: string }) {
 function EmptyParty() {
   return (
     <div className="dashed-card flex items-end gap-3 p-3 text-sm text-grape-300" style={{ ['--card-color' as string]: '#7a6eb2' }}>
-      <Mascot who="bunny" className="h-20 w-auto" />
+      <Mascot who="chog" pose="wait" className="h-24 w-auto" />
       <span className="pb-2">No seats yet. The first Star to hit the wall opens the party!</span>
     </div>
   )
