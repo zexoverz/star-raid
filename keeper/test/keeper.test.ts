@@ -56,6 +56,23 @@ describe("keeper", () => {
     await k.tick();
     expect(s.sent).toHaveLength(2);
   });
+  it("backs off a failing step instead of retrying every tick", async () => {
+    let t = 0;
+    const s = new FakeSigner(true);
+    const k = new Keeper(reader(4, { n: 0 }) as never, s, VAULT, new Set(), async () => {}, () => {}, () => t);
+    await k.tick(); // fails, next try after 2 s
+    await k.tick();
+    expect(s.sent).toHaveLength(1);
+    t = 2_000;
+    await k.tick(); // fails again, next try after 4 s
+    expect(s.sent).toHaveLength(2);
+    t = 5_000;
+    await k.tick();
+    expect(s.sent).toHaveLength(2);
+    t = 6_000;
+    await k.tick();
+    expect(s.sent).toHaveLength(3);
+  });
   it("pays the Entropy fee on close", async () => {
     const s = new FakeSigner();
     const r = { ...reader(2, { n: 0 }), finalizedBlock: async () => 1201n };
@@ -64,13 +81,16 @@ describe("keeper", () => {
   });
   it("alerts once when a step fails twice", async () => {
     const alerts: string[] = [];
-    const k = new Keeper(reader(4, { n: 0 }) as never, new FakeSigner(true), VAULT, new Set(), async (t) => {
-      alerts.push(t);
-    }, () => {});
+    let t = 0;
+    const k = new Keeper(reader(4, { n: 0 }) as never, new FakeSigner(true), VAULT, new Set(), async (x) => {
+      alerts.push(x);
+    }, () => {}, () => t);
     await k.tick();
     expect(alerts).toHaveLength(0);
+    t += 60_000;
     await k.tick();
     expect(alerts).toHaveLength(1);
+    t += 60_000;
     await k.tick();
     expect(alerts).toHaveLength(1);
   });
