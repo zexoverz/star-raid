@@ -1,5 +1,6 @@
 import { Outlet, createRootRoute } from '@tanstack/react-router'
 import { Footer, TopBar } from '../components/shell'
+import { StarToaster } from '../lib/toast'
 
 export const Route = createRootRoute({
   component: () => (
@@ -7,6 +8,7 @@ export const Route = createRootRoute({
       <TopBar />
       <Outlet />
       <Footer />
+      <StarToaster />
     </div>
   ),
   notFoundComponent: () => (
