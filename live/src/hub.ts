@@ -14,6 +14,15 @@ export class Hub {
     for (const l of this.listeners.get(frame.raidId) ?? []) l(frame);
   }
 
+  /** Every raid the service has seen, newest first: the finalized frame without its buy and seat lists. */
+  list() {
+    return [...this.last.entries()]
+      .map(([, slot]) => slot.finalized ?? slot.proposed!)
+      .filter(Boolean)
+      .sort((a, b) => Number(BigInt(b.raidId) - BigInt(a.raidId)))
+      .map(({ buys, seats, ...summary }) => ({ ...summary, buyCount: buys.length, seatCount: seats.length }));
+  }
+
   latest(raidId: string) {
     return this.last.get(raidId) ?? {};
   }

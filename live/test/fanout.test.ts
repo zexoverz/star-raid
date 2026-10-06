@@ -114,3 +114,48 @@ describe("pump on a slow RPC", () => {
     expect(states.filter((s) => s === "finalized").length).toBeGreaterThan(2);
   });
 });
+
+describe("raid list", () => {
+  it("lists every raid newest first, finalized when known, without the long lists", () => {
+    const hub = new Hub();
+    const f = (id: bigint, state: "proposed" | "finalized", block: bigint) =>
+      ({ ...JSON.parse(JSON.stringify({ raidId: id.toString(), state, block: block.toString(), buys: [1, 2], seats: [1] })) });
+    hub.publish(f(1n, "finalized", 10n));
+    hub.publish(f(2n, "proposed", 12n));
+    hub.publish(f(2n, "finalized", 11n));
+    const l = hub.list() as Array<Record<string, unknown>>;
+    expect(l.map((x) => x.raidId)).toEqual(["2", "1"]);
+    expect(l[0].state).toBe("finalized");
+    expect(l[0].buyCount).toBe(2);
+    expect(l[0]).not.toHaveProperty("buys");
+  });
+});
+
+describe("reader retirement", () => {
+  it("keeps reading a settled raid until a read has included its wall", async () => {
+    const { MulticallReader } = await import("../src/reader.js");
+    const raid = {
+      status: 5, terms: { market: "0x00000000000000000000000000000000000000Cc", prizeToken: "0x00000000000000000000000000000000000000Cc", wallSize: 100n, bounty: 1n, target: 10n, seatCap: 10n, w0: 1n, w1: 2n, hold: 0 },
+      sponsor: "0x00000000000000000000000000000000000000Cc", capPrice: 100, wallId: 7, endBlock: 2n, settledAt: 1n, won: true, countedTotal: 10n,
+    };
+    const client = {
+      multicall: async ({ contracts }: { contracts: unknown[] }) => {
+        const out: unknown[] = [1n];
+        if (contracts.length > 1) out.push(raid);
+        if (contracts.length > 2) out.push(["0x0", 40n, 0, 0, 0, 100, 0, false], [7, 7], 10n, 1n, 0n);
+        return out;
+      },
+      readContract: async () => [100_000_000, 10_000_000_000n, "0x0", 18n, "0x0", 6n, 100, 1n, 2n, 0n, 0n],
+    };
+    const r = new MulticallReader(client as never, "0x00000000000000000000000000000000000000Aa", "0x00000000000000000000000000000000000000Bb");
+    await r.readAt(10n); // learns the count
+    const first = await r.readAt(11n); // raid read, no wall reads yet
+    expect(first[0].wallId).toBe(0n);
+    r.retire(1n);
+    const second = await r.readAt(12n); // not retired: now with its wall
+    expect(second).toHaveLength(1);
+    expect(second[0].wallId).toBe(7n);
+    r.retire(1n);
+    expect(await r.readAt(13n)).toHaveLength(0);
+  });
+});

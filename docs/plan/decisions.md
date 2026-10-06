@@ -404,3 +404,19 @@ dev wallet rule forbids exporting `zexo-secondary`; the clean way is a fresh kee
 
 **Reverses it.** Scheduled raids; then create a dedicated keeper key, fund it, `setKeeper`, and add a
 `keeper` service with `PRIVATE_KEY` as a Railway secret.
+
+## D34. A hosted keeper with its own key runs demo raids on testnet
+
+**Claim.** The vault's keeper is now `0x0014e80b2B94069F957A7C068381D551C66a75F4`, a fresh key generated
+straight into the Railway `keeper` service as `PRIVATE_KEY` and never written anywhere else. It runs the
+lifecycle of every raid and, with `DEMO_EVERY_MIN=60`, posts a demo raid when none is in flight, so the
+app always has something live to build against. `zexo-secondary` is no longer the keeper; `setKeeper`
+from `zexo-main` reverses it.
+
+**Why.** The frontend needs raids that run without anyone's local machine, and the dev keystores must
+never be exported (D20, D33). Fees are capped at 1.25 x base fee plus a 2 gwei tip, and a failing step
+backs off up to a minute, after the first hosted run spent its 0.4 MON and then retried settle every
+second.
+
+**Cost.** Each demo raid costs the keeper about 0.35 testnet MON (post, open, close with the Entropy
+fee, settle). It needs topping up from the faucet.

@@ -6,6 +6,9 @@ import type { Signer } from "./signer.js";
 import type { Alerter } from "./alert.js";
 
 export const ALERT_AFTER_FAILURES = 2;
+// A failing step waits 2^n seconds before the next try, at most a minute: a dry keeper wallet used to
+// retry every tick and hammer the RPC.
+export const MAX_BACKOFF_MS = 60_000;
 
 /// One pass over every raid at the current finalized block.
 export class Keeper {
@@ -14,6 +17,7 @@ export class Keeper {
   // A sent action is in flight until the finalized block reaches its receipt; finalized state still
   // shows the old status until then, and acting on it would send the same step twice.
   private inflight = new Map<bigint, bigint>();
+  private nextTry = new Map<string, number>();
 
   constructor(
     private reader: ChainReader,
@@ -22,6 +26,7 @@ export class Keeper {
     private thinMarkets: Set<string>,
     private alert: Alerter,
     private log: (s: string) => void = console.log,
+    private now: () => number = Date.now,
   ) {}
 
   async tick(): Promise<{ block: bigint; acted: { id: bigint; action: Action; ok: boolean }[] }> {
@@ -58,17 +63,20 @@ export class Keeper {
 
   private async act(id: bigint, action: Action, block: bigint): Promise<boolean> {
     const key = `${id}:${action}`;
+    if ((this.nextTry.get(key) ?? 0) > this.now()) return false;
     try {
       const fee = action === "close" ? await this.reader.entropyFee(block) : 0n;
       const sent = await this.signer.send(buildTx(this.vault, action, id, fee));
       if (!sent.ok) throw new Error(`reverted ${sent.hash}`);
       this.log(`raid ${id}: ${action} ${sent.hash}`);
       this.failures.delete(key);
+      this.nextTry.delete(key);
       this.inflight.set(id, sent.block);
       return true;
     } catch (e) {
       const n = (this.failures.get(key) ?? 0) + 1;
       this.failures.set(key, n);
+      this.nextTry.set(key, this.now() + Math.min(2 ** n * 1000, MAX_BACKOFF_MS));
       const msg = (e as Error).message.split("\n")[0];
       this.log(`raid ${id}: ${action} failed (${n}): ${msg}`);
       if (n === ALERT_AFTER_FAILURES) await this.alert(`raid ${id} ${action} failed twice: ${msg}`);
