@@ -33,10 +33,14 @@ export const ERROR_TEXT: Record<string, string> = {
 }
 
 export function explainError(e: unknown): string {
-  const msg = e instanceof Error ? e.message : String(e)
+  const msg = e instanceof Error ? `${e.message} ${(e as { details?: string }).details ?? ''}` : String(e)
   for (const name of Object.keys(ERROR_TEXT)) if (msg.includes(name)) return ERROR_TEXT[name]
   if (/User rejected|denied/i.test(msg)) return 'You cancelled it in your wallet. Nothing was sent.'
-  if (/insufficient funds/i.test(msg)) return 'Not enough MON for gas. Grab some from the Monad testnet faucet.'
+  // Monad's RPC answers "Missing or invalid parameters" + "Signer had insufficient balance" when the
+  // sender cannot cover gas limit x max fee (Monad bills the limit).
+  if (/insufficient (funds|balance)/i.test(msg)) return 'Not enough MON for gas. Monad charges the full gas limit up front, so top up a little MON and try again.'
+  if (/requests limited|429|rate limit/i.test(msg)) return 'The testnet RPC is busy (rate limited). Wait a second and try again.'
+  if (/Missing or invalid parameters/i.test(msg)) return 'The network refused the transaction, usually because there is not enough MON for gas. Top up and try again.'
   return msg.split('\n')[0].slice(0, 220)
 }
 
