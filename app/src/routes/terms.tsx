@@ -44,7 +44,7 @@ function Terms() {
           This is a testnet demonstration with test tokens that have no value. Nothing here is investment advice, an offer, or a solicitation. Do not treat any raid as a source of returns.
         </Section>
         <Section title="Credits">
-          Lil Stars characters and art are pre-existing work of the Lil Stars team, shown unaltered and credited. Scene artwork in this app was generated for Star Raid and contains no Lil Stars characters.
+          Lil Stars characters are pre-existing work of the Lil Stars team. The raid poses, outfits and scenes in this app are Star Raid event art generated from their character designs, with approval recorded in the project's decision log. Testnet seats show preview art from the Lil Stars collection.
         </Section>
 
         <h2 className="mt-8 text-lg font-extrabold">Contracts (Monad testnet, chain 10143)</h2>

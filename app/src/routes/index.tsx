@@ -27,7 +27,7 @@ function Lobby() {
     <main>
       <Hero featured={featured} head={head} wins={wins} total={rows.length} />
 
-      <section className="relative z-10 mx-auto -mt-10 max-w-7xl px-4 sm:px-6">
+      <section className="relative z-10 mx-auto mt-12 max-w-7xl px-4 sm:px-6">
         <HowStrip />
       </section>
 
@@ -56,54 +56,67 @@ function Lobby() {
 function Hero({ featured, head, wins, total }: { featured?: LobbyRaid; head?: bigint; wins: number; total: number }) {
   const live = featured ? isActive(phaseOf(featured, head)) : false
   return (
-    <section className="relative isolate overflow-hidden pb-24 pt-24">
-      {/* The Lil Stars street, from mint.lilstars.xyz */}
-      <img src="/art/lilstars/street_sky.webp" alt="" className="absolute inset-0 -z-30 h-full w-full object-cover" />
-      <img src="/art/lilstars/street_city.webp" alt="" className="absolute inset-x-0 bottom-0 -z-20 h-[78%] w-full object-cover object-bottom" />
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-grape-700/50 via-transparent to-grape-950" />
-      <Twinkles count={10} />
-      <div className="mx-auto grid max-w-7xl items-end gap-6 px-4 sm:px-6 lg:grid-cols-[1fr_1.1fr]">
-        <div className="relative pt-6">
-          <motion.img src="/art/lilstars/graffiti_logo.webp" alt="Lil Stars" className="-mb-2 h-24 w-auto -rotate-6 drop-shadow-[0_4px_0_#2d2250] sm:h-28" initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 12 }} />
-          <motion.h1 initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', stiffness: 180, damping: 14, delay: 0.1 }} className="title-outline -rotate-2 text-6xl leading-[0.95] sm:text-7xl lg:text-8xl">
-            Star <span className="text-ember-400">Raid</span>
-          </motion.h1>
-          <div className="mt-4 max-w-md">
-            <Guide who="fox" size="h-32 sm:h-40">
-              A sponsor puts up a wall. We Stars hit it together for about a minute. The end is drawn at random, so hit early. Break it and we split the prize!
-            </Guide>
-          </div>
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            {featured && (
-              <Link to="/raid/$raidId" params={{ raidId: featured.raidId }} className="btn btn-primary px-8 py-4 text-xl">
-                {live ? '⚔ Join the raid' : '▶ Watch the last raid'}
-              </Link>
-            )}
-            <Link to="/how" className="btn btn-ghost px-6 py-4">
-              How it works
-            </Link>
-          </div>
-          <div className="mt-6 flex gap-3 text-sm">
-            <div className="glass rounded-2xl px-4 py-2">
-              <div className="font-display text-3xl text-ember-400">{wins}</div>
-              <div className="text-cream-100">walls broken</div>
-            </div>
-            <div className="glass rounded-2xl px-4 py-2">
-              <div className="font-display text-3xl text-white">{total}</div>
-              <div className="text-cream-100">raids posted</div>
-            </div>
-          </div>
-        </div>
+    <section className="relative isolate pb-10">
+      {/* One coherent scene: the Lil Stars street on raid night, the crew facing the wall. */}
+      <div className="relative h-[min(92vh,820px)] min-h-[560px] overflow-hidden">
+        <motion.img
+          src="/art/hero_scene.webp"
+          alt="Foxstar, Chogstar, Bunnystar and Bearstar facing the sponsor's wall on a Lil Stars street at sunset"
+          className="absolute inset-0 h-full w-full object-cover object-[30%_60%]"
+          initial={{ scale: 1.08 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 1.6, ease: 'easeOut' }}
+        />
+        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-grape-950/70 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-grape-950 via-grape-950/70 to-transparent" />
+        <Twinkles count={8} />
 
-        <div className="relative">
-          {featured ? <FeaturedStage raid={featured} head={head} /> : <Panel className="h-80 animate-pulse">{null}</Panel>}
-          <div className="pointer-events-none absolute -bottom-24 -left-28 hidden 2xl:block">
-            <Mascot who="bear" className="h-40" />
+        <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-between px-4 pb-10 pt-24 sm:px-6">
+          <div className="flex flex-col items-center text-center lg:items-end lg:text-right">
+            <motion.img src="/art/lilstars/graffiti_logo.webp" alt="Lil Stars" className="-mb-3 h-20 w-auto rotate-6 drop-shadow-[0_4px_0_#2d2250] sm:h-24" initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 12, delay: 0.3 }} />
+            <motion.h1 initial={{ opacity: 0, y: -20, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: 'spring', stiffness: 180, damping: 14, delay: 0.4 }} className="title-outline -rotate-2 text-7xl leading-[0.9] sm:text-8xl lg:text-9xl">
+              Star <span className="text-ember-400">Raid</span>
+            </motion.h1>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} className="glass mt-4 max-w-md rounded-3xl px-5 py-3 text-base font-semibold text-white sm:text-lg">
+              A sponsor puts up a wall. The Stars hit it together for about a minute. The end is drawn at random, so hit early. Break it and the seats split the prize.
+            </motion.p>
           </div>
-          <div className="pointer-events-none absolute -bottom-24 -right-24 hidden 2xl:block">
-            <Mascot who="bunny" className="h-36" />
+
+          <div className="flex flex-col items-center gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="flex flex-wrap justify-center gap-3">
+              {featured && (
+                <Link to="/raid/$raidId" params={{ raidId: featured.raidId }} className="btn btn-primary px-8 py-4 text-xl">
+                  {live ? '⚔ Join the raid' : '▶ Watch the last raid'}
+                </Link>
+              )}
+              {!live && (
+                <Link to="/practice" className="btn btn-candy px-6 py-4 text-lg">
+                  ⚡ Try one-tap
+                </Link>
+              )}
+              <Link to="/how" className="btn btn-ghost px-6 py-4">
+                How it works
+              </Link>
+            </div>
+            <div className="flex gap-3 text-sm">
+              <div className="glass rounded-2xl px-4 py-2 text-center">
+                <div className="font-display text-3xl text-ember-400">{wins}</div>
+                <div className="text-cream-100">walls broken</div>
+              </div>
+              <div className="glass rounded-2xl px-4 py-2 text-center">
+                <div className="font-display text-3xl text-white">{total}</div>
+                <div className="text-cream-100">raids posted</div>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
+
+      <div className="relative z-10 mx-auto -mt-6 grid max-w-7xl items-center gap-6 px-4 sm:px-6 lg:grid-cols-[1fr_1.2fr]">
+        <Guide who="fox" pose="think" size="h-40 sm:h-48">
+          {live ? 'A raid is live right now! Grab your Star and jump in.' : featured ? `The last raid ${featured.won ? 'broke the wall!' : featured.status === 'Aborted' ? 'was called off.' : 'is over.'} The next one is coming. Warm up in a practice raid!` : 'Loading the raid board…'}
+        </Guide>
+        {featured ? <FeaturedStage raid={featured} head={head} /> : <Panel className="h-80 animate-pulse">{null}</Panel>}
       </div>
     </section>
   )
@@ -124,9 +137,11 @@ function FeaturedStage({ raid, head }: { raid: LobbyRaid; head?: bigint }) {
           <PhaseChip phase={phase} />
         </div>
         <div className="relative my-2 flex items-end justify-center">
-          <Mascot who="chog" className="absolute bottom-0 left-0 z-10 h-28 w-auto drop-shadow-[0_6px_4px_rgba(0,0,0,0.45)]" />
+          <Mascot who="chog" pose="attack" className="absolute bottom-0 left-0 z-10 h-32 w-auto drop-shadow-[0_6px_4px_rgba(0,0,0,0.45)]" />
           <BossImg name={boss} className="h-52 w-52 object-contain drop-shadow-[0_14px_0_rgba(21,18,42,0.6)] transition-transform group-hover:scale-105 group-hover:animate-wiggle" />
-          <Mascot who="fox" className="absolute bottom-0 right-0 z-10 h-32 w-auto drop-shadow-[0_6px_4px_rgba(0,0,0,0.45)]" />
+          <div className="absolute bottom-0 right-0 z-10" style={{ transform: 'scaleX(-1)' }}>
+            <Mascot who="fox" pose="attack" className="h-32 w-auto drop-shadow-[0_6px_4px_rgba(0,0,0,0.45)]" />
+          </div>
         </div>
         <div className="relative space-y-3">
           <div>
@@ -231,17 +246,17 @@ function Mini({ label, value, unit }: { label: string; value: string; unit: stri
 
 function HowStrip() {
   const steps = [
-    { who: 'chog' as const, title: 'Bring a Star', body: 'One Lil Star = one seat per raid. Wallets without a seat can buy, but count for nothing.' },
-    { who: 'fox' as const, title: 'Hit the wall', body: 'Arm one-tap once, then every hit is a single tap. Buys never fill above the cap.' },
-    { who: 'bunny' as const, title: 'The end is drawn', body: 'Pyth Entropy picks the end block after the window. Hits after it do not count.' },
-    { who: 'bear' as const, title: 'Split the prize', body: 'Beat the target and seats share the prize by what they counted, after a short hold.' },
+    { who: 'chog' as const, pose: 'wait' as const, title: 'Bring a Star', body: 'One Lil Star = one seat per raid. Wallets without a seat can buy, but count for nothing.' },
+    { who: 'fox' as const, pose: 'attack' as const, title: 'Hit the wall', body: 'Arm one-tap once, then every hit is a single tap. Buys never fill above the cap.' },
+    { who: 'bunny' as const, pose: 'watch' as const, title: 'The end is drawn', body: 'Pyth Entropy picks the end block after the window. Hits after it do not count.' },
+    { who: 'bear' as const, pose: 'cheer' as const, title: 'Split the prize', body: 'Beat the target and seats share the prize by what they counted, after a short hold.' },
   ]
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {steps.map((s, i) => (
-        <motion.div key={s.title} initial={{ y: 30, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }} className="dashed-card relative overflow-hidden bg-grape-900/85 p-4 pt-3 backdrop-blur" style={{ ['--card-color' as string]: ['#A3E3C1', '#F7C873', '#F7B2D9', '#B6D6F7'][i] }}>
+        <motion.div key={s.title} initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 + i * 0.08 }} className="dashed-card relative overflow-hidden bg-grape-900/85 p-4 pt-3 backdrop-blur" style={{ ['--card-color' as string]: ['#A3E3C1', '#F7C873', '#F7B2D9', '#B6D6F7'][i] }}>
           <div className="flex items-end gap-3">
-            <Mascot who={s.who} className="h-24 w-auto shrink-0 drop-shadow-[0_4px_4px_rgba(0,0,0,0.4)]" />
+            <Mascot who={s.who} pose={s.pose} className="h-24 w-auto shrink-0 drop-shadow-[0_4px_4px_rgba(0,0,0,0.4)]" />
             <div className="pb-1">
               <span className="grid h-7 w-7 place-items-center rounded-full bg-candy-500 font-display text-sm text-white shadow-[0_2px_0_#7a1f5f]">{i + 1}</span>
               <div className="mt-1 font-display text-lg leading-tight text-white">{s.title}</div>
@@ -258,7 +273,7 @@ function Marquee() {
   const ids = [...PREVIEW_GALLERY, ...PREVIEW_GALLERY]
   return (
     <div className="text-center">
-      <CrewRow size="h-24" />
+      <CrewRow size="h-28" pose="cheer" />
       <h2 className="title-outline-sm mt-2 text-3xl">The Stars Crew</h2>
       <p className="mt-1 text-sm text-grape-300">Every seat is a Lil Star. Art by the Lil Stars team.</p>
       <div className="relative mt-6 overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]">

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as HowRouteImport } from './routes/how'
+import { Route as PracticeRouteImport } from './routes/practice'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as RaidRaidIdRouteImport } from './routes/raid.$raidId'
 
@@ -22,6 +23,11 @@ const IndexRoute = IndexRouteImport.update({
 const HowRoute = HowRouteImport.update({
   id: '/how',
   path: '/how',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PracticeRoute = PracticeRouteImport.update({
+  id: '/practice',
+  path: '/practice',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -38,12 +44,14 @@ const RaidRaidIdRoute = RaidRaidIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/how': typeof HowRoute
+  '/practice': typeof PracticeRoute
   '/terms': typeof TermsRoute
   '/raid/$raidId': typeof RaidRaidIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/how': typeof HowRoute
+  '/practice': typeof PracticeRoute
   '/terms': typeof TermsRoute
   '/raid/$raidId': typeof RaidRaidIdRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/how': typeof HowRoute
+  '/practice': typeof PracticeRoute
   '/terms': typeof TermsRoute
   '/raid/$raidId': typeof RaidRaidIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/how' | '/terms' | '/raid/$raidId'
+  fullPaths: '/' | '/how' | '/practice' | '/terms' | '/raid/$raidId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/how' | '/terms' | '/raid/$raidId'
-  id: '__root__' | '/' | '/how' | '/terms' | '/raid/$raidId'
+  to: '/' | '/how' | '/practice' | '/terms' | '/raid/$raidId'
+  id: '__root__' | '/' | '/how' | '/practice' | '/terms' | '/raid/$raidId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   HowRoute: typeof HowRoute
+  PracticeRoute: typeof PracticeRoute
   TermsRoute: typeof TermsRoute
   RaidRaidIdRoute: typeof RaidRaidIdRoute
 }
@@ -83,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/how'
       fullPath: '/how'
       preLoaderRoute: typeof HowRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/practice': {
+      id: '/practice'
+      path: '/practice'
+      fullPath: '/practice'
+      preLoaderRoute: typeof PracticeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HowRoute: HowRoute,
+  PracticeRoute: PracticeRoute,
   TermsRoute: TermsRoute,
   RaidRaidIdRoute: RaidRaidIdRoute,
 }
