@@ -481,3 +481,19 @@ intent with UTM `utm_source=x&utm_medium=share&utm_campaign=raid<id>`), Save ima
 Practice raids have no share link. Caddy is gone; the `web` image runs `node server/index.mjs`.
 
 **Reverses it.** Moving the app to Next; then the card tree in `renderCard` ports to `ImageResponse`.
+
+## D39. One-tap verified on a testnet fork; raid #5's wall blocks counting (6 Oct)
+
+**Claim.** `app/e2e-fork.mts` (`pnpm e2e:fork` against `anvil --fork-url` testnet) runs the app's own
+calls against the deployed vault, router, seat gate and Kuru market: post and open a raid, mint a
+Star and tUSDC, sign `Bind` for a fresh raid key, three popup-free hits with `raidGasLimit` (861k
+limit, 512k used), a no-seat buy, settle, `HoldNotOver` before the hold, claim of tSTAR plus the
+50 tUSDC prize from the raid key, `AlreadyDone`, and the sweep back to the holder. 24 of 24 checks
+passed. The fork has no Pyth callback, so the end block came from `closeWithoutEntropy`.
+
+**Finding.** Raid #5 settled with its wall still resting at the cap (`wallRecovered = false`), and the
+keeper's `recoverWall(5)` has failed 589+ times with "Missing or invalid parameters" because it holds
+0.0026 MON (needs about 0.056 at its gas limit; the call itself simulates clean). While that wall
+rests, the next raid's wall sits behind it in FIFO and every seat counts 0: the first fork run lost
+with 0 counted until `recoverWall(5)` was sent. Funding the keeper fixes both: it recovers #5 first,
+then posts.
