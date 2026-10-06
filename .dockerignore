@@ -9,3 +9,4 @@ contracts/lib
 indexer
 keeper/node_modules
 .git
+app/e2e-fork.mts
