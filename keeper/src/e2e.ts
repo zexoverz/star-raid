@@ -75,7 +75,16 @@ const extras = Array.from({ length: EXTRA }, (_, i) => {
   return { account, seat: i < EXTRA - 1, wallet: createWalletClient({ account, chain: cfg.chain, transport: http(cfg.rpcUrl) }) };
 });
 async function extraSend(x: (typeof extras)[number], to: Address, data: Hex, gas: bigint, label: string) {
-  const hash = await x.wallet.sendTransaction({ to, data, gas });
+  let hash: Hex | undefined;
+  for (let i = 0; !hash; i++) {
+    try {
+      hash = await x.wallet.sendTransaction({ to, data, gas });
+    } catch (e) {
+      // same node lag as above: retry a few times on a balance the node has not caught up with
+      if (i === 5 || !String((e as Error).message).includes("insufficient balance")) throw e;
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+  }
   const r = await client.waitForTransactionReceipt({ hash });
   if (r.status !== "success") throw new Error(`${label} reverted ${hash}`);
   console.log(`${label} ${hash}`);
@@ -84,6 +93,12 @@ const extraTokens: bigint[] = [];
 for (const x of extras) {
   const fund = await sponsor.send({ to: x.account.address, data: "0x", value: parseEther(process.env.RAIDER_MON ?? "0.5"), gas: 21_000n });
   if (!fund.ok) throw new Error("fund raider");
+  // The public RPC is several nodes; the next call can land on one that has not seen the funding yet.
+  for (let i = 0; (await client.getBalance({ address: x.account.address, blockTag: "latest" })) === 0n; i++) {
+    if (i === 60) throw new Error(`funding of ${x.account.address} never became visible`);
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  await new Promise((r) => setTimeout(r, 1500));
   let tok = 0n;
   if (x.seat) {
     tok = await client.readContract({ address: d.lilStars, abi: starsAbi, functionName: "nextId" });
