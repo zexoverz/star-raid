@@ -56,6 +56,9 @@ const pub = createPublicClient({
   chain: monadTestnet,
   // The public RPC allows 15 req/s per client: batch reads and retry on 429/limit errors.
   transport: http(RPC_URL, { batch: { batchSize: 20, wait: 16 }, retryCount: 4, retryDelay: 400 }),
+  // Receipt waits poll once a second (viem's default is half the 400 ms block time), so a burst of
+  // hits in flight shares one slow block poll instead of adding up toward the limit.
+  pollingInterval: 1_000,
 })
 
 /**
