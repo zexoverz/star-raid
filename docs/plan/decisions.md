@@ -420,3 +420,53 @@ second.
 
 **Cost.** Each demo raid costs the keeper about 0.35 testnet MON (post, open, close with the Entropy
 fee, settle). It needs topping up from the faucet.
+
+## D35. Star Raid event art of the Lil Stars crew (6 Oct)
+
+**Claim.** The app shows the Lil Stars crew (Foxstar, Chogstar, Bunnystar, Bearstar) in raid poses and
+raid outfits (attack, cheer, sad, watch, wait, guide; purple cape with gold star clasp, orange scarf,
+pink headband) and one hero scene of the crew facing the wall on the Lil Stars street. These were
+generated with GPT image generation using the official character art from lilstars.xyz as on-model
+references, and live in `app/public/art/crew/` and `app/public/art/hero_scene.webp`. Seat avatars are
+still the unaltered collection art.
+
+**Why.** The frontend owner asked for it after reviewing the build: the single official idle pose
+pasted into every moment did not read as a raid. This narrows AGENTS rule 17 for event art only:
+characters stay on-model, the Lil Stars team is credited in the footer and the terms, and nothing
+claims the art is theirs.
+
+**Reverses it.** The Lil Stars team objects, or supplies official raid poses; then swap the files in
+`app/public/art/crew/` (same names) and `poseSrc` in `app/src/components/mascots.tsx` keeps working.
+
+## D36. One-tap raiding through a browser raid key (6 Oct)
+
+**Claim.** A player arms one-tap once: the Star holder signs one EIP-712 `Bind{holder, player, expiry}`
+for a raid key generated in the tab (sessionStorage only), then funds it with the chosen tUSDC budget
+and 0.6 MON for gas. Each HIT is one `router.raid` sent by the raid key with seat kind 1 and the Bind,
+an explicit gas limit (`raidGasLimit`), and no wallet popup. The key approves the router for exactly
+its balance. Claims for that seat come from the key, then "Return leftovers" sweeps tUSDC, tSTAR and
+MON back to the holder. The Bind digest was checked against `SeatGate.domainSeparator()` and
+`BIND_TYPEHASH` on testnet. Code: `app/src/lib/onetap.ts`.
+
+**Why.** Popups per buy make a one-minute raid unplayable. Mera passkey sessions (P1) would replace
+the browser key without changing the screens.
+
+**Not yet verified.** A full on-chain one-tap raid: no raid was live when this was written. `/practice`
+runs the same HIT pad against a local simulation, labelled as practice.
+
+## D37. The app is hosted on Railway against testnet (6 Oct)
+
+**Claim.** Railway project `star-raid`, service `web`, built from `app/Dockerfile` at the repo root
+(the app imports `deployments/`) and served by Caddy with an SPA fallback:
+https://web-production-de387e.up.railway.app. It reads the hosted `live` service and Monad testnet
+(`VITE_LIVE_URL`, `VITE_RPC_URL` build args). Deployed with `railway up` from the `frontend` branch;
+no secrets in the image.
+
+**Reverses it.** Mainnet: rebuild with the mainnet `live` URL and RPC, switch `deployments/` and
+`IS_TESTNET` in `app/src/lib/stars.ts`.
+
+**Auto deploy (D37 addendum).** The `web` service is connected to GitHub `zexoverz/star-raid`, branch
+`frontend`: every push that touches `app/**`, `deployments/**` or `.dockerignore` rebuilds and
+redeploys from `app/Dockerfile` (service setting, not a config file; Railway has deprecated
+`railway.json`). Switch the branch to `main` with `railway service source connect --repo
+zexoverz/star-raid --branch main --service web` once the PR is merged.
