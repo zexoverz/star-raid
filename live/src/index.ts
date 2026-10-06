@@ -17,7 +17,7 @@ const log = (m: string) => console.log(new Date().toISOString(), m);
 // One HTTP client for reads; the WebSocket only carries heads.
 const httpClient = createPublicClient({ chain, transport: http(cfg.rpcHttp) }) as PublicClient;
 const hub = new Hub();
-const events = new EventStore(httpClient, cfg.router, cfg.gate, cfg.vault, cfg.startBlock);
+const events = new EventStore(httpClient, cfg.router, cfg.gate, cfg.vault);
 const pump = new Pump(new MulticallReader(httpClient, cfg.vault, cfg.router), events, hub, log);
 
 let headSource = "ws";

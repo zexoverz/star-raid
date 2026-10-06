@@ -35,44 +35,71 @@ export interface SettledLog {
 
 type LogSource = Pick<PublicClient, "getLogs">;
 
+const SETTLE_SCAN_LIMIT = 30_000n; // blocks after w1 to look for a raid's Settled log (about 3.3 h)
+
 /**
- * Raided and SeatBound logs. Logs at or below the finalized block are kept; the tentative tail above
- * it is re-read on every sync, so a reorged buy disappears from proposed frames and never reaches a
- * finalized one.
+ * Raided, SeatBound and Settled logs. History is read per raid, inside that raid's own window, so a
+ * restart costs a few calls per raid instead of a scan of the whole chain since deploy. From the block
+ * the service started at, everything is followed live: logs at or below the finalized block are kept,
+ * and the tentative tail above it is re-read on every sync, so a reorged buy disappears from proposed
+ * frames and never reaches a finalized one.
  */
 export class EventStore {
-  private final: Batch = { buys: [], seats: [], settled: [] };
+  private buys = new Map<string, BuyLog>();
+  private seats = new Map<string, SeatLog>();
+  private settledLogs = new Map<bigint, SettledLog>();
   private tail: Batch = { buys: [], seats: [], settled: [] };
-  private finalizedTo: bigint;
+  private finalizedTo: bigint | null = null; // live following covers (historyEnd, finalizedTo]
+  private historyEnd = 0n; // blocks at or below this are read per raid by backfill()
+  private backfilled = new Set<bigint>();
 
   constructor(
     private client: LogSource,
     private router: Address,
     private gate: Address,
     private vault: Address,
-    startBlock: bigint,
-  ) {
-    this.finalizedTo = startBlock - 1n;
-  }
+  ) {}
 
   async sync(head: bigint, finalized: bigint) {
     if (finalized > head) finalized = head;
+    if (this.finalizedTo === null) {
+      this.finalizedTo = finalized;
+      this.historyEnd = finalized;
+    }
     if (finalized > this.finalizedTo) {
-      const got = await this.fetch(this.finalizedTo + 1n, finalized);
-      this.final.buys.push(...got.buys);
-      this.final.seats.push(...got.seats);
-      this.final.settled.push(...got.settled);
+      this.keep(await this.fetch(this.finalizedTo + 1n, finalized));
       this.finalizedTo = finalized;
     }
     this.tail = head > this.finalizedTo ? await this.fetch(this.finalizedTo + 1n, head) : { buys: [], seats: [], settled: [] };
   }
 
+  /** Read one raid's history (at or before the block the service started at), once. */
+  async backfill(raid: { raidId: bigint; w0: bigint; w1: bigint; settled: boolean }) {
+    if (this.backfilled.has(raid.raidId) || this.finalizedTo === null) return;
+    const end = this.historyEnd;
+    if (raid.w0 <= end) this.keep(await this.fetch(raid.w0, raid.w1 < end ? raid.w1 : end));
+    if (raid.settled && raid.w1 < end && !this.settledLogs.has(raid.raidId)) {
+      const stop = raid.w1 + SETTLE_SCAN_LIMIT < end ? raid.w1 + SETTLE_SCAN_LIMIT : end;
+      for (let a = raid.w1 + 1n; a <= stop && !this.settledLogs.has(raid.raidId); a += LOG_CHUNK) {
+        this.keep(await this.fetch(a, a + LOG_CHUNK - 1n < stop ? a + LOG_CHUNK - 1n : stop));
+      }
+    }
+    this.backfilled.add(raid.raidId);
+  }
+
   /** Logs of one raid up to `block` (inclusive). */
   forRaid(raidId: bigint, block: bigint) {
-    const buys = [...this.final.buys, ...this.tail.buys].filter((b) => b.raidId === raidId && b.block <= block);
-    const seats = [...this.final.seats, ...this.tail.seats].filter((s) => s.raidId === raidId && s.block <= block);
-    const settled = [...this.final.settled, ...this.tail.settled].find((s) => s.raidId === raidId && s.block <= block);
+    const buys = [...this.buys.values(), ...this.tail.buys].filter((b) => b.raidId === raidId && b.block <= block);
+    const seats = [...this.seats.values(), ...this.tail.seats].filter((s) => s.raidId === raidId && s.block <= block);
+    const kept = this.settledLogs.get(raidId);
+    const settled = (kept && kept.block <= block ? kept : undefined) ?? this.tail.settled.find((s) => s.raidId === raidId && s.block <= block);
     return { buys, seats, settled };
+  }
+
+  private keep(b: Batch) {
+    for (const x of b.buys) this.buys.set(x.id, x);
+    for (const x of b.seats) this.seats.set(`${x.raidId}:${x.seatKey}`, x);
+    for (const x of b.settled) this.settledLogs.set(x.raidId, x);
   }
 
   private async fetch(from: bigint, to: bigint) {
