@@ -8,7 +8,8 @@ import { Panel, Sprite } from '../components/game'
 import { JoinPanel } from '../components/join'
 import { HitFeed, Party, Timeline } from '../components/raidparts'
 import { LootPanel, Podium, ResultBanner } from '../components/results'
-import { fmt, duration, short } from '../lib/format'
+import { fmt, duration } from '../lib/format'
+import { PlayerPill } from '../components/profile'
 import { useRaidStream } from '../lib/live'
 import { PHASE_LABEL, phaseOf } from '../lib/phase'
 import { Guide } from '../components/mascots'
@@ -66,7 +67,7 @@ function RaidPage() {
               <h1 className="title-outline -rotate-1 text-4xl sm:text-5xl">Raid #{raidId}</h1>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-grape-300">
                 <PhaseChip phase={phase} />
-                <span>sponsor {short(t.sponsor)}</span>
+                <span className="inline-flex items-center gap-1">sponsor <PlayerPill address={t.sponsor} /></span>
                 <span>· prize {fmt(t.bounty, t.quoteDecimals)} tUSDC</span>
                 <span>· hold {duration(t.hold)}</span>
               </div>
