@@ -136,7 +136,7 @@ describe("reader retirement", () => {
     const { MulticallReader } = await import("../src/reader.js");
     const raid = {
       status: 5, terms: { market: "0x00000000000000000000000000000000000000Cc", prizeToken: "0x00000000000000000000000000000000000000Cc", wallSize: 100n, bounty: 1n, target: 10n, seatCap: 10n, w0: 1n, w1: 2n, hold: 0 },
-      sponsor: "0x00000000000000000000000000000000000000Cc", capPrice: 100, wallId: 7, endBlock: 2n, settledAt: 1n, won: true, countedTotal: 10n,
+      sponsor: "0x00000000000000000000000000000000000000Cc", capPrice: 100, wallId: 7, endBlock: 2n, settledAt: 1n, won: true, wallRecovered: false, countedTotal: 10n,
     };
     const client = {
       multicall: async ({ contracts }: { contracts: unknown[] }) => {
@@ -156,6 +156,10 @@ describe("reader retirement", () => {
     expect(second).toHaveLength(1);
     expect(second[0].wallId).toBe(7n);
     r.retire(1n);
-    expect(await r.readAt(13n)).toHaveLength(0);
+    expect(await r.readAt(13n)).toHaveLength(1); // settled but the wall is not swept yet: keep reading
+    raid.wallRecovered = true;
+    await r.readAt(14n);
+    r.retire(1n);
+    expect(await r.readAt(15n)).toHaveLength(0);
   });
 });
