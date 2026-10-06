@@ -87,7 +87,7 @@ check('starter kit: holder owns the minted Star', ((await read(A.stars, starsAbi
 
 // ---- arm one-tap (app: lib/onetap.ts arm): Bind signature + fund raid key
 const key = privateKeyToAccount(generatePrivateKey())
-const expiry = BigInt(Math.floor(Date.now() / 1000) + 3600)
+const expiry = BigInt(Math.floor(Date.now() / 1000) + 7 * 24 * 3600) // seat pass: 7 days, any raid
 const sig = await holder.signTypedData({ domain: { name: 'StarRaid SeatGate', version: '1', chainId: 10143, verifyingContract: A.gate }, types: { Bind: [{ name: 'holder', type: 'address' }, { name: 'player', type: 'address' }, { name: 'expiry', type: 'uint64' }] }, primaryType: 'Bind', message: { holder: holder.address, player: key.address, expiry } })
 await send(holder, A.usdc, enc(erc20Abi, 'transfer', [key.address, 560_000_000n]), 80_000n)
 { const w = createWalletClient({ chain, transport: http(RPC), account: holder }); const h = await w.sendTransaction({ to: key.address, value: parseEther('1.4'), gas: 21_000n }); await mine(1); await pub.waitForTransactionReceipt({ hash: h }) }
@@ -96,7 +96,7 @@ check('arm: raid key funded with 560 tUSDC + 1.4 MON', ((await read(A.usdc, erc2
 // ---- taps (app: onetap.tap): router approved once at arm time, then a BURST of raid() sends with the
 // fixed HIT_GAS limit, consecutive nonces, and no reads in between (what the app now does).
 const seat = { kind: 1, holder: holder.address, tokenId: nextId, humanId: zeroHash, expiry, sig }
-await send(key, A.usdc, enc(erc20Abi, 'approve', [A.router, 560_000_000n]), 80_000n)
+await send(key, A.usdc, enc(erc20Abi, 'approve', [A.router, 2n ** 256n - 1n]), 80_000n) // once, reused by every raid
 const before = (await read(A.usdc, erc20Abi, 'balanceOf', [key.address])) as bigint
 const HIT_GAS = raidGasLimit(1, 865_000n)
 check('hit gas limit is fixed and explicit (rule 10)', HIT_GAS === 1_297_500n && HIT_GAS <= 2_000_000n, String(HIT_GAS))
@@ -151,6 +151,27 @@ const usdcAfter = (await read(A.usdc, erc20Abi, 'balanceOf', [key.address])) as 
 const tstar = (await read(A.star, erc20Abi, 'balanceOf', [key.address])) as bigint
 check('claim from raid key after hold pays tSTAR + prize', rcl.status === 'success' && tstar > 0n && usdcAfter - usdcBefore === prize, `+${Number(prize) / 1e6} tUSDC, ${Number(tstar) / 1e18} tSTAR`)
 try { await sim('claim', [raidId], key); check('double claim refused', false) } catch (e) { check('double claim refused (AlreadyDone)', errName(e) === 'AlreadyDone', errName(e)) }
+
+// ---- set up once (app: onetap.ts): a SECOND raid played by the same raid key with the same seat pass
+// and the same router approval. No new signature, no new approve, no funding popup in between.
+const approveSeen = (await read(A.usdc, erc20Abi, 'allowance', [key.address, A.router])) as bigint
+head = await pub.getBlockNumber()
+const w0b = head + 40n // lead covers the 4 setup blocks mined before post (OPEN_EARLY = 10)
+const terms2 = { ...terms, w0: w0b, w1: w0b + 60n }
+for (const [to, data, gas] of [
+  [A.star, enc(erc20Abi, 'mint', [keeper, 100_000n * 10n ** 18n]), 120_000n],
+  [A.usdc, enc(erc20Abi, 'mint', [keeper, 50_000_000n]), 120_000n],
+  [A.star, enc(erc20Abi, 'approve', [A.vault, 100_000n * 10n ** 18n]), 80_000n],
+  [A.usdc, enc(erc20Abi, 'approve', [A.vault, 50_000_000n]), 80_000n],
+  [A.vault, enc(vaultAbi, 'post', [terms2, []]), 600_000n],
+] as [Hex, Hex, bigint][]) { const r = await send(keeper, to, data, gas); if (r.status !== 'success') throw new Error('post 2 reverted') }
+const raid2 = (await read(A.vault, vaultAbi, 'raidCount')) as bigint
+head = await pub.getBlockNumber(); await mine(Number(w0b - head - 5n))
+await send(keeper, A.vault, enc(vaultAbi, 'open', [raid2]), 900_000n)
+head = await pub.getBlockNumber(); if (head < w0b) await mine(Number(w0b - head))
+const r2 = await send(key, A.router, enc(routerAbi, 'raid', [raid2, 5_000_000n, seat]), HIT_GAS)
+const seat2 = (await read(A.gate, gateAbi, 'playerSeat', [raid2, key.address])) as Hex
+check('set up once: same key, pass and approval play the next raid', r2.status === 'success' && seat2 !== zeroHash && approveSeen > 10n ** 30n, `raid #${raid2}, counted ${Number((await read(A.router, routerAbi, 'countedOf', [raid2, seat2])) as bigint) / 1e6} tUSDC`)
 const hU0 = (await read(A.usdc, erc20Abi, 'balanceOf', [holder.address])) as bigint
 for (const t of [A.usdc, A.star]) { const b = (await read(t, erc20Abi, 'balanceOf', [key.address])) as bigint; if (b > 0n) await send(key, t, enc(erc20Abi, 'transfer', [holder.address, b]), 80_000n) }
 const gp = await pub.getGasPrice(); const mon = await pub.getBalance({ address: key.address }); const fee2 = 21_000n * gp * 2n
