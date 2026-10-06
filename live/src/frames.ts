@@ -101,6 +101,7 @@ export interface Frame {
   counted: string; // quote token units counted toward the target (the router's own total)
   endBlock: string | null; // E, null until drawn
   won: boolean | null; // null until settled
+  settledAt?: number | null; // unix seconds of settle, null before; a winning seat can claim at settledAt + terms.hold
   seatBuys: string;
   nonSeatBuys: string; // buys from wallets with no seat: they went through and count for nothing
   totals: { quoteSpent: string; wallFillQuote: string }; // over every buy; wall share = wallFillQuote / quoteSpent
@@ -209,6 +210,7 @@ export function buildFrame(
     counted: s.counted.toString(),
     endBlock: hasEnd ? s.endBlock.toString() : null,
     won: s.status === 5 ? s.won : null,
+    settledAt: s.status === 5 ? Number(s.settledAt) : null,
     seatBuys: s.seatBuys.toString(),
     nonSeatBuys: s.nonSeatBuys.toString(),
     totals: { quoteSpent: quoteSpent.toString(), wallFillQuote: wallFill.toString() },

@@ -71,7 +71,9 @@ describe("frame v1", () => {
   });
 
   it("reports the outcome only once settled", () => {
-    expect(buildFrame(snap({ status: 5, won: true, endBlock: 1105n }), logs, 1200n, "finalized").won).toBe(true);
+    const done = buildFrame(snap({ status: 5, won: true, endBlock: 1105n, settledAt: 1_790_000_000n }), logs, 1200n, "finalized");
+    expect(done.won).toBe(true);
+    expect(done.settledAt).toBe(1_790_000_000);
     expect(buildFrame(snap({ status: 4, won: false }), logs, 1200n, "finalized").won).toBeNull();
   });
 
