@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import { AnimatePresence, motion } from 'motion/react'
 import { useMemo, useState } from 'react'
 import { parseUnits } from 'viem'
@@ -9,6 +10,7 @@ import { play } from '../lib/sfx'
 import { STAR_NAMES, starArt } from '../lib/stars'
 import type { Frame } from '../lib/types'
 import { StarAvatar } from './game'
+import { EmptyState } from './empty'
 import { FloatingHit, HitPad } from './hitpad'
 import { Guide } from './mascots'
 import { WalletButton } from './wallet'
@@ -92,9 +94,17 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
               </div>
               <div className="mt-2 flex items-center justify-between gap-2 text-xs text-grape-300">
                 <span title={one.keyAddress}>Raid key {one.keyAddress?.slice(0, 8)}… stays in this browser, set up once.</span>
-                <button className="shrink-0 underline hover:text-white" disabled={!!one.status} onClick={() => one.sweep(true)}>
-                  Return to wallet
-                </button>
+                <span className="flex shrink-0 gap-3">
+                  <button className="underline hover:text-white" onClick={() => one.refresh()}>
+                    ↻ Refresh
+                  </button>
+                  <Link to="/key" className="underline hover:text-white">
+                    Manage key
+                  </Link>
+                  <button className="underline hover:text-white" disabled={!!one.status} onClick={() => one.sweep(true)}>
+                    Return to wallet
+                  </button>
+                </span>
               </div>
               {keySeat.seatKey && <p className="mt-1 text-[11px] text-grape-300">Your bought tSTAR is held for this seat; claim it from here after settle.</p>}
             </>
@@ -122,7 +132,9 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
 
       <Label>Your Star</Label>
       {kit.myStars.length === 0 ? (
-        <p className="mb-4 text-sm text-grape-300">No Star in this wallet yet.</p>
+        <EmptyState scene="no-star" title="No Star in this wallet yet" size="sm" className="mb-4">
+          A Lil Star is your seat. Mint a free test one above.
+        </EmptyState>
       ) : (
         <div className="mb-4 flex flex-wrap gap-2">
           {kit.myStars.slice(0, 8).map((id) => {

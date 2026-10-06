@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { Link } from '@tanstack/react-router'
+import { useOneTap } from '../lib/onetap'
 import { useAppKit, useAppKitState } from '@reown/appkit/react'
 import { useChainId, useConnection, useSwitchChain } from 'wagmi'
 import { CHAIN_ID } from '../lib/config'
@@ -58,5 +60,18 @@ export function SoundToggle() {
     >
       {on ? '🔊' : '🔈'}
     </button>
+  )
+}
+
+/** Top bar shortcut to the raid key page, with its state at a glance. */
+export function KeyChip() {
+  const { isConnected } = useConnection()
+  const one = useOneTap('0')
+  if (!isConnected) return null
+  const state = !one.hasKey ? { label: 'Set up one-tap', cls: 'bg-candy-500 text-white' } : one.ready ? { label: 'One-tap ready', cls: 'bg-mint text-grape-900' } : { label: 'Raid key', cls: 'bg-ember-500 text-white' }
+  return (
+    <Link to="/key" className={`chip hidden whitespace-nowrap transition hover:scale-105 md:inline-flex ${state.cls}`} title={one.keyAddress ? `Raid key ${one.keyAddress}` : 'Set up one-tap once'}>
+      🗝 {state.label}
+    </Link>
   )
 }

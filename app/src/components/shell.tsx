@@ -2,7 +2,7 @@ import { Link, useRouterState } from '@tanstack/react-router'
 import { motion } from 'motion/react'
 import { useHealth } from '../lib/live'
 import { NextRaidChip } from './countdown'
-import { SoundToggle, WalletButton } from './wallet'
+import { KeyChip, SoundToggle, WalletButton } from './wallet'
 
 export function TopBar() {
   const health = useHealth()
@@ -12,7 +12,7 @@ export function TopBar() {
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
         <Link to="/" className="group flex items-center gap-2">
           <img src="/art/coin.webp" alt="" className="h-11 w-11 drop-shadow-[0_3px_0_#2d2250] transition-transform group-hover:rotate-12" />
-          <span className="title-outline-sm text-2xl leading-none sm:text-3xl">
+          <span className="title-outline-sm whitespace-nowrap text-2xl leading-none sm:text-3xl">
             Star <span className="text-ember-400">Raid</span>
           </span>
         </Link>
@@ -26,13 +26,14 @@ export function TopBar() {
         <div className="flex items-center gap-2">
           <NextRaidChip />
           <span
-            className="chip hidden bg-grape-900/80 text-grape-100 sm:inline-flex"
+            className="chip hidden whitespace-nowrap bg-grape-900/80 text-grape-100 2xl:inline-flex"
             title={ok ? `Live feed at block ${health.data?.finalized}` : 'Live feed unreachable'}
           >
             <span className={`h-2 w-2 rounded-full ${ok ? 'bg-mint shadow-[0_0_8px_#a3e3c1]' : 'bg-candy-500'}`} />
             {ok ? `Block ${Number(health.data?.finalized).toLocaleString()}` : 'Offline'}
           </span>
           <SoundToggle />
+          <KeyChip />
           <WalletButton />
         </div>
       </div>
@@ -47,7 +48,7 @@ function NavLink({ to, children }: { to: NavTo; children: React.ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname })
   const active = to === '/' ? path === '/' : path === to || (to === '/raids' && path.startsWith('/raid/'))
   return (
-    <Link to={to} className={`relative rounded-full px-4 py-1.5 text-sm font-bold tracking-wide transition-colors ${active ? 'text-white' : 'text-white/80 hover:text-white'}`}>
+    <Link to={to} className={`relative whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-bold tracking-wide transition-colors ${active ? 'text-white' : 'text-white/80 hover:text-white'}`}>
       {active && (
         <motion.span
           layoutId="nav-pill"
