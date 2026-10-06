@@ -11,7 +11,14 @@ const client = createPublicClient({ chain: cfg.chain, transport: http(cfg.rpcUrl
 
 let signer: Signer;
 if (process.env.PRIVATE_KEY) {
-  signer = new KeySigner(process.env.PRIVATE_KEY as Hex, cfg.chain, cfg.rpcUrl, (hash) => client.waitForTransactionReceipt({ hash }));
+  // Monad bills the gas limit and a sender must cover limit x maxFee, so cap the fee near the base fee
+  // instead of the default 2x: a small keeper balance then goes much further.
+  const fees = async () => {
+    const base = (await client.getBlock()).baseFeePerGas ?? 100_000_000_000n;
+    const tip = 2_000_000_000n;
+    return { maxFeePerGas: (base * 5n) / 4n + tip, maxPriorityFeePerGas: tip };
+  };
+  signer = new KeySigner(process.env.PRIVATE_KEY as Hex, cfg.chain, cfg.rpcUrl, (hash) => client.waitForTransactionReceipt({ hash }), fees);
 } else {
   const account = process.env.KEEPER_ACCOUNT ?? "zexo-secondary";
   const address = (process.env.KEEPER_ADDRESS ?? "0x720633667161625FC1d7fd86DE6eC06d814a3492") as Hex;

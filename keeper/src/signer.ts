@@ -50,7 +50,13 @@ export class KeySigner implements Signer {
   private wallet;
   private publicWait: (hash: Hex) => Promise<{ status: string; blockNumber: bigint }>;
 
-  constructor(privateKey: Hex, chain: Chain, rpcUrl: string, wait: (hash: Hex) => Promise<{ status: string; blockNumber: bigint }>) {
+  constructor(
+    privateKey: Hex,
+    chain: Chain,
+    rpcUrl: string,
+    wait: (hash: Hex) => Promise<{ status: string; blockNumber: bigint }>,
+    private fees?: () => Promise<{ maxFeePerGas: bigint; maxPriorityFeePerGas: bigint }>,
+  ) {
     const account = privateKeyToAccount(privateKey);
     this.address = account.address;
     this.wallet = createWalletClient({ account, chain, transport: http(rpcUrl) });
@@ -59,7 +65,8 @@ export class KeySigner implements Signer {
 
   async send(tx: Tx): Promise<Sent> {
     requireGas(tx);
-    const hash = await this.wallet.sendTransaction({ to: tx.to, data: tx.data, value: tx.value, gas: tx.gas });
+    const fee = this.fees ? await this.fees() : {};
+    const hash = await this.wallet.sendTransaction({ to: tx.to, data: tx.data, value: tx.value, gas: tx.gas, ...fee });
     const r = await this.publicWait(hash);
     return { hash, ok: r.status === "success", block: r.blockNumber };
   }
