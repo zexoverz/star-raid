@@ -15,8 +15,12 @@ export type Config = {
 };
 
 export function loadConfig(env = process.env): Config {
-  const path = env.DEPLOYMENT ?? new URL("../../deployments/testnet.json", import.meta.url).pathname;
-  const deployment = JSON.parse(readFileSync(path, "utf8")) as Deployment;
+  // DEPLOYMENT_JSON (the JSON itself) is for hosts that only get the keeper/ directory
+  const deployment = (
+    env.DEPLOYMENT_JSON
+      ? JSON.parse(env.DEPLOYMENT_JSON)
+      : JSON.parse(readFileSync(env.DEPLOYMENT ?? new URL("../../deployments/testnet.json", import.meta.url).pathname, "utf8"))
+  ) as Deployment;
   const chain = deployment.chainId === 143 ? monad : monadTestnet;
   const thin = (env.THIN_MARKETS ?? (chain.id === 10143 ? deployment.market : "")).split(",").filter(Boolean);
   return {
