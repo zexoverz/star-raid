@@ -29,6 +29,7 @@ export const ERROR_TEXT: Record<string, string> = {
   NoSeat: 'This wallet has no seat in this raid.',
   HoldNotOver: 'The hold is still running. You can wait, or exit early and forfeit your prize share.',
   AlreadyDone: 'Already claimed or exited for this raid.',
+  SafeERC20FailedOperation: 'The tUSDC transfer failed. Check that the wallet (or raid key) still holds enough tUSDC.',
 }
 
 export function explainError(e: unknown): string {
