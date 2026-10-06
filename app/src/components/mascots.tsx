@@ -42,8 +42,9 @@ export function Mascot({ who, pose = 'idle', className = '' }: { who: Who; pose?
   )
 }
 
-/** A mascot that talks. */
-export function Guide({ who, pose = 'think', children, side = 'right', size = 'h-28', className = '' }: { who: Who; pose?: Pose; children: ReactNode; side?: 'left' | 'right'; size?: string; className?: string }) {
+/** A mascot that talks. The bubble re-animates only when `bubbleKey` (default: the text) changes, so
+ *  never put a ticking value in the text; show counters outside the bubble. */
+export function Guide({ who, pose = 'think', children, side = 'right', size = 'h-28', className = '', bubbleKey }: { who: Who; pose?: Pose; children: ReactNode; side?: 'left' | 'right'; size?: string; className?: string; bubbleKey?: string }) {
   const c = CREW[who]
   return (
     <div className={`flex items-end gap-2 ${side === 'left' ? 'flex-row-reverse' : ''} ${className}`}>
@@ -52,7 +53,7 @@ export function Guide({ who, pose = 'think', children, side = 'right', size = 'h
       </motion.div>
       <AnimatePresence mode="wait">
         <motion.div
-          key={String(children)}
+          key={bubbleKey ?? String(children)}
           initial={{ scale: 0.6, opacity: 0, y: 10 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.8, opacity: 0 }}

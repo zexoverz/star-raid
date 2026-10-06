@@ -33,7 +33,7 @@ export function GetReady({ live }: { live: boolean }) {
             {live
               ? 'A raid is live right now! Jump in from the stage above.'
               : left !== null && left > 0
-                ? `Next demo raid in about ${mm}m ${ss.toString().padStart(2, '0')}s. Get your Star and tUSDC now, the window is only about a minute!`
+                ? `Next demo raid at about ${n.clock}. Get your Star and tUSDC now, the window is only about a minute!`
                 : 'The next demo raid should appear any moment. Keep this page open, it updates live.'}
           </Guide>
           {!live && left !== null && (
