@@ -114,7 +114,10 @@ const pub = createPublicClient({
  * Cap the fee near the base fee (same policy as the keeper) instead of viem's default 2x + tip.
  */
 async function fees() {
-  const base = (await pub.getBlock()).baseFeePerGas ?? 100_000_000_000n
+  // Monad's base fee never drops below 100 gwei; floor it so a stale or odd reading never underfunds the key.
+  const MIN_BASE = 100_000_000_000n
+  const read = (await pub.getBlock()).baseFeePerGas ?? MIN_BASE
+  const base = read > MIN_BASE ? read : MIN_BASE
   const tip = 2_000_000_000n
   return { maxFeePerGas: (base * 5n) / 4n + tip, maxPriorityFeePerGas: tip }
 }
