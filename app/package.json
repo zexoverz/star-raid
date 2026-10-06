@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "start": "node server/index.mjs"
+    "start": "node server/index.mjs",
+    "e2e:fork": "node --experimental-strip-types e2e-fork.mts"
   },
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",
