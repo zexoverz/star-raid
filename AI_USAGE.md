@@ -48,3 +48,7 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
 ## Video: Remotion demo cut
 - Files: video/** (Remotion 4.0.534 project: scenes Hook, Sponsor, Seats, Raid, Draw, Victory, Cta; asset slots; app sound kit rendered to WAV; snapshots of raids 26 and 3 from the live service; Lil Star #5, #6, #8 collection art resized from IPFS), docs/plan/decisions.md D45. Written by Claude (Jcode).
 - Human reviewed: pending his watch of out/star-raid-demo.mp4 and the scene stills.
+
+## Video: end-to-end explainer
+- Files: video/SCRIPT.md, video/scripts/{record,vo}.mjs (Playwright recordings of the prod app with no wallet; edge-tts voiceover), video/src/explainer/** (StarRaidExplainer, 2:21). Written by Claude (Jcode).
+- Human reviewed: asked for a scripted end-to-end demo recorded by the agent; review of the render pending. Wallet steps are animated cards, not recordings (no testnet keys on this machine).
