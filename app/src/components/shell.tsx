@@ -27,11 +27,10 @@ export function TopBar() {
   return (
     <header className="fixed inset-x-0 top-0 z-40 px-3 pt-3 sm:px-6">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
-        <Link to="/" className="group flex shrink-0 items-center gap-2">
-          <img src="/art/logo.svg" alt="Star Raid" className="h-12 w-12 drop-shadow-[0_3px_0_#2d2250] transition-transform group-hover:-rotate-6 group-hover:scale-110" />
-          <span className="title-outline-sm hidden whitespace-nowrap text-2xl leading-none sm:inline sm:text-3xl">
-            Star <span className="text-ember-400">Raid</span>
-          </span>
+        <Link to="/" className="group flex shrink-0 items-center" aria-label="Star Raid home">
+          {/* Wordmark in the Lil Stars logo style: crew silhouettes peeking over chunky sticker letters. */}
+          <img src="/art/wordmark-h.svg" alt="Star Raid" className="hidden h-12 w-auto drop-shadow-[0_4px_0_#15122a] transition-transform group-hover:-rotate-1 group-hover:scale-105 sm:block" />
+          <img src="/art/wordmark.svg" alt="Star Raid" className="h-14 w-auto -my-1 drop-shadow-[0_4px_0_#15122a] sm:hidden" />
         </Link>
         <nav className="glass hidden min-w-0 items-center gap-1 rounded-full px-2 py-1.5 xl:flex">
           {LINKS.filter((l) => ['/', '/raids', '/practice'].includes(l.to)).map((l) => (
