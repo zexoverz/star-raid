@@ -7,6 +7,7 @@ contracts/out
 contracts/cache
 contracts/lib
 indexer
+video
 keeper/node_modules
 .git
 app/e2e-fork.mts
