@@ -11,6 +11,8 @@ export function StarAvatar({ tokenId, size = 56, ring = true, dim = false, class
       style={{ width: size, height: size }}
       title={`Lil Star #${tokenId}`}
     >
+      {/* shown while the art loads, so a seat is never an empty circle */}
+      <img src={art.fallback} alt="" aria-hidden className="absolute inset-0 h-full w-full animate-pulse rounded-full object-cover opacity-60 blur-[2px]" />
       <img
         src={art.src}
         onError={(e) => {
@@ -19,7 +21,7 @@ export function StarAvatar({ tokenId, size = 56, ring = true, dim = false, class
         }}
         alt={`Lil Star #${tokenId}`}
         loading="lazy"
-        className={`h-full w-full rounded-full object-cover ${dim ? 'grayscale opacity-50' : ''}`}
+        className={`relative h-full w-full rounded-full object-cover ${dim ? 'grayscale opacity-50' : ''}`}
         style={{
           boxShadow: ring ? `0 0 0 3px ${art.legendary ? '#ffd27a' : '#2d2250'}, 0 0 0 ${art.legendary ? 6 : 5}px ${art.legendary ? '#ff8c42' : '#7a6eb2'}` : undefined,
         }}

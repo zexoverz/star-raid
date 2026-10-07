@@ -32,7 +32,8 @@ export function starArt(tokenId: string | null | undefined): StarArt | null {
   const m = META[artId] ?? { character: 'Star', rarity: 'Common' }
   const fallback = PREVIEW_IDS[Number(BigInt(tokenId) % BigInt(PREVIEW_IDS.length))]
   return {
-    src: `/star/${artId}.png`,
+    // ids we ship (the official art for that same id) load instantly; the rest come from IPFS via /star
+    src: META[artId] ? `/stars/${artId}.webp` : `/star/${artId}.png`,
     fallback: `/stars/${fallback}.webp`,
     full: `${IPFS_IMG}/${artId}.png`,
     artId,

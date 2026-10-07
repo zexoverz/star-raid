@@ -106,11 +106,13 @@ describe('starArt (real Lil Stars art by token id)', () => {
   it('serves the collection art for the same token id, with a bundled fallback', () => {
     for (const id of ['0', '7', '8', '31', '12345678901234567890']) {
       const a = starArt(id)!
-      expect(a.src).toBe(`/star/${id}.png`) // server thumbnail of IPFS <cid>/<id>.png
+      expect(a.src).toMatch(new RegExp(`^/(star/${id}\\.png|stars/${id}\\.webp)$`)) // always the same id's art
       expect(a.full).toMatch(new RegExp(`/ipfs/[a-z0-9]+/${id}\\.png$`))
       expect(a.fallback).toMatch(/^\/stars\/\d+\.webp$/)
       expect(a.preview).toBe(false)
     }
+    expect(starArt('88')!.src).toBe('/stars/88.webp') // shipped: instant
+    expect(starArt('206')!.src).toBe('/star/206.png') // not shipped: IPFS thumbnail
     expect(starArt(null)).toBeNull()
   })
 })
