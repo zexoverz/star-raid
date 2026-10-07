@@ -243,10 +243,13 @@ export function useOneTap(raidId: string) {
   const balRef = useRef({ usdc: 0n, mon: 0n })
   const refresh = useCallback(async () => {
     if (!account) return
-    const [b, al] = await Promise.all([
+    // Background poll: a busy RPC (15 req/s limit) just means this tick is skipped, never an uncaught error.
+    const got = await Promise.all([
       balancesOf(account.address),
       pub.readContract({ address: ADDR.quote, abi: ERC20_ABI, functionName: 'allowance', args: [account.address, ADDR.router] }) as Promise<bigint>,
-    ])
+    ]).catch(() => null)
+    if (!got) return
+    const [b, al] = got
     balRef.current = { usdc: b.usdc, mon: b.mon }
     setUsdc(b.usdc)
     setStar(b.star)
@@ -482,7 +485,11 @@ export function useOneTap(raidId: string) {
     const found: Hex[] = []
     for (const old of legacyKeys(address)) {
       if (old === pk) continue
-      const b = await balancesOf(privateKeyToAccount(old).address)
+      const b = await balancesOf(privateKeyToAccount(old).address).catch(() => null)
+      if (!b) {
+        found.push(old) // unknown right now (RPC busy): keep it, never forget a key that might hold funds
+        continue
+      }
       if (b.usdc > 0n || b.star > 0n || b.mon > 21_000n * 200_000_000_000n) found.push(old)
       else forgetLegacy(address, old)
     }
