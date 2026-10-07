@@ -11,6 +11,7 @@ import type { Frame } from '../lib/types'
 import { Sprite, StarAvatar, Twinkles } from './game'
 import { CrewRow, Guide } from './mascots'
 import { TxSteps } from './join'
+import { TokenIcon } from './token'
 import { PlayerPill } from './profile'
 
 /** VICTORY / WALL HELD banner. Every number is one the chain shows. */
@@ -149,8 +150,8 @@ export function LootPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
         <div className="flex-1 text-center sm:text-left">
           <div className="title-outline-sm text-3xl">{done ? 'Loot collected' : 'Your loot'}</div>
           <div className="mt-2 flex flex-wrap justify-center gap-2 sm:justify-start">
-            <span className="chip bg-grape-700 text-grape-100">⭐ {seat.escrowBase !== undefined ? fmt(seat.escrowBase, t.baseDecimals) : '…'} tSTAR held for you</span>
-            {phase === 'victory' && <span className="chip bg-ember-500/30 text-ember-300">🏆 {seat.prize !== undefined ? fmt(seat.prize, t.quoteDecimals) : '…'} tUSDC prize share</span>}
+            <span className="chip bg-grape-700 text-grape-100"><TokenIcon token="star" size={14} /> {seat.escrowBase !== undefined ? fmt(seat.escrowBase, t.baseDecimals) : '…'} tSTAR held for you</span>
+            {phase === 'victory' && <span className="chip bg-ember-500/30 text-ember-300">🏆 <TokenIcon token="usdc" size={14} /> {seat.prize !== undefined ? fmt(seat.prize, t.quoteDecimals) : '…'} prize share</span>}
           </div>
           {!settled && <p className="mt-3 text-sm text-grape-300">Claims open once the raid settles.</p>}
           {settled && !done && phase === 'victory' && !holdOver && (

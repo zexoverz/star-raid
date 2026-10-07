@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Star Raid emblem: a shield-shaped wall, cracked by a Lil Star punching through. -->
+  <path d="M32 6 54 13v19c0 14-10 23-22 27C20 55 10 46 10 32V13z" fill="#15122a" transform="translate(0 3)"/>
+  <path d="M32 6 54 13v19c0 14-10 23-22 27C20 55 10 46 10 32V13z" fill="#4a4373" stroke="#2d2250" stroke-width="3" stroke-linejoin="round"/>
+  <clipPath id="s"><path d="M32 6 54 13v19c0 14-10 23-22 27C20 55 10 46 10 32V13z"/></clipPath>
+  <g clip-path="url(#s)" fill="#665d96" stroke="#2d2250" stroke-width="1.6">
+    <rect x="8" y="12" width="15" height="8" rx="2"/><rect x="25" y="12" width="15" height="8" rx="2"/><rect x="42" y="12" width="15" height="8" rx="2"/>
+    <rect x="1" y="22" width="15" height="8" rx="2"/><rect x="48" y="22" width="15" height="8" rx="2"/>
+    <rect x="8" y="32" width="12" height="8" rx="2"/><rect x="44" y="32" width="12" height="8" rx="2"/>
+    <rect x="1" y="42" width="15" height="8" rx="2"/><rect x="18" y="44" width="28" height="8" rx="2"/><rect x="48" y="42" width="15" height="8" rx="2"/>
+  </g>
+  <path d="M20 21 26 25 22 31 28 36 24 42M44 21 39 26 43 31 37 36 41 42" fill="none" stroke="#2d2250" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32 17l4.6 9.3 10.3 1.5-7.4 7.2 1.8 10.2L32 40.4l-9.3 4.8 1.8-10.2-7.4-7.2 10.3-1.5z" fill="#FF8C42" transform="translate(0 2)"/>
+  <path d="M32 17l4.6 9.3 10.3 1.5-7.4 7.2 1.8 10.2L32 40.4l-9.3 4.8 1.8-10.2-7.4-7.2 10.3-1.5z" fill="#FFD27A" stroke="#2d2250" stroke-width="2.6" stroke-linejoin="round"/>
+  <circle cx="28.6" cy="30" r="1.8" fill="#2d2250"/><circle cx="35.4" cy="30" r="1.8" fill="#2d2250"/>
+  <path d="M29.5 34q2.5 2.2 5 0" stroke="#2d2250" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <path d="M14 10l2 3M50 10l-2 3M8 26h3M53 26h3" stroke="#FFB84D" stroke-width="2.4" stroke-linecap="round"/>
+</svg>

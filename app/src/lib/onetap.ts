@@ -5,7 +5,10 @@ import { monadTestnet } from 'viem/chains'
 import { useConnection, useSignTypedData, useWriteContract, usePublicClient } from 'wagmi'
 import { ADDR, CHAIN_ID, RPC_URL } from './config'
 import { ERC20_ABI, GAS, ROUTER_ABI, explainError, raidGasLimit } from './contracts'
+import { formatUnits } from 'viem'
 import { notify } from './toast'
+
+const fmtUnits = (v: bigint, d: number, dp = 2) => Number(formatUnits(v, d)).toLocaleString(undefined, { maximumFractionDigits: dp })
 
 /**
  * One-tap raiding, set up once per wallet and reused for every raid.
@@ -236,12 +239,15 @@ export function useOneTap(raidId: string) {
   const wallet = useMemo(() => (pk ? keyWalletOf(pk) : null), [pk])
   const passValid = !!pass && !!address && pass.holder.toLowerCase() === address.toLowerCase() && Number(pass.expiry) > Date.now() / 1000 + 120
 
+  // Latest key balances, written synchronously by refresh() so the tap ledger never reads a stale render.
+  const balRef = useRef({ usdc: 0n, mon: 0n })
   const refresh = useCallback(async () => {
     if (!account) return
     const [b, al] = await Promise.all([
       balancesOf(account.address),
       pub.readContract({ address: ADDR.quote, abi: ERC20_ABI, functionName: 'allowance', args: [account.address, ADDR.router] }) as Promise<bigint>,
     ])
+    balRef.current = { usdc: b.usdc, mon: b.mon }
     setUsdc(b.usdc)
     setStar(b.star)
     setMon(b.mon)
@@ -299,20 +305,30 @@ export function useOneTap(raidId: string) {
           setPass(p)
         }
         const have = await balancesOf(acct.address)
-        if (have.usdc < budget) {
-          setStatus('Send tUSDC to your raid key')
-          const h1 = await write({ address: ADDR.quote, abi: ERC20_ABI, functionName: 'transfer', args: [acct.address, budget - have.usdc], gas: GAS.approve })
-          await client.waitForTransactionReceipt({ hash: h1 })
-        }
+        const wallet = await balancesOf(address)
         const f = await fees()
         const want = gasBudget(f.maxFeePerGas)
+        const needUsdc = have.usdc < budget ? budget - have.usdc : 0n
+        const needMon = have.mon < want / 2n ? want - have.mon : 0n
+        // Check the wallet can actually pay before asking it to: a transfer of more than it holds is
+        // mined as a failed tx (it still costs gas) and the key gets nothing.
+        if (needUsdc > wallet.usdc) throw new Error(`Your wallet has ${fmtUnits(wallet.usdc, 6)} tUSDC, ${fmtUnits(needUsdc, 6)} needed. Mint test tUSDC or pick a smaller amount.`)
+        if (needMon > 0n && wallet.mon < needMon + 21_000n * f.maxFeePerGas * 3n) throw new Error(`Your wallet needs about ${fmtUnits(needMon, 18, 2)} MON for the raid key's gas.`)
+        if (needUsdc > 0n) {
+          setStatus('Send tUSDC to your raid key')
+          const h1 = await write({ address: ADDR.quote, abi: ERC20_ABI, functionName: 'transfer', args: [acct.address, needUsdc], gas: GAS.approve })
+          const r1 = await client.waitForTransactionReceipt({ hash: h1 })
+          if (r1.status !== 'success') throw new Error('The tUSDC transfer to your raid key failed on chain. Nothing was moved.')
+        }
         let fundedBlock = 0n
-        if (have.mon < want / 2n) {
+        if (needMon > 0n) {
           setStatus('Send a little MON for gas')
           const { sendTransaction } = await import('wagmi/actions')
           const { wagmiConfig } = await import('./wagmi')
-          const h2 = await sendTransaction(wagmiConfig, { to: acct.address, value: want - have.mon, gas: 21_000n })
-          fundedBlock = (await client.waitForTransactionReceipt({ hash: h2 })).blockNumber
+          const h2 = await sendTransaction(wagmiConfig, { to: acct.address, value: needMon, gas: 21_000n })
+          const r2 = await client.waitForTransactionReceipt({ hash: h2 })
+          if (r2.status !== 'success') throw new Error('The MON transfer to your raid key failed on chain.')
+          fundedBlock = r2.blockNumber
         }
         const al = (await pub.readContract({ address: ADDR.quote, abi: ERC20_ABI, functionName: 'allowance', args: [acct.address, ADDR.router] })) as bigint
         if (al < budget * 1000n) {
@@ -322,7 +338,7 @@ export function useOneTap(raidId: string) {
           if (fundedBlock > 0n) await waitSpendable(fundedBlock)
           const kw = keyWalletOf(keyPk)
           const h3 = await sendWhenFunded(() => kw.writeContract({ address: ADDR.quote, abi: ERC20_ABI, functionName: 'approve', args: [ADDR.router, maxUint256], gas: GAS.approve, ...f }))
-          await pub.waitForTransactionReceipt({ hash: h3 })
+          if ((await pub.waitForTransactionReceipt({ hash: h3 })).status !== 'success') throw new Error('The raid key approval failed on chain.')
         } else if (fundedBlock > 0n) {
           await waitSpendable(fundedBlock)
         }
@@ -344,15 +360,30 @@ export function useOneTap(raidId: string) {
   /**
    * One hit. No wallet popup and no chain reads: the router allowance was set at setup, the gas
    * limit is fixed (rule 10) and fee/nonce are cached, so a burst of taps is a burst of sends only.
+   *
+   * A synchronous ledger of tUSDC and gas already committed by hits in flight stops a fast burst from
+   * sending a hit the key can no longer pay for (that hit would be mined as a revert and burn gas).
    */
+  const committed = useRef({ usdc: 0n, gas: 0n })
   const tap = useCallback(
     async (amount: bigint) => {
       if (!pass || !wallet || !account) return null
       setError(null)
       const cost = HIT_GAS * (feeRef.current?.maxFeePerGas ?? 130_000_000_000n)
-      if (mon < cost * BigInt(inflight + 1)) {
-        setError('Your raid key is low on MON for gas. Top it up from the panel (one popup) and keep hitting.')
+      const c = committed.current
+      if (balRef.current.usdc - c.usdc < amount) {
+        setError(c.usdc > 0n ? 'Your raid key has no tUSDC left after the hits in flight. Top it up to keep hitting.' : 'Your raid key is out of tUSDC. Top it up (one popup) to keep hitting.')
         return null
+      }
+      if (balRef.current.mon - c.gas < cost) {
+        setError('Your raid key is low on MON for gas. Top it up (one popup) and keep hitting.')
+        return null
+      }
+      c.usdc += amount
+      c.gas += cost
+      const release = () => {
+        c.usdc -= amount
+        c.gas -= cost
       }
       try {
         if (nonce.current === null) nonce.current = await pub.getTransactionCount({ address: account.address, blockTag: 'pending' })
@@ -361,21 +392,24 @@ export function useOneTap(raidId: string) {
         const f = feeRef.current ?? (await fees())
         setInflight((n) => n + 1)
         const hash = await wallet.writeContract({ address: ADDR.router, abi: ROUTER_ABI, functionName: 'raid', args, gas: HIT_GAS, nonce: nonce.current++, ...f })
-        void pub.waitForTransactionReceipt({ hash }).then((r) => {
+        void pub.waitForTransactionReceipt({ hash }).then(async (r) => {
           setInflight((n) => n - 1)
           if (r.status === 'success') setHits((h) => h + 1)
           else setError('That hit reverted on chain.')
-          void refresh()
-        })
+          // Hand the amount back to the ledger only once the balance read reflects the spend.
+          await refresh()
+          release()
+        }, release)
         return hash
       } catch (e) {
+        release()
         nonce.current = null
         setInflight((n) => Math.max(0, n - 1))
         setError(explainError(e))
         return null
       }
     },
-    [pass, wallet, account, raidId, refresh, mon, inflight, setError],
+    [pass, wallet, account, raidId, refresh, setError],
   )
 
   /**
