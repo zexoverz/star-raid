@@ -51,6 +51,7 @@ export function useWalletKit() {
       { address: ADDR.quote, abi: ERC20_ABI, functionName: 'allowance', args: [address!, ADDR.router] },
       { address: ADDR.lilStars, abi: STARS_ABI, functionName: 'balanceOf', args: [address!] },
       { address: ADDR.lilStars, abi: STARS_ABI, functionName: 'nextId', args: [] },
+      { address: ADDR.base, abi: ERC20_ABI, functionName: 'balanceOf', args: [address!] },
     ],
     query: { enabled: !!address, refetchInterval: 6000 },
   })
@@ -58,6 +59,8 @@ export function useWalletKit() {
   const allowance = reads.data?.[1]?.result as bigint | undefined
   const starCount = reads.data?.[2]?.result as bigint | undefined
   const nextId = (reads.data?.[3]?.result as bigint | undefined) ?? 0n
+  /** tSTAR in the wallet: where claimed raid loot lands. */
+  const star = reads.data?.[4]?.result as bigint | undefined
   const scanFrom = nextId > 200n ? nextId - 200n : 0n
   const ids = Array.from({ length: Number(nextId - scanFrom) }, (_, i) => scanFrom + BigInt(i))
   const owners = useReadContracts({
@@ -68,6 +71,7 @@ export function useWalletKit() {
   return {
     address,
     usdc,
+    star,
     allowance,
     myStars,
     loading: reads.isLoading,
