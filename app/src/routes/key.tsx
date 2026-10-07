@@ -105,14 +105,42 @@ function KeyPage() {
               <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <Stat icon="usdc" label="tUSDC" value={fmt(one.usdc, 6)} hint="to raid with" warn={one.usdc === 0n} />
                 <Stat icon="mon" label="MON gas" value={(Number(one.mon) / 1e18).toFixed(2)} hint={`about ${gasHits} hits`} warn={gasHits < 2} />
-                <Stat icon="star" label="tSTAR" value={fmt(one.star, 18)} hint="bought, not yet returned" />
+                <Stat icon="star" label="tSTAR on key" value={fmt(one.star, 18)} hint={one.star > 0n ? 'tap Return to send it home' : 'you buy it in raids, never deposit'} />
                 <Stat label="Seat pass" value={one.passValid ? `${daysLeft >= 1 ? Math.floor(daysLeft) + 'd' : Math.max(1, Math.round(daysLeft * 24)) + 'h'}` : 'expired'} hint={one.passExpiry ? `until ${new Date(one.passExpiry * 1000).toLocaleDateString([], { month: 'short', day: 'numeric' })}` : 'not signed'} warn={!one.passValid || daysLeft < 1} />
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-3 rounded-2xl bg-grape-950/60 p-3">
+                <TokenIcon token="mon" size={22} />
+                <div className="min-w-[10rem] flex-1">
+                  <div className="flex justify-between text-xs text-grape-300">
+                    <span className="font-bold text-white">Gas tank</span>
+                    <span>{one.gasPct}% · about {gasHits} hits</span>
+                  </div>
+                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-grape-950"><div className={`h-full rounded-full ${one.gasPct < 35 ? 'bg-candy-500' : one.gasPct < 70 ? 'bg-ember-400' : 'bg-mint'}`} style={{ width: `${one.gasPct}%` }} /></div>
+                </div>
+                <button className="btn btn-candy px-4 py-2 text-sm" disabled={!!one.status || one.gasFull} onClick={() => one.fillGas()}>
+                  {one.gasFull ? '⛽ Tank full' : '⛽ Fill gas'}
+                </button>
+              </div>
+
+              {/* tSTAR is what you get, not what you put in. Spell out the loop so the 0 doesn't read as a missing deposit. */}
+              <div className="mt-3 rounded-2xl bg-grape-950/60 p-3 text-xs text-grape-300">
+                <div className="mb-2 font-bold text-white">How the tokens move</div>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="chip bg-grape-800 text-grape-100"><TokenIcon token="usdc" size={14} /> tUSDC in</span>
+                  <span>→ each HIT buys</span>
+                  <span className="chip bg-grape-800 text-grape-100"><TokenIcon token="star" size={14} /> tSTAR</span>
+                  <span>→ held for your seat →</span>
+                  <span className="chip bg-ember-500/20 text-ember-300">🗝 Claim after the raid</span>
+                  <span>→ your wallet</span>
+                </div>
+                <p className="mt-2">You never deposit tSTAR. You only send tUSDC (to hit) and MON (for gas). Win and the claim also pays your prize share in tUSDC.</p>
               </div>
 
               <div className="mt-6 grid gap-4 md:grid-cols-2">
                 <div className="rounded-2xl bg-grape-950/60 p-4">
                   <div className="font-display text-lg text-white">Top up</div>
-                  <p className="mb-3 text-sm text-grape-300">Send tUSDC from your wallet to the raid key. Gas is refilled too if it's low. One popup.</p>
+                  <p className="mb-3 text-sm text-grape-300">Send tUSDC from your wallet to the raid key. One popup. Gas has its own <b className="text-white">Fill gas</b> button above.</p>
                   <SetupBox one={one} tokenId={tokenId} label="⚡ Send to raid key" />
                 </div>
                 <div className="rounded-2xl bg-grape-950/60 p-4">
