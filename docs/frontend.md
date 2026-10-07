@@ -10,7 +10,8 @@ anything here is the code it points to.
 | Live data (SSE) | https://live-production-e50b.up.railway.app |
 | Contracts | `deployments/testnet.json` (addresses), `deployments/abi/*.json` (ABIs) |
 | Keeper | hosted on Railway; opens, closes, draws the end block and settles every raid |
-| Demo raids | the keeper posts one every hour when no raid is in flight, so there is usually something to watch or join |
+| Demo raids | the keeper posts one every hour when no raid is in flight |
+| Raid on demand | `POST https://keeper-production-23ee.up.railway.app/demo` starts a test raid now (202), or answers 409 with the reason; `GET /demo` says if one can start |
 
 Viewers never call the RPC for live numbers; they read `live/`. A user's own transactions (approve, raid,
 claim) go through their wallet as usual.

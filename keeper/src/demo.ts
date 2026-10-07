@@ -15,19 +15,39 @@ export const DEMO = {
   seatCap: 600_000_000n,
   price: 2_600_000n, // 0.026 tUSDC at price precision 1e8
   lead: 60n, // blocks from posting to w0, about 25 s
-  window: 150n, // about a minute
+  window: BigInt(process.env.DEMO_WINDOW_BLOCKS ?? 150), // 150 blocks is about a minute; the vault allows 40 to 400
   hold: 60,
 } as const;
 
 const IN_FLIGHT = new Set<number>([Status.Posted, Status.Open, Status.Closing, Status.Closed]);
 
-/** Post when nothing is in flight and the last demo is at least `everyMs` old. */
-export function shouldPostDemo(raids: RaidState[], nowMs: number, lastMs: number, everyMs: number): boolean {
-  if (raids.some((r) => IN_FLIGHT.has(r.status))) return false;
+/** Why a demo raid cannot be posted right now, or null if it can. */
+export function demoBlocker(raids: RaidState[]): string | null {
+  if (raids.some((r) => IN_FLIGHT.has(r.status))) return "a raid is already running";
   // An unswept wall from the last raid is a cheaper ask in front of the next wall: every buy would
   // fill it first and count for nothing (D39). Wait for recoverWall.
-  if (raids.some((r) => r.status === Status.Settled && !r.wallRecovered)) return false;
-  return nowMs - lastMs >= everyMs;
+  if (raids.some((r) => r.status === Status.Settled && !r.wallRecovered)) return "the last raid's wall is still being swept";
+  return null;
+}
+
+/** Scheduled demo: post when nothing blocks it and the last demo is at least `everyMs` old. */
+export function shouldPostDemo(raids: RaidState[], nowMs: number, lastMs: number, everyMs: number): boolean {
+  return demoBlocker(raids) === null && nowMs - lastMs >= everyMs;
+}
+
+export const ON_DEMAND = {
+  cooldownMs: 60_000, // between two requested raids
+  minBalance: 600_000_000_000_000_000n, // 0.6 MON: one raid costs the keeper about 0.35
+} as const;
+
+/** A raid asked for from the app: same blockers, plus a cooldown and a balance floor (the endpoint is public). */
+export function onDemandBlocker(raids: RaidState[], nowMs: number, lastMs: number, balance: bigint): string | null {
+  const blocked = demoBlocker(raids);
+  if (blocked) return blocked;
+  const wait = ON_DEMAND.cooldownMs - (nowMs - lastMs);
+  if (wait > 0) return `the last raid was just posted, try again in ${Math.ceil(wait / 1000)} s`;
+  if (balance < ON_DEMAND.minBalance) return "the keeper is low on testnet MON";
+  return null;
 }
 
 export function demoTxs(d: { vault: Address; market: Address; baseToken: Address; quoteToken: Address }, me: Address, head: bigint): Tx[] {
