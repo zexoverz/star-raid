@@ -1,12 +1,34 @@
 /**
- * Tiny synthesized sound kit (WebAudio, no files). Off by default; the toggle lives in the top bar.
+ * Sound kit. Off by default; the toggle lives in the top bar.
  * Sounds only ever react to what the chain showed: a buy landed, the end was drawn, the result.
+ *
+ * Samples in /public/sfx (generated with ElevenLabs sound effects, soft cartoon game style) are
+ * fetched and decoded once when sound is turned on, then played through WebAudio so rapid hits can
+ * overlap. Until a sample is decoded (or if a fetch fails) the small synthesized fallback plays.
  */
 type Sfx = 'hit' | 'combo' | 'join' | 'tick' | 'drum' | 'reveal' | 'victory' | 'defeat' | 'click' | 'coin'
+const NAMES: Sfx[] = ['hit', 'combo', 'join', 'tick', 'drum', 'reveal', 'victory', 'defeat', 'click', 'coin']
+
+/** Per-sound mix so UI clicks stay quiet and the big moments land. */
+const MIX: Record<Sfx, { gain: number; vary?: number }> = {
+  hit: { gain: 0.7, vary: 0.08 },
+  combo: { gain: 0.6 },
+  join: { gain: 0.55 },
+  tick: { gain: 0.5 },
+  drum: { gain: 0.7 },
+  reveal: { gain: 0.7 },
+  victory: { gain: 0.75 },
+  defeat: { gain: 0.65 },
+  click: { gain: 0.35, vary: 0.05 },
+  coin: { gain: 0.5, vary: 0.04 },
+}
 
 let ctx: AudioContext | null = null
+let master: GainNode | null = null
 let enabled = typeof localStorage !== 'undefined' && localStorage.getItem('sr-sound') === 'on'
 const listeners = new Set<(on: boolean) => void>()
+const buffers = new Map<Sfx, AudioBuffer>()
+let loading: Promise<void> | null = null
 
 export const soundOn = () => enabled
 export function setSound(on: boolean) {
@@ -21,9 +43,45 @@ export function onSound(l: (on: boolean) => void) {
 }
 
 function ensure() {
-  if (!ctx) ctx = new AudioContext()
+  if (!ctx) {
+    ctx = new AudioContext()
+    master = ctx.createGain()
+    master.gain.value = 0.9
+    master.connect(ctx.destination)
+  }
   if (ctx.state === 'suspended') void ctx.resume()
+  if (!loading) loading = preload(ctx)
   return ctx
+}
+
+async function preload(c: AudioContext) {
+  await Promise.all(
+    NAMES.map(async (n) => {
+      try {
+        const r = await fetch(`/sfx/${n}.mp3`)
+        if (!r.ok) return
+        buffers.set(n, await c.decodeAudioData(await r.arrayBuffer()))
+      } catch {
+        /* keep the synth fallback for this sound */
+      }
+    }),
+  )
+}
+
+function sample(s: Sfx) {
+  const c = ensure()
+  const buf = buffers.get(s)
+  if (!buf || !master) return false
+  const src = c.createBufferSource()
+  const g = c.createGain()
+  const { gain, vary = 0 } = MIX[s]
+  src.buffer = buf
+  // a little pitch variation so a burst of hits doesn't sound like a machine gun
+  src.playbackRate.value = 1 + (Math.random() * 2 - 1) * vary
+  g.gain.value = gain
+  src.connect(g).connect(master)
+  src.start()
+  return true
 }
 
 function tone(freq: number, dur: number, type: OscillatorType = 'triangle', gain = 0.12, delay = 0, slideTo?: number) {
@@ -42,59 +100,48 @@ function tone(freq: number, dur: number, type: OscillatorType = 'triangle', gain
   o.stop(t + dur + 0.02)
 }
 
-function noise(dur: number, gain = 0.08, delay = 0) {
-  const c = ensure()
-  const buf = c.createBuffer(1, Math.floor(c.sampleRate * dur), c.sampleRate)
-  const d = buf.getChannelData(0)
-  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length)
-  const s = c.createBufferSource()
-  const g = c.createGain()
-  g.gain.value = gain
-  s.buffer = buf
-  s.connect(g).connect(c.destination)
-  s.start(c.currentTime + delay)
+/** Soft fallback (sine/triangle only, no square waves) for the moment before samples decode. */
+function synth(s: Sfx) {
+  switch (s) {
+    case 'hit':
+      tone(180, 0.16, 'sine', 0.12, 0, 80)
+      break
+    case 'combo':
+      ;[523, 659, 784, 1047].forEach((f, i) => tone(f, 0.14, 'sine', 0.08, i * 0.06))
+      break
+    case 'join':
+      tone(660, 0.12, 'sine', 0.1)
+      tone(990, 0.18, 'sine', 0.08, 0.08)
+      break
+    case 'tick':
+      tone(1100, 0.04, 'sine', 0.04)
+      break
+    case 'drum':
+      for (let i = 0; i < 10; i++) tone(140, 0.06, 'triangle', 0.04 + i * 0.006, i * 0.09)
+      break
+    case 'reveal':
+      ;[392, 523, 784].forEach((f, i) => tone(f, i === 2 ? 0.5 : 0.2, 'sine', 0.1, i * 0.12))
+      break
+    case 'victory':
+      ;[523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => tone(f, i === 6 ? 0.6 : 0.14, 'triangle', 0.09, i * 0.11))
+      break
+    case 'defeat':
+      ;[392, 349, 311, 262].forEach((f, i) => tone(f, 0.3, 'sine', 0.08, i * 0.18))
+      break
+    case 'click':
+      tone(880, 0.05, 'sine', 0.05)
+      break
+    case 'coin':
+      tone(988, 0.08, 'sine', 0.06)
+      tone(1319, 0.25, 'sine', 0.06, 0.07)
+      break
+  }
 }
 
 export function play(s: Sfx) {
   if (!enabled) return
   try {
-    switch (s) {
-      case 'hit':
-        noise(0.12, 0.12)
-        tone(220, 0.14, 'square', 0.08, 0, 90)
-        break
-      case 'combo':
-        ;[523, 659, 784, 1047].forEach((f, i) => tone(f, 0.12, 'triangle', 0.1, i * 0.06))
-        break
-      case 'join':
-        tone(660, 0.1, 'sine', 0.12)
-        tone(990, 0.16, 'sine', 0.1, 0.08)
-        break
-      case 'tick':
-        tone(1200, 0.04, 'square', 0.04)
-        break
-      case 'drum':
-        for (let i = 0; i < 10; i++) noise(0.05, 0.05 + i * 0.008, i * 0.09)
-        break
-      case 'reveal':
-        tone(392, 0.2, 'triangle', 0.12)
-        tone(523, 0.2, 'triangle', 0.12, 0.12)
-        tone(784, 0.5, 'triangle', 0.14, 0.24)
-        break
-      case 'victory':
-        ;[523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => tone(f, i === 6 ? 0.6 : 0.14, 'triangle', 0.12, i * 0.11))
-        break
-      case 'defeat':
-        ;[392, 349, 311, 262].forEach((f, i) => tone(f, 0.3, 'sine', 0.1, i * 0.18))
-        break
-      case 'click':
-        tone(880, 0.05, 'sine', 0.06)
-        break
-      case 'coin':
-        tone(988, 0.08, 'square', 0.07)
-        tone(1319, 0.3, 'square', 0.07, 0.07)
-        break
-    }
+    if (!sample(s)) synth(s)
   } catch {
     /* audio is decoration; never break the screen */
   }
