@@ -73,6 +73,11 @@ function KeyPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className={`chip ${one.ready ? 'bg-mint text-grape-900' : 'bg-ember-500 text-white'}`}>{one.ready ? 'Ready' : 'Needs attention'}</span>
+                    {tokenId && (
+                      <span className="chip bg-grape-800 text-grape-100">
+                        <TokenIcon token="lilstar" size={14} /> plays Star #{tokenId}
+                      </span>
+                    )}
                     <button onClick={refresh} className="btn btn-ghost h-8 px-3 text-xs" title="Refresh balances">
                       <motion.span animate={{ rotate: spin ? 360 : 0 }} transition={{ duration: 0.5 }} className="inline-block">
                         ↻

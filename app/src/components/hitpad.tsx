@@ -72,12 +72,12 @@ export function HitPad({
       <div className="flex items-center gap-3">
         <StarAvatar tokenId={tokenId} size={56} />
         <div className="min-w-0 flex-1">
-          <div className="font-display text-lg leading-tight text-white">One-tap armed</div>
+          <div className="font-display text-lg leading-tight text-white">{refill ? 'Raid key needs a top up' : 'One-tap armed'}</div>
           <div className="text-xs text-grape-300">
             Star #{tokenId} · <TokenAmount token="usdc" value={balance} decimals={decimals} size={12} /> left · {hits} {hits === 1 ? 'hit' : 'hits'} landed
           </div>
         </div>
-        <span className="chip bg-mint/20 text-mint">⚡ no popups</span>
+        {refill ? <span className="chip bg-ember-500/20 text-ember-300">low funds</span> : <span className="chip bg-mint/20 text-mint">⚡ no popups</span>}
       </div>
 
       <div className="mt-4 flex gap-2">
@@ -114,7 +114,7 @@ export function HitPad({
       </motion.button>
       )}
       <div className="mt-2 flex justify-between text-xs text-grape-300">
-        <span>{inflight > 0 ? `${inflight} hit(s) flying…` : 'Tap as fast as you like'}</span>
+        <span>{refill ? 'Top up, then tap as fast as you like' : inflight > 0 ? `${inflight} hit(s) flying…` : 'Tap as fast as you like'}</span>
         <span>{open && balance < units ? 'budget used up' : ''}</span>
       </div>
       {error && <p className="mt-3 rounded-xl bg-candy-600/30 p-2 text-sm text-candy-300">{error}</p>}
