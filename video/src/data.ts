@@ -4,7 +4,7 @@ import raw3 from './data/raid-3.json'
 /**
  * Every number in the video comes from a real settled testnet raid, snapshotted from the live
  * service (`GET /raids/:id`, finalized frame). AGENTS rule 13: never state a number the chain does
- * not show. Re-snapshot with `pnpm snapshot` if the raid set changes.
+ * not show. Re-snapshot with `pnpm snapshot`.
  */
 type Buy = { block: string; baseOut: string; tokenId: string | null; seatKey: string | null; countedAdded: string; quoteSpent: string; wallFillQuote: string; afterEnd: boolean | null }
 type Frame = {

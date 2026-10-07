@@ -7,7 +7,8 @@
     "dev": "remotion studio",
     "still": "remotion still StarRaidDemo out/still.png --frame=300",
     "render": "remotion render StarRaidDemo out/star-raid-demo.mp4",
-    "render:vertical": "remotion render StarRaidVertical out/star-raid-vertical.mp4",
+    "sfx": "node scripts/sfx.mjs",
+    "snapshot": "node scripts/snapshot.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

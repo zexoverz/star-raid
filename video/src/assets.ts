@@ -4,7 +4,7 @@ import { staticFile } from 'remotion'
  * Asset slots. Every visual the video uses goes through here, so a GPT-generated replacement is a
  * one-line change: drop the file in `public/gen/` and point the slot at `gen/<file>`.
  * Defaults reuse the app's own art (`public/art` is a symlink to `app/public/art`).
- * See `ASSETS.md` for the prompt to use for each slot.
+ * See README.md for the prompt to use for each slot.
  */
 export const SLOTS = {
   // backgrounds (16:9, 1920x1080 or larger)

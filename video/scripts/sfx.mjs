@@ -49,7 +49,7 @@ const KIT = {
 
 function wav(samples) {
   const data = Buffer.alloc(samples.length * 2)
-  samples.forEach((s, i) => data.writeInt16LE(Math.max(-1, Math.min(1, s * 2.2)) * 32767, i * 2))
+  samples.forEach((s, i) => data.writeInt16LE(Math.max(-1, Math.min(1, s * 5)) * 32767, i * 2))
   const h = Buffer.alloc(44)
   h.write('RIFF', 0); h.writeUInt32LE(36 + data.length, 4); h.write('WAVE', 8)
   h.write('fmt ', 12); h.writeUInt32LE(16, 16); h.writeUInt16LE(1, 20); h.writeUInt16LE(1, 22)
