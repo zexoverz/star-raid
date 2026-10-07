@@ -196,15 +196,28 @@ async function sendFile(res, path) {
 const STAR_CID = 'bafybeidmahvi2mlfn2gevjkhb4v2q4ourxon3yylqgakaesq6vpnooon6q'
 const STAR_GATEWAYS = [`https://ipfs.filebase.io/ipfs/${STAR_CID}`, `https://gateway.pinata.cloud/ipfs/${STAR_CID}`, `https://ipfs.io/ipfs/${STAR_CID}`]
 const STAR_SIZE = 256
-const starCache = new Map() // id -> Promise<Buffer|null>
+const starCache = new Map() // id -> Promise<Buffer>
+// Gateways throttle bursts: a page full of new seats fetches a few at a time instead of all at once.
+let starActive = 0
+const starQueue = []
+async function starSlot(fn) {
+  if (starActive >= 4) await new Promise((r) => starQueue.push(r))
+  starActive++
+  try {
+    return await fn()
+  } finally {
+    starActive--
+    starQueue.shift()?.()
+  }
+}
 function starThumb(id) {
   if (!starCache.has(id)) {
-    const job = (async () => {
+    const job = starSlot(async () => {
       let lastErr
       for (const g of STAR_GATEWAYS) {
         try {
-          const r = await fetch(`${g}/${id}.png`, { signal: AbortSignal.timeout(60_000) })
-          if (r.status === 404) return null
+          const r = await fetch(`${g}/${id}.png`, { signal: AbortSignal.timeout(15_000) })
+          // a busy gateway can 404 a file it has; try the next one and never cache a miss
           if (!r.ok) throw new Error(`${g} ${r.status}`)
           const src = Buffer.from(await r.arrayBuffer())
           // Wrap the PNG in an SVG image and let resvg resample it to a thumbnail.
@@ -215,7 +228,7 @@ function starThumb(id) {
         }
       }
       throw lastErr
-    })()
+    })
     starCache.set(id, job)
     // A failed fetch is retried on the next request instead of being cached forever.
     job.catch(() => starCache.delete(id))
@@ -233,7 +246,7 @@ createServer(async (req, res) => {
     let s = p.match(/^\/star\/(\d{1,6})\.png$/)
     if (s) {
       const png = await starThumb(s[1]).catch((e) => (console.error('star', s[1], e.message), null))
-      if (!png) return res.writeHead(404, { 'cache-control': 'public, max-age=300' }).end('no art')
+      if (!png) return res.writeHead(404, { 'cache-control': 'no-store' }).end('no art')
       res.writeHead(200, { 'content-type': 'image/png', 'cache-control': 'public, max-age=31536000, immutable' })
       return res.end(png)
     }
