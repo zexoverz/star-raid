@@ -128,7 +128,10 @@ async function fees() {
 const HIT_GAS = raidGasLimit(1, 865_000n)
 /** MON the key keeps for gas: about 8 hits plus a claim and the return, at a 1.25x base fee. */
 const KEY_HITS = 8n
-const gasBudget = (maxFee: bigint) => (HIT_GAS * KEY_HITS + GAS.claim + 4n * GAS.approve + 21_000n) * maxFee
+const gasFor = (hits: number, maxFee: bigint) => (HIT_GAS * BigInt(hits) + GAS.claim + 4n * GAS.approve + 21_000n) * maxFee
+const gasBudget = (maxFee: bigint) => gasFor(Number(KEY_HITS), maxFee)
+/** MON cost of one hit at the current fee (Monad bills the full limit). */
+export const HIT_COST_HINT = (maxFee: bigint) => HIT_GAS * maxFee
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 const refusedForBalance = (e: unknown) => /insufficient (funds|balance)|reserve balance|Missing or invalid parameters/i.test(String((e as { details?: string })?.details ?? '') + String((e as Error)?.message ?? e))
@@ -419,15 +422,16 @@ export function useOneTap(raidId: string) {
    * Fill the raid key's gas back up to the full budget (about 8 hits + claim), whatever it holds now.
    * One wallet popup, a plain MON transfer.
    */
-  const fillGas = useCallback(async () => {
+  const fillGas = useCallback(async (hits: number = Number(KEY_HITS)) => {
     if (!address || !client || !account) return false
     setError(null)
     try {
       const f = await fees()
-      const want = gasBudget(f.maxFeePerGas)
+      // Enough for `hits` hits plus a claim and the return; the player picks how many.
+      const want = gasFor(hits, f.maxFeePerGas)
       const have = await pub.getBalance({ address: account.address })
       if (have >= want) {
-        notify.info('Your raid key already has a full tank of gas.')
+        notify.info(`Your raid key already has gas for ${hits} hits.`)
         return true
       }
       const need = want - have
@@ -617,6 +621,9 @@ export function useOneTap(raidId: string) {
     fillGas,
     gasFull: mon >= gasBudget(feeRef.current?.maxFeePerGas ?? 127_000_000_000n) * 95n / 100n,
     gasPct: Math.min(100, Number((mon * 100n) / (gasBudget(feeRef.current?.maxFeePerGas ?? 127_000_000_000n) || 1n))),
+    /** MON per hit at the current fee, and how many hits the key's gas covers. */
+    hitCost: HIT_GAS * (feeRef.current?.maxFeePerGas ?? 127_000_000_000n),
+    gasHits: Number(mon / (HIT_GAS * (feeRef.current?.maxFeePerGas ?? 127_000_000_000n))),
     forget,
     status,
     error,

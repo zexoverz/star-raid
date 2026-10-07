@@ -109,19 +109,7 @@ function KeyPage() {
                 <Stat label="Seat pass" value={one.passValid ? `${daysLeft >= 1 ? Math.floor(daysLeft) + 'd' : Math.max(1, Math.round(daysLeft * 24)) + 'h'}` : 'expired'} hint={one.passExpiry ? `until ${new Date(one.passExpiry * 1000).toLocaleDateString([], { month: 'short', day: 'numeric' })}` : 'not signed'} warn={!one.passValid || daysLeft < 1} />
               </div>
 
-              <div className="mt-3 flex flex-wrap items-center gap-3 rounded-2xl bg-grape-950/60 p-3">
-                <TokenIcon token="mon" size={22} />
-                <div className="min-w-[10rem] flex-1">
-                  <div className="flex justify-between text-xs text-grape-300">
-                    <span className="font-bold text-white">Gas tank</span>
-                    <span>{one.gasPct}% · about {gasHits} hits</span>
-                  </div>
-                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-grape-950"><div className={`h-full rounded-full ${one.gasPct < 35 ? 'bg-candy-500' : one.gasPct < 70 ? 'bg-ember-400' : 'bg-mint'}`} style={{ width: `${one.gasPct}%` }} /></div>
-                </div>
-                <button className="btn btn-candy px-4 py-2 text-sm" disabled={!!one.status || one.gasFull} onClick={() => one.fillGas()}>
-                  {one.gasFull ? '⛽ Tank full' : '⛽ Fill gas'}
-                </button>
-              </div>
+              <GasBox one={one} />
 
               {/* tSTAR is what you get, not what you put in. Spell out the loop so the 0 doesn't read as a missing deposit. */}
               <div className="mt-3 rounded-2xl bg-grape-950/60 p-3 text-xs text-grape-300">
@@ -201,3 +189,53 @@ function SetupBox({ one, tokenId, label }: { one: ReturnType<typeof useOneTap>; 
     </div>
   )
 }
+
+/** Gas tank: how many hits the key's MON covers, and fill it to as many hits as you want. */
+function GasBox({ one }: { one: ReturnType<typeof useOneTap> }) {
+  const [hits, setHits] = useState(20)
+  const hitCost = one.hitCost
+  const target = hitCost * BigInt(hits)
+  const add = target > one.mon ? target - one.mon : 0n
+  const fmtMon = (v: bigint) => (Number(v) / 1e18).toFixed(2)
+  return (
+    <div className="mt-3 rounded-2xl bg-grape-950/60 p-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <TokenIcon token="mon" size={22} />
+        <div className="min-w-[10rem] flex-1">
+          <div className="flex justify-between text-xs text-grape-300">
+            <span className="font-bold text-white">Gas tank</span>
+            <span>
+              {fmtMon(one.mon)} MON · about <b className="text-white">{one.gasHits}</b> hits
+            </span>
+          </div>
+          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-grape-950">
+            <div className={`h-full rounded-full ${one.gasHits < 3 ? 'bg-candy-500' : one.gasHits < 8 ? 'bg-ember-400' : 'bg-mint'}`} style={{ width: `${Math.min(100, (one.gasHits / Math.max(hits, 1)) * 100)}%` }} />
+          </div>
+        </div>
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-grape-300">
+        <span>Fill to</span>
+        {[8, 20, 50, 100].map((h) => (
+          <button key={h} type="button" onClick={() => setHits(h)} className={`rounded-lg px-2.5 py-1 font-bold ${hits === h ? 'bg-ember-500 text-white' : 'bg-grape-800 text-grape-200 hover:bg-grape-700'}`}>
+            {h}
+          </button>
+        ))}
+        <input
+          inputMode="numeric"
+          value={hits}
+          onChange={(e) => setHits(Math.max(1, Math.min(1000, Number(e.target.value.replace(/\D/g, '')) || 1)))}
+          className="w-14 rounded-lg bg-grape-800 px-2 py-1 text-center font-bold text-white outline-none"
+          aria-label="Hits of gas"
+        />
+        <span>hits</span>
+        <button className="btn btn-candy ml-auto px-4 py-2 text-sm" disabled={!!one.status || add === 0n} onClick={() => one.fillGas(hits)}>
+          {add === 0n ? `⛽ Enough for ${hits}` : `⛽ Add ${fmtMon(add)} MON`}
+        </button>
+      </div>
+      <p className="mt-2 text-[11px] text-grape-300">
+        Each hit costs about {fmtMon(hitCost)} MON of gas. Monad charges the full gas limit with no refund, so that is the real cost per hit. Gas you don't use on hits stays on the key; Return everything sends it back.
+      </p>
+    </div>
+  )
+}
+
