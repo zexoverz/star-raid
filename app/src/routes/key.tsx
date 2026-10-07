@@ -1,17 +1,17 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { motion } from 'motion/react'
 import { useState } from 'react'
-import { formatUnits, parseUnits } from 'viem'
 import { EmptyState } from '../components/empty'
 import { Guide } from '../components/mascots'
 import { WalletButton } from '../components/wallet'
 import { EXPLORER } from '../lib/config'
 import { fmt } from '../lib/format'
 import { useOneTap } from '../lib/onetap'
-import { useActions, useWalletKit } from '../lib/player'
+import { useWalletKit } from '../lib/player'
 import { play } from '../lib/sfx'
 import { blockieOf } from '../lib/profile'
-import { TokenAmount, TokenIcon, type Token } from '../components/token'
+import { AmountInput, fmtPlain, parseAmount } from '../components/amount'
+import { TokenIcon, type Token } from '../components/token'
 import { BrickBackdrop } from './index'
 
 export const Route = createFileRoute('/key')({ component: KeyPage })
@@ -157,78 +157,19 @@ function Stat({ label, value, hint, warn = false, icon }: { label: string; value
  * Transfer box: type an amount or drag the % of your wallet's tUSDC, see both balances, send.
  * Testnet easter egg: tap the tUSDC coin 3 times to mint 50 free test tUSDC.
  */
+/** Send any amount of tUSDC (up to the wallet balance) to the raid key. */
 function SetupBox({ one, tokenId, label }: { one: ReturnType<typeof useOneTap>; tokenId: string | null; label: string }) {
   const kit = useWalletKit()
-  const act = useActions()
-  const wallet = kit.usdc ?? 0n
   const [text, setText] = useState('10')
-  const [taps, setTaps] = useState(0)
-  const amount = (() => {
-    try {
-      return text.trim() ? parseUnits(text.trim(), 6) : 0n
-    } catch {
-      return -1n
-    }
-  })()
-  const pct = wallet > 0n && amount > 0n ? Math.min(100, Number((amount * 10000n) / wallet) / 100) : 0
-  const setPct = (p: number) => setText(fmtPlain((wallet * BigInt(Math.round(p * 100))) / 10000n))
-  const tooMuch = amount > wallet
-  const bad = amount <= 0n || tooMuch
-  const egg = () => {
-    const n = taps + 1
-    setTaps(n)
-    play('click')
-    if (n >= 3) {
-      setTaps(0)
-      void act.getTestKit(false, true).then((ok) => ok && (kit.refetch(), play('coin')))
-    }
-  }
+  const amount = parseAmount(text)
+  const bad = amount <= 0n || amount > (kit.usdc ?? 0n)
   return (
     <div>
-      <div className={`flex items-center gap-2 rounded-2xl bg-grape-950/70 px-3 py-2 ring-2 ${tooMuch || amount < 0n ? 'ring-candy-500' : 'ring-transparent focus-within:ring-ember-400'}`}>
-        <button type="button" onClick={egg} title={taps ? `${3 - taps} more…` : 'tUSDC'} className={`shrink-0 transition-transform active:scale-90 ${taps ? 'animate-wiggle' : ''}`}>
-          <TokenIcon token="usdc" size={28} />
-        </button>
-        <input
-          inputMode="decimal"
-          value={text}
-          onChange={(e) => setText(e.target.value.replace(/[^0-9.]/g, ''))}
-          className="min-w-0 flex-1 bg-transparent font-display text-2xl text-white outline-none placeholder:text-grape-600"
-          placeholder="0"
-          aria-label="Amount of tUSDC to send to the raid key"
-        />
-        <button type="button" className="chip bg-grape-700 text-grape-100 hover:bg-grape-600" onClick={() => setPct(100)}>
-          MAX
-        </button>
-      </div>
-      <input type="range" min={0} max={100} step={1} value={Math.round(pct)} onChange={(e) => setPct(Number(e.target.value))} className="mt-3 w-full accent-[#FF8C42]" aria-label="Percent of wallet tUSDC" />
-      <div className="mt-1 flex gap-1.5">
-        {[25, 50, 75, 100].map((p) => (
-          <button key={p} type="button" onClick={() => setPct(p)} className={`flex-1 rounded-lg py-1 text-xs font-bold ${Math.round(pct) === p ? 'bg-ember-500 text-white' : 'bg-grape-800 text-grape-200 hover:bg-grape-700'}`}>
-            {p}%
-          </button>
-        ))}
-      </div>
-      <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] text-grape-300">
-        <div className="rounded-xl bg-grape-950/50 px-2 py-1.5">
-          Wallet <TokenAmount token="usdc" value={wallet} decimals={6} size={12} />
-          <div>{tooMuch ? <span className="text-candy-300">not enough</span> : `${Math.round(pct)}% of it`}</div>
-        </div>
-        <div className="rounded-xl bg-grape-950/50 px-2 py-1.5">
-          Raid key <TokenAmount token="usdc" value={one.usdc} decimals={6} size={12} />
-          <div>after: {fmtPlain(one.usdc + (amount > 0n ? amount : 0n))}</div>
-        </div>
-      </div>
-      {act.busy && <p className="mt-2 text-xs text-ember-300">Minting test tUSDC, confirm in your wallet…</p>}
+      <AmountInput value={text} onChange={setText} keyBalance={one.usdc} />
       <button className="btn btn-primary mt-3 w-full py-2.5" disabled={!tokenId || !!one.status || bad} onClick={() => tokenId && one.arm(tokenId, one.usdc + amount)}>
-        {label} {amount > 0n && !tooMuch ? <>· <TokenIcon token="usdc" size={16} /> {fmtPlain(amount)}</> : null}
+        {label} {!bad ? <>· <TokenIcon token="usdc" size={16} /> {fmtPlain(amount)}</> : null}
       </button>
       {!tokenId && <p className="mt-2 text-xs text-grape-300">You need a Lil Star first. Mint a free test one from the lobby.</p>}
     </div>
   )
-}
-
-const fmtPlain = (v: bigint) => {
-  const s = formatUnits(v, 6)
-  return s.includes('.') ? s.replace(/\.?0+$/, '').replace(/(\.\d{2})\d+$/, '$1') : s
 }

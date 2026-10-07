@@ -10,13 +10,14 @@ import { play } from '../lib/sfx'
 import { STAR_NAMES, starArt } from '../lib/stars'
 import type { Frame } from '../lib/types'
 import { StarAvatar } from './game'
+import { AmountInput, fmtPlain, parseAmount } from './amount'
 import { EmptyState } from './empty'
 import { FloatingHit, HitPad } from './hitpad'
 import { Guide } from './mascots'
+import { openGuide } from './guide'
 import { TokenIcon } from './token'
 import { WalletButton } from './wallet'
 
-const BUDGETS = [10, 25, 50]
 
 /**
  * Joining in three beats:
@@ -33,7 +34,8 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
   const t = frame.terms
   const open = phase === 'live' || phase === 'danger'
   const [pick, setPick] = useState<string | null>(null)
-  const [budget, setBudget] = useState(25)
+  const [budgetText, setBudgetText] = useState('25')
+  const budgetUnits = parseAmount(budgetText)
   const [confirm, setConfirm] = useState(false)
   const [amount, setAmount] = useState(parseUnits('5', t.quoteDecimals))
   const isSponsor = kit.address && kit.address.toLowerCase() === t.sponsor.toLowerCase()
@@ -59,7 +61,7 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
     )
 
   const needStar = kit.myStars.length === 0 && !one.session
-  const needUsdc = (kit.usdc ?? 0n) < parseUnits(String(budget), t.quoteDecimals) && !one.session
+  const needUsdc = (kit.usdc ?? 0n) < (budgetUnits > 0n ? budgetUnits : 1n) && !one.session
 
   // ---- Set up once: the one-tap pad, in this raid and every later one
   if (one.session) {
@@ -81,7 +83,7 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
           onHit={(amount) => one.tap(amount)}
           refill={
             open && (lowGas || noUsdc)
-              ? { label: `⚡ Top up ${noUsdc ? `${budget} tUSDC` : ''}${noUsdc && lowGas ? ' + ' : ''}${lowGas ? 'gas' : ''}`, busy: !!one.status, onClick: () => void one.arm(one.session!.tokenId, parseUnits(String(budget), t.quoteDecimals)).then((ok) => ok && kit.refetch()) }
+              ? { label: `⚡ Top up ${noUsdc ? `${fmtPlain(budgetUnits)} tUSDC` : ''}${noUsdc && lowGas ? ' + ' : ''}${lowGas ? 'gas' : ''}`, busy: !!one.status, onClick: () => void one.arm(one.session!.tokenId, one.usdc + budgetUnits).then((ok) => ok && kit.refetch()) }
               : undefined
           }
           error={null}
@@ -89,8 +91,8 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
             <>
               {one.status && <p className="mt-3 text-sm text-grape-300">{one.status}…</p>}
               {!open && (lowGas || noUsdc) && (
-                <button className="btn btn-candy mt-3 w-full py-2.5" disabled={!!one.status} onClick={() => one.arm(one.session!.tokenId, parseUnits(String(budget), t.quoteDecimals)).then((ok) => ok && kit.refetch())}>
-                  ⚡ Top up {noUsdc ? `${budget} tUSDC` : ''}{noUsdc && lowGas ? ' + ' : ''}{lowGas ? 'gas' : ''} (one popup)
+                <button className="btn btn-candy mt-3 w-full py-2.5" disabled={!!one.status} onClick={() => one.arm(one.session!.tokenId, one.usdc + budgetUnits).then((ok) => ok && kit.refetch())}>
+                  ⚡ Top up {noUsdc ? `${fmtPlain(budgetUnits)} tUSDC` : ''}{noUsdc && lowGas ? ' + ' : ''}{lowGas ? 'gas' : ''} (one popup)
                 </button>
               )}
               <div className="mt-4 grid grid-cols-3 gap-2 border-t border-grape-700 pt-3 text-center text-xs text-grape-300">
@@ -128,6 +130,9 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
       <Guide who={needStar ? 'chog' : 'fox'} pose={needStar ? 'wait' : open ? 'attack' : 'think'} size="h-28">
         {needStar || needUsdc ? 'First, grab a test Star and some test USDC. They are free on testnet!' : open ? 'The wall is up! Set up one-tap and start hitting.' : 'Set up one-tap now. You only do it once, then every raid is tap-to-hit.'}
       </Guide>
+      <button className="mb-3 w-full text-center text-xs text-candy-300 underline hover:text-white" onClick={() => openGuide()}>
+        New here? Show me the 3 steps
+      </button>
 
       {(needStar || needUsdc) && (
         <button className="btn btn-candy mb-4 mt-1 w-full py-3" disabled={act.busy} onClick={() => act.getTestKit(needStar, needUsdc).then((ok) => ok && (kit.refetch(), play('coin')))}>
@@ -160,14 +165,10 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
       )}
 
       <Label>
-        Raid budget <span className="normal-case tracking-normal">· you have {kit.usdc !== undefined ? fmt(kit.usdc, t.quoteDecimals) : '…'} tUSDC</span>
+        Raid budget <span className="normal-case tracking-normal">· any amount, up to your wallet</span>
       </Label>
-      <div className="mb-4 flex gap-2">
-        {BUDGETS.map((b) => (
-          <button key={b} onClick={() => (setBudget(b), play('click'))} className={`flex-1 rounded-2xl py-2.5 font-display text-xl transition ${budget === b ? 'bg-ember-500 text-white shadow-[0_4px_0_#b4470a]' : 'bg-grape-800 text-grape-100 hover:bg-grape-700'}`}>
-            {b}
-          </button>
-        ))}
+      <div className="mb-4">
+        <AmountInput value={budgetText} onChange={setBudgetText} keyBalance={one.usdc} />
       </div>
 
       <button className="btn btn-primary w-full py-4 text-2xl" disabled={!myStar || needUsdc || !!one.status || phase === 'drawing'} onClick={() => (play('click'), setConfirm(true))}>
@@ -180,12 +181,12 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
         {confirm && myStar && (
           <ConfirmSheet
             frame={frame}
-            budget={parseUnits(String(budget), t.quoteDecimals)}
+            budget={budgetUnits}
             tokenId={myStar}
             onCancel={() => setConfirm(false)}
             onGo={async () => {
               setConfirm(false)
-              const ok = await one.arm(myStar, parseUnits(String(budget), t.quoteDecimals))
+              const ok = await one.arm(myStar, one.usdc + budgetUnits)
               if (ok) {
                 play('join')
                 kit.refetch()
