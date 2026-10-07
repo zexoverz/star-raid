@@ -49,12 +49,12 @@ export function Raid() {
       {/* sounds: one hit per block, combo on multi-buy blocks, fanfare when the target is crossed */}
       {HITS.map((h) => (
         <Sequence key={h.block} from={h.at} durationInFrames={20} layout="none">
-          <Html5Audio src={staticFile(`audio/sfx/${h.buys.length > 1 ? 'combo' : 'hit'}.wav`)} volume={0.55} />
+          <Html5Audio src={staticFile(`audio/kit/${h.buys.length > 1 ? 'combo' : 'hit'}.mp3`)} volume={0.55} />
         </Sequence>
       ))}
       {Number.isFinite(targetAt) && (
         <Sequence from={targetAt} durationInFrames={45} layout="none">
-          <Html5Audio src={staticFile('audio/sfx/coin.wav')} volume={0.8} />
+          <Html5Audio src={staticFile('audio/kit/coin.mp3')} volume={0.8} />
         </Sequence>
       )}
 

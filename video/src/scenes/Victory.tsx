@@ -19,7 +19,7 @@ export function Victory() {
     <AbsoluteFill className="bg-grape-950">
       <AbsoluteFill style={{ background: 'radial-gradient(circle at 50% 18%, rgb(255 184 77 / 0.5), transparent 60%), linear-gradient(180deg,#2d2250,#15122a)' }} />
       <Sequence from={10} durationInFrames={60} layout="none">
-        <Html5Audio src={staticFile('audio/sfx/victory.wav')} volume={0.9} />
+        <Html5Audio src={staticFile('audio/kit/victory.mp3')} volume={0.9} />
       </Sequence>
       <Twinkles count={22} seed={11} />
       <Sprite

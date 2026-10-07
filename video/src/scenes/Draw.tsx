@@ -18,10 +18,10 @@ export function Draw() {
     <AbsoluteFill className="bg-grape-950">
       <Bg slot="stageBg" dim={0.45} zoom={[1.05, 1]} />
       <Sequence from={0} durationInFrames={40} layout="none">
-        <Html5Audio src={staticFile('audio/sfx/drum.wav')} volume={0.9} />
+        <Html5Audio src={staticFile('audio/kit/drum.mp3')} volume={0.9} />
       </Sequence>
       <Sequence from={ROLL_END} durationInFrames={30} layout="none">
-        <Html5Audio src={staticFile('audio/sfx/reveal.wav')} volume={0.9} />
+        <Html5Audio src={staticFile('audio/kit/reveal.mp3')} volume={0.9} />
       </Sequence>
       <AbsoluteFill className="items-center pt-20">
         <Title kicker="Step 3 · the draw" size={80}>
