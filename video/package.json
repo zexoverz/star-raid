@@ -10,7 +10,9 @@
     "sfx": "node scripts/sfx.mjs",
     "snapshot": "node scripts/snapshot.mjs",
     "typecheck": "tsc --noEmit",
-    "record": "node scripts/record.mjs"
+    "record": "node scripts/record.mjs",
+    "vo": "node scripts/vo.mjs",
+    "render:explainer": "remotion render StarRaidExplainer out/star-raid-explainer.mp4"
   },
   "dependencies": {
     "@remotion/cli": "4.0.534",
