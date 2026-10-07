@@ -7,7 +7,6 @@ import { fmt } from '../lib/format'
 import { useRaidStream } from '../lib/live'
 import { phaseOf } from '../lib/phase'
 import { play } from '../lib/sfx'
-import { STAR_NAMES, starArt } from '../lib/stars'
 import { PlayerPill } from '../components/profile'
 
 export const Route = createFileRoute('/r/$raidId/$seat')({ component: SharePage })
@@ -55,7 +54,6 @@ function SharePage() {
   const { view, loading } = useRaidStream(raidId)
   const [imgOk, setImgOk] = useState(true)
   const s = view?.seats.find((x) => x.tokenId === seat)
-  const art = starArt(s?.tokenId ?? null)
   const phase = view ? phaseOf(view) : null
   const live = phase === 'live' || phase === 'danger' || phase === 'upcoming'
 
@@ -66,7 +64,7 @@ function SharePage() {
         <div className="absolute inset-0 bg-gradient-to-b from-grape-950/60 to-grape-950" />
       </div>
       <div className="mx-auto max-w-4xl px-4 text-center">
-        <h1 className="title-outline -rotate-1 text-4xl sm:text-6xl">{s && art ? `${STAR_NAMES[art.character] ?? art.character} #${seat}` : `Star Raid #${raidId}`}</h1>
+        <h1 className="title-outline -rotate-1 text-4xl sm:text-6xl">{s ? `Star #${seat}` : `Star Raid #${raidId}`}</h1>
         {s && <PlayerPill address={s.holder ?? s.player} size={28} className="mt-3 text-lg text-grape-200" />}
         <p className="mt-2 text-grape-300">
           {loading ? 'Loading the raid…' : view ? (view.won ? 'broke the wall in this raid' : view.won === false ? 'raided, and the wall held' : 'is raiding right now') : 'This raid could not be found.'}

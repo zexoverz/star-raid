@@ -2,7 +2,6 @@ import { AnimatePresence, motion } from 'motion/react'
 import { EXPLORER } from '../lib/config'
 import { fmt, plural } from '../lib/format'
 import { blocksToSec, type Phase } from '../lib/phase'
-import { STAR_NAMES, starArt } from '../lib/stars'
 import type { Frame } from '../lib/types'
 import { BotAvatar, Sprite } from './game'
 import { EmptyState } from './empty'
@@ -100,7 +99,6 @@ export function Party({ frame, me }: { frame: Frame; me?: string }) {
         <ol className="space-y-2">
           <AnimatePresence initial={false}>
             {seats.map((s, i) => {
-              const art = starArt(s.tokenId)
               const mine = me && [s.player, s.holder].some((a) => a?.toLowerCase() === me.toLowerCase())
               return (
                 <motion.li key={s.seatKey} layout initial={{ x: -30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className={`flex items-center gap-3 rounded-2xl px-3 py-2 ${mine ? 'bg-ember-500/20 ring-2 ring-ember-400' : 'bg-grape-950/50'}`}>
@@ -108,7 +106,7 @@ export function Party({ frame, me }: { frame: Frame; me?: string }) {
                   <PlayerAvatar address={s.holder ?? s.player} size={40} />
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-bold text-white">
-                      {art ? `${STAR_NAMES[art.character] ?? art.character} #${s.tokenId}` : 'Verified human'}
+                      {s.tokenId ? `Star #${s.tokenId}` : 'Verified human'}
                       {mine && <span className="ml-2 chip bg-ember-500 text-white">you</span>}
                     </div>
                     <div className="flex min-w-0 items-center gap-1 text-xs text-grape-300">

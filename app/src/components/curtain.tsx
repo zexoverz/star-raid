@@ -3,7 +3,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { fmt, ratio } from '../lib/format'
 import type { Phase } from '../lib/phase'
 import { play } from '../lib/sfx'
-import { STAR_NAMES, starArt } from '../lib/stars'
 import type { Frame, FrameBuy } from '../lib/types'
 import { GameBar, Sprite } from './game'
 import { CrewRow, Guide, Mascot } from './mascots'
@@ -232,12 +231,11 @@ export function DrawCurtain({ frame, phase, replay, onDone }: { frame: Frame; ph
 
 function JudgedHit({ b, decimals }: { b: FrameBuy; decimals: number }) {
   const late = !!b.afterEnd
-  const art = starArt(b.tokenId)
   return (
     <motion.li layout initial={{ x: -40, opacity: 0, scale: 0.9 }} animate={{ x: 0, opacity: 1, scale: 1 }} className={`flex items-center gap-3 rounded-xl px-2.5 py-1.5 ${late ? 'bg-grape-950/40' : 'bg-mint/10'}`}>
       <PlayerAvatar address={b.holder ?? b.player} size={34} dim={late} />
       <div className="min-w-0 flex-1 text-sm">
-        <span className={`font-bold ${late ? 'text-grape-300 line-through' : 'text-white'}`}>{art ? `${STAR_NAMES[art.character] ?? art.character} #${b.tokenId}` : 'Seat'}</span>
+        <span className={`font-bold ${late ? 'text-grape-300 line-through' : 'text-white'}`}>{b.tokenId ? `Star #${b.tokenId}` : 'Seat'}</span>
         <span className="text-grape-300"> · block {Number(b.block).toLocaleString()}</span>
         <div className="text-[11px] text-grape-300">
           <PlayerPill address={b.holder ?? b.player} hideAvatar size={14} />
@@ -252,7 +250,6 @@ function JudgedHit({ b, decimals }: { b: FrameBuy; decimals: number }) {
 
 function TopSeat({ seat, frame }: { seat: Frame['seats'][number]; frame: Frame }) {
   const t = frame.terms
-  const art = starArt(seat.tokenId)
   const share = BigInt(frame.counted) > 0n ? (BigInt(t.bounty) * BigInt(seat.counted)) / BigInt(frame.counted) : 0n
   return (
     <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.8 }} className="mt-4 flex items-center gap-3 rounded-3xl border-[3px] border-gold bg-grape-900/85 px-4 py-2.5">
@@ -260,7 +257,7 @@ function TopSeat({ seat, frame }: { seat: Frame['seats'][number]; frame: Frame }
       <PlayerAvatar address={seat.holder ?? seat.player} size={48} />
       <div className="text-left">
         <div className="text-xs font-bold uppercase tracking-widest text-gold">Top seat</div>
-        <div className="font-display text-lg text-white">{art ? `${STAR_NAMES[art.character] ?? art.character} #${seat.tokenId}` : 'Human'}</div>
+        <div className="font-display text-lg text-white">{seat.tokenId ? `Star #${seat.tokenId}` : 'Human'}</div>
         <PlayerPill address={seat.holder ?? seat.player} hideAvatar className="text-xs text-grape-300" />
         <div className="text-xs text-grape-300">
           {fmt(seat.counted, t.quoteDecimals)} counted · about {fmt(share, t.quoteDecimals)} tUSDC of the prize
