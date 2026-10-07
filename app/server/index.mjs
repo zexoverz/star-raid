@@ -193,10 +193,50 @@ async function sendFile(res, path) {
   return true
 }
 
+const STAR_CID = 'bafybeidmahvi2mlfn2gevjkhb4v2q4ourxon3yylqgakaesq6vpnooon6q'
+const STAR_GATEWAYS = [`https://ipfs.filebase.io/ipfs/${STAR_CID}`, `https://gateway.pinata.cloud/ipfs/${STAR_CID}`, `https://ipfs.io/ipfs/${STAR_CID}`]
+const STAR_SIZE = 256
+const starCache = new Map() // id -> Promise<Buffer|null>
+function starThumb(id) {
+  if (!starCache.has(id)) {
+    const job = (async () => {
+      let lastErr
+      for (const g of STAR_GATEWAYS) {
+        try {
+          const r = await fetch(`${g}/${id}.png`, { signal: AbortSignal.timeout(60_000) })
+          if (r.status === 404) return null
+          if (!r.ok) throw new Error(`${g} ${r.status}`)
+          const src = Buffer.from(await r.arrayBuffer())
+          // Wrap the PNG in an SVG image and let resvg resample it to a thumbnail.
+          const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${STAR_SIZE}" height="${STAR_SIZE}"><image width="${STAR_SIZE}" height="${STAR_SIZE}" xlink:href="data:image/png;base64,${src.toString('base64')}"/></svg>`
+          return new Resvg(svg, { fitTo: { mode: 'width', value: STAR_SIZE } }).render().asPng()
+        } catch (e) {
+          lastErr = e
+        }
+      }
+      throw lastErr
+    })()
+    starCache.set(id, job)
+    // A failed fetch is retried on the next request instead of being cached forever.
+    job.catch(() => starCache.delete(id))
+  }
+  return starCache.get(id)
+}
+
 createServer(async (req, res) => {
   try {
     const url = new URL(req.url ?? '/', 'http://x')
     const p = decodeURIComponent(url.pathname)
+
+    // Real Lil Stars art by token id, from the collection's IPFS folder, shrunk to a thumbnail once and
+    // cached (the originals are 2048 px, ~2 MB each). The art itself is never altered, only resized.
+    let s = p.match(/^\/star\/(\d{1,6})\.png$/)
+    if (s) {
+      const png = await starThumb(s[1]).catch((e) => (console.error('star', s[1], e.message), null))
+      if (!png) return res.writeHead(404, { 'cache-control': 'public, max-age=300' }).end('no art')
+      res.writeHead(200, { 'content-type': 'image/png', 'cache-control': 'public, max-age=31536000, immutable' })
+      return res.end(png)
+    }
 
     let m = p.match(/^\/og\/([^/]+)\/([^/]+)\.png$/)
     if (m) {

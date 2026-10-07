@@ -1,6 +1,6 @@
 import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
-import { starArt, STAR_NAMES } from '../lib/stars'
+import { starArt } from '../lib/stars'
 
 export function StarAvatar({ tokenId, size = 56, ring = true, dim = false, className = '' }: { tokenId: string | null; size?: number; ring?: boolean; dim?: boolean; className?: string }) {
   const art = starArt(tokenId)
@@ -9,10 +9,14 @@ export function StarAvatar({ tokenId, size = 56, ring = true, dim = false, class
     <div
       className={`relative shrink-0 rounded-full ${art.legendary ? 'animate-pulse-glow' : ''} ${className}`}
       style={{ width: size, height: size }}
-      title={`${STAR_NAMES[art.character] ?? art.character} #${tokenId}${art.preview ? ' (preview art)' : ''}`}
+      title={`Lil Star #${tokenId}`}
     >
       <img
         src={art.src}
+        onError={(e) => {
+          const img = e.currentTarget
+          if (!img.src.endsWith(art.fallback)) img.src = art.fallback
+        }}
         alt={`Lil Star #${tokenId}`}
         loading="lazy"
         className={`h-full w-full rounded-full object-cover ${dim ? 'grayscale opacity-50' : ''}`}
