@@ -13,6 +13,7 @@ import { StarAvatar } from './game'
 import { EmptyState } from './empty'
 import { FloatingHit, HitPad } from './hitpad'
 import { Guide } from './mascots'
+import { TokenIcon } from './token'
 import { WalletButton } from './wallet'
 
 const BUDGETS = [10, 25, 50]
@@ -130,12 +131,12 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
 
       {(needStar || needUsdc) && (
         <button className="btn btn-candy mb-4 mt-1 w-full py-3" disabled={act.busy} onClick={() => act.getTestKit(needStar, needUsdc).then((ok) => ok && (kit.refetch(), play('coin')))}>
-          🎁 {needStar && needUsdc ? 'Mint a Star + 50 tUSDC' : needStar ? 'Mint a test Star' : 'Mint 50 tUSDC'}
+          {needStar && <TokenIcon token="blindbox" size={22} className="mr-1" />}{needUsdc && <TokenIcon token="usdc" size={20} className="mr-1" />}{needStar && needUsdc ? 'Mint a Star + 50 tUSDC' : needStar ? 'Mint a test Star' : 'Mint 50 tUSDC'}
         </button>
       )}
       <TxSteps steps={act.steps} error={act.error} />
 
-      <Label>Your Star</Label>
+      <Label><TokenIcon token="lilstar" size={14} className="mr-1" />Your Star</Label>
       {kit.myStars.length === 0 ? (
         <EmptyState scene="no-star" title="No Star in this wallet yet" size="sm" className="mb-4">
           A Lil Star is your seat. Mint a free test one above.
