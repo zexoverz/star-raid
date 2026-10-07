@@ -55,7 +55,7 @@ export function Problem() {
 export function Lobby() {
   return (
     <Scene id="lobby">
-      <Screen src="rec/lobby.webm" zoom={[1, 1.04]} />
+      <Screen src="rec/lobby.webm" path="/" zoom={[1, 1.04]} />
       <Chapter n={1} label="The lobby" />
       <Callout at={at('lobby', 0.3)} until={at('lobby', 0.62)} x={1180} y={420}>
         Next raid, live countdown
@@ -68,17 +68,28 @@ export function Lobby() {
 }
 
 export function Sponsor() {
+  // Recorded on a local fork of Monad testnet with a test wallet: connect, type terms, confirm, 5 txs, raid posted.
+  const seg: [number, number, number][] = [
+    [1, 4, 1],
+    [4, 19, 2.5],
+    [19.5, 23, 1],
+    [25, 36.5, 1.6],
+  ]
+  const f = (s: number) => LEAD + Math.round(s * 30)
   return (
     <Scene id="sponsor">
-      <Screen src="rec/sponsor.webm" from={1} zoom={[1.02, 1.08]} origin="50% 20%" />
+      <Screen src="rec/sponsor.webm" segments={seg} zoom={[1, 1.05]} origin="50% 40%" path="/sponsor" tag="testnet fork · test wallet" />
       <Chapter n={2} label="A sponsor posts a raid" />
-      <Callout at={at('sponsor', 0.12)} until={at('sponsor', 0.4)} x={160} y={200}>
-        Wall · cap price · prize · target
+      <Callout at={f(3)} until={f(8.6)} x={120} y={820}>
+        Wall · cap price · prize · target · seat cap
       </Callout>
-      <Callout at={at('sponsor', 0.42)} until={at('sponsor', 0.72)} x={160} y={200} tone="candy">
-        The wall rests on Kuru, locked until the end
+      <Callout at={f(9)} until={f(12.2)} x={1060} y={160} tone="candy">
+        Plain-words terms before anything is signed
       </Callout>
-      <Callout at={at('sponsor', 0.74)} x={160} y={200} tone="mint">
+      <Callout at={f(12.6)} until={f(16.5)} x={1080} y={860} tone="mint">
+        Mint · approve · post: the wall is locked in the vault
+      </Callout>
+      <Callout at={f(16.6)} x={1080} y={860}>
         Missed target? The prize rolls to the next raid
       </Callout>
     </Scene>
@@ -148,7 +159,7 @@ export function Seats() {
 export function Raid() {
   return (
     <Scene id="raid">
-      <Screen src="rec/practice.webm" from={5} rate={1.9} zoom={[1, 1.1]} origin="35% 45%" tag="practice raid · sped up" />
+      <Screen src="rec/practice.webm" path="/practice" from={5} rate={1.9} zoom={[1, 1.1]} origin="35% 45%" tag="practice raid · sped up" />
       <Chapter n={4} label="The raid" />
       <Callout at={at('raid', 0.06)} until={at('raid', 0.3)} x={1120} y={560}>
         Each HIT = one Kuru buy at the cap
@@ -169,7 +180,7 @@ export function Raid() {
 export function Draw() {
   return (
     <Scene id="draw">
-      <Screen src="rec/results.webm" from={15} rate={1.3} zoom={[1, 1.08]} origin="50% 30%" tag={`real raid #${RAID.id} · draw replay`} />
+      <Screen src="rec/results.webm" path={`/raid/${RAID.id}`} from={15} rate={1.3} zoom={[1, 1.08]} origin="50% 30%" tag={`real raid #${RAID.id} · draw replay`} />
       <Chapter n={5} label="The draw" />
       <Callout at={at('draw', 0.25)} until={at('draw', 0.55)} x={1180} y={240} tone="candy">
         End block from Pyth Entropy
@@ -186,13 +197,13 @@ export function Results() {
   return (
     <Scene id="results">
       <Sequence durationInFrames={split}>
-        <Screen src="rec/results.webm" from={0} zoom={[1, 1.05]} origin="50% 30%" tag={`real raid #${RAID.id} · Monad testnet`} />
+        <Screen src="rec/results.webm" path={`/raid/${RAID.id}`} from={0} zoom={[1, 1.05]} origin="50% 30%" tag={`real raid #${RAID.id} · Monad testnet`} />
         <Callout at={at('results', 0.08)} x={1160} y={420}>
           {RAID.countedHits} hits · {fmt(RAID.counted)} / {fmt(RAID.target)} counted
         </Callout>
       </Sequence>
       <Sequence from={split}>
-        <Screen src="rec/share.webm" from={1} zoom={[1, 1.06]} tag="share card" />
+        <Screen src="rec/share.webm" path={`/r/${RAID.id}/8`} from={1} zoom={[1, 1.06]} tag="share card" />
         <Callout at={10} x={1200} y={440} tone="candy">
           Claim after the hold, then share
         </Callout>

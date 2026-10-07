@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { AbsoluteFill, Html5Audio, interpolate, OffthreadVideo, Sequence, staticFile, useCurrentFrame, useVideoConfig } from 'remotion'
+import { SITE } from '../scenes/Cta'
 import { clamp, Twinkles, usePop } from '../ui'
 import lines from './vo.json'
 import durations from './vo-durations.json'
@@ -59,6 +60,8 @@ export function Screen({
   zoom = [1, 1.06],
   origin = '50% 40%',
   tag,
+  path = '',
+  segments,
 }: {
   src: string
   from?: number
@@ -66,6 +69,9 @@ export function Screen({
   zoom?: [number, number]
   origin?: string
   tag?: string
+  path?: string
+  /** Play several cuts of the same clip back to back inside one window: [start s, end s, rate]. */
+  segments?: [number, number, number][]
 }) {
   const frame = useCurrentFrame()
   const { durationInFrames, fps } = useVideoConfig()
@@ -83,12 +89,27 @@ export function Screen({
           {['#ff6b8a', '#ffb84d', '#a3e3c1'].map((c) => (
             <span key={c} className="h-4 w-4 rounded-full" style={{ background: c }} />
           ))}
-          <div className="ml-4 flex-1 rounded-full bg-grape-950/70 px-5 py-1 text-[18px] text-grape-300">web-production-de387e.up.railway.app</div>
+          <div className="ml-4 flex-1 rounded-full bg-grape-950/70 px-5 py-1 text-[18px] text-grape-300">
+            <span className="text-mint">🔒</span> <span className="text-cream-100">{SITE}</span>
+            {path}
+          </div>
           {tag && <span className="chip bg-candy-500 text-[16px] text-white">{tag}</span>}
         </div>
         <div className="relative h-[900px] w-full overflow-hidden">
           <div style={{ width: 1600, height: 900, transform: `scale(${z})`, transformOrigin: origin }}>
-            <OffthreadVideo src={staticFile(src)} trimBefore={Math.round(from * fps)} playbackRate={rate} muted style={{ width: 1600, height: 900 }} />
+            {segments ? (
+              segments.map(([a, b, r], i) => {
+                const start = segments.slice(0, i).reduce((acc, [x, y, q]) => acc + Math.round(((y - x) / q) * fps), 0)
+                const len = Math.round(((b - a) / r) * fps)
+                return (
+                  <Sequence key={i} from={start} durationInFrames={i === segments.length - 1 ? undefined : len} layout="none">
+                    <OffthreadVideo src={staticFile(src)} trimBefore={Math.round(a * fps)} playbackRate={r} muted style={{ position: 'absolute', width: 1600, height: 900 }} />
+                  </Sequence>
+                )
+              })
+            ) : (
+              <OffthreadVideo src={staticFile(src)} trimBefore={Math.round(from * fps)} playbackRate={rate} muted style={{ width: 1600, height: 900 }} />
+            )}
           </div>
         </div>
       </div>
