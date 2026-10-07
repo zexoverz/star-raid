@@ -550,3 +550,19 @@ holds under 0.6 MON. The hourly schedule still runs and now counts from start-up
 to post a raid at once.
 
 **Reverses it.** Mainnet: the endpoint does not start off testnet, and the button renders only on 10143.
+
+## D44. Sponsor console (7 Oct)
+
+`/sponsor` lets any wallet post a raid from the app, which the keeper then runs exactly like its demo
+raids (the keeper acts on every Posted raid, not only its own). The form takes wall size, cap price
+(fixed anchor, `anchorMode 0`), prize, target, seat cap, start delay, window and hold, plus
+affiliate addresses, and refuses in the browser everything `RaidVault._checkTerms` / `_baseAmount`
+would revert on (unit tested against the vault's numbers: 10x target rule, 40-400 block window,
+OPEN_EARLY, Kuru min size and size precision). It shows what is locked now and what comes back at
+settle, including that a lost prize becomes rollover credit that can't be withdrawn. Posting runs
+mint (testnet, only what is missing) → approve exact amounts → `post`, with w0 computed from the
+head at send time, every receipt checked. Posting is blocked while another raid is in flight so a
+new wall never sits behind an unswept one (D39). Checked on an anvil fork through the real UI with a
+fresh sponsor wallet: invalid prize refused with no tx, then 5 txs → raid #26 posted, vault holds
+the wall; keeper-style open → close → entropy timeout → settle: sponsor got the 100k tSTAR wall back
+and 50 tUSDC rollover credit.

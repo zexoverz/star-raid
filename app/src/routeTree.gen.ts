@@ -14,6 +14,7 @@ import { Route as HowRouteImport } from './routes/how'
 import { Route as KeyRouteImport } from './routes/key'
 import { Route as PracticeRouteImport } from './routes/practice'
 import { Route as RaidsRouteImport } from './routes/raids'
+import { Route as SponsorRouteImport } from './routes/sponsor'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as RaidRaidIdRouteImport } from './routes/raid.$raidId'
 import { Route as RRaidIdSeatRouteImport } from './routes/r.$raidId.$seat'
@@ -43,6 +44,11 @@ const RaidsRoute = RaidsRouteImport.update({
   path: '/raids',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SponsorRoute = SponsorRouteImport.update({
+  id: '/sponsor',
+  path: '/sponsor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/key': typeof KeyRoute
   '/practice': typeof PracticeRoute
   '/raids': typeof RaidsRoute
+  '/sponsor': typeof SponsorRoute
   '/terms': typeof TermsRoute
   '/raid/$raidId': typeof RaidRaidIdRoute
   '/r/$raidId/$seat': typeof RRaidIdSeatRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/key': typeof KeyRoute
   '/practice': typeof PracticeRoute
   '/raids': typeof RaidsRoute
+  '/sponsor': typeof SponsorRoute
   '/terms': typeof TermsRoute
   '/raid/$raidId': typeof RaidRaidIdRoute
   '/r/$raidId/$seat': typeof RRaidIdSeatRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/key': typeof KeyRoute
   '/practice': typeof PracticeRoute
   '/raids': typeof RaidsRoute
+  '/sponsor': typeof SponsorRoute
   '/terms': typeof TermsRoute
   '/raid/$raidId': typeof RaidRaidIdRoute
   '/r/$raidId/$seat': typeof RRaidIdSeatRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/key'
     | '/practice'
     | '/raids'
+    | '/sponsor'
     | '/terms'
     | '/raid/$raidId'
     | '/r/$raidId/$seat'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/key'
     | '/practice'
     | '/raids'
+    | '/sponsor'
     | '/terms'
     | '/raid/$raidId'
     | '/r/$raidId/$seat'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/key'
     | '/practice'
     | '/raids'
+    | '/sponsor'
     | '/terms'
     | '/raid/$raidId'
     | '/r/$raidId/$seat'
@@ -129,6 +141,7 @@ export interface RootRouteChildren {
   KeyRoute: typeof KeyRoute
   PracticeRoute: typeof PracticeRoute
   RaidsRoute: typeof RaidsRoute
+  SponsorRoute: typeof SponsorRoute
   TermsRoute: typeof TermsRoute
   RaidRaidIdRoute: typeof RaidRaidIdRoute
   RRaidIdSeatRoute: typeof RRaidIdSeatRoute
@@ -171,6 +184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RaidsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sponsor': {
+      id: '/sponsor'
+      path: '/sponsor'
+      fullPath: '/sponsor'
+      preLoaderRoute: typeof SponsorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -201,6 +221,7 @@ const rootRouteChildren: RootRouteChildren = {
   KeyRoute: KeyRoute,
   PracticeRoute: PracticeRoute,
   RaidsRoute: RaidsRoute,
+  SponsorRoute: SponsorRoute,
   TermsRoute: TermsRoute,
   RaidRaidIdRoute: RaidRaidIdRoute,
   RRaidIdSeatRoute: RRaidIdSeatRoute,
