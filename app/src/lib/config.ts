@@ -1,6 +1,8 @@
 import deployment from '../../../deployments/testnet.json'
 
 export const LIVE_URL: string = import.meta.env.VITE_LIVE_URL ?? 'https://live-production-e50b.up.railway.app'
+/** The keeper's on-demand endpoint (testnet only): POST /demo starts a test raid now. */
+export const KEEPER_URL: string = import.meta.env.VITE_KEEPER_URL ?? 'https://keeper-production-23ee.up.railway.app'
 export const RPC_URL: string = import.meta.env.VITE_RPC_URL ?? 'https://testnet-rpc.monad.xyz'
 
 export const CHAIN_ID = deployment.chainId as 10143

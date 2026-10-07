@@ -1,6 +1,6 @@
 import { queryOptions, useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
-import { LIVE_URL } from './config'
+import { KEEPER_URL, LIVE_URL } from './config'
 import { phaseOf } from './phase'
 import { nextRaidAt } from './schedule'
 import type { Frame, LobbyRaid, RaidPair } from './types'
@@ -83,4 +83,19 @@ export function useRaidStream(id: string) {
   const tentative = view !== undefined && view === proposed && view !== finalized
 
   return { view, finalized, tentative, link, loading: !view && initial.isLoading, missing: initial.isSuccess && !initial.data?.proposed && !initial.data?.finalized && !view }
+}
+
+/**
+ * Ask the keeper for a test raid now (testnet only). The keeper refuses while a raid runs, inside
+ * its one-minute cooldown, or when it is low on MON, and says which.
+ */
+export async function requestRaid(): Promise<{ ok: true } | { ok: false; reason: string }> {
+  try {
+    const r = await fetch(`${KEEPER_URL}/demo`, { method: 'POST' })
+    if (r.status === 202) return { ok: true }
+    const body = (await r.json().catch(() => ({}))) as { reason?: string }
+    return { ok: false, reason: body.reason ?? `the keeper answered ${r.status}` }
+  } catch {
+    return { ok: false, reason: 'the keeper did not answer' }
+  }
 }
