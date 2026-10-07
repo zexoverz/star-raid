@@ -67,9 +67,14 @@ function KeyPage() {
           ) : (
             <motion.div initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="panel mt-8 p-6">
               <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-                <div className="relative shrink-0">
-                  <Mascot who="chog" pose={one.ready ? 'cheer' : 'wait'} className="h-28 w-auto drop-shadow-[0_6px_6px_rgba(0,0,0,0.4)]" />
-                  {tokenId && <StarAvatar tokenId={tokenId} size={44} className="absolute -bottom-1 -right-3" />}
+                {/* Fixed box so the Star badge always sits on the mascot's corner, whatever the pose art's width. */}
+                <div className="relative mx-auto h-28 w-28 shrink-0 sm:mx-0">
+                  <Mascot who="chog" pose={one.ready ? 'cheer' : 'wait'} className="h-full w-full drop-shadow-[0_6px_6px_rgba(0,0,0,0.4)]" />
+                  {tokenId && (
+                    <span className="absolute -bottom-1 -right-1">
+                      <StarAvatar tokenId={tokenId} size={40} />
+                    </span>
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
