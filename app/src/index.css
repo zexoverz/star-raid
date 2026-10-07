@@ -68,6 +68,10 @@
   body { font-family: var(--font-sans); color: var(--color-cream-100); min-height: 100dvh; -webkit-font-smoothing: antialiased; }
   ::selection { background: var(--color-candy-500); color: white; }
 
+  /* No browser focus box after a mouse click; keyboard users get a soft ember ring that follows the pill shape. */
+  :focus { outline: none; }
+  :focus-visible { outline: 3px solid var(--color-ember-400); outline-offset: 2px; border-radius: 9999px; }
+
   /* No visible scrollbars anywhere (page and inner lists); scrolling by wheel, touch and keys still works. */
   * { scrollbar-width: none; -ms-overflow-style: none; }
   ::-webkit-scrollbar { display: none; width: 0; height: 0; }

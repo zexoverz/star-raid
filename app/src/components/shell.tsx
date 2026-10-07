@@ -1,6 +1,6 @@
 import { Link, useRouterState } from '@tanstack/react-router'
 import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useHealth } from '../lib/live'
 import { NextRaidChip } from './countdown'
 import { SoundToggle, WalletButton } from './wallet'
@@ -33,7 +33,7 @@ export function TopBar() {
           <img src="/art/wordmark.svg" alt="Star Raid" className="h-14 w-auto -my-1 drop-shadow-[0_4px_0_#15122a] sm:hidden" />
         </Link>
         <nav className="glass hidden min-w-0 items-center gap-1 rounded-full px-2 py-1.5 xl:flex">
-          {LINKS.filter((l) => ['/', '/raids', '/practice'].includes(l.to)).map((l) => (
+          {LINKS.filter((l) => ['/', '/raids'].includes(l.to)).map((l) => (
             <NavLink key={l.to} to={l.to}>
               {l.label}
             </NavLink>
@@ -90,20 +90,50 @@ type NavTo = '/' | '/raids' | '/key' | '/how' | '/terms' | '/practice'
 function MoreMenu({ path }: { path: string }) {
   const [open, setOpen] = useState(false)
   useEffect(() => setOpen(false), [path])
-  const active = path === '/how' || path === '/terms'
+  const active = path === '/practice' || path === '/how' || path === '/terms'
+  const items = [
+    { to: '/practice' as const, label: 'Practice', icon: 'dice_block' },
+    { to: '/how' as const, label: 'How it works', icon: 'hit_spark' },
+    { to: '/terms' as const, label: 'Terms', icon: 'seat_ticket' },
+  ]
+  // Hover opens it on desktop; a click right after that hover must not close it again.
+  const hoveredAt = useRef(0)
   return (
-    <div className="relative" onMouseLeave={() => setOpen(false)}>
-      <button onClick={() => setOpen((o) => !o)} onMouseEnter={() => setOpen(true)} className={`relative whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-bold tracking-wide ${active ? 'text-white' : 'text-white/80 hover:text-white'}`}>
+    <div
+      className="relative"
+      onMouseEnter={() => ((hoveredAt.current = Date.now()), setOpen(true))}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        onClick={() => setOpen((o) => (Date.now() - hoveredAt.current < 400 ? true : !o))}
+        aria-expanded={open}
+        className={`relative flex items-center gap-1 whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-bold tracking-wide outline-none transition-colors ${active ? 'text-white' : open ? 'text-white' : 'text-white/80 hover:text-white'}`}
+      >
         {active && <motion.span layoutId="nav-pill" className="absolute inset-0 -z-10 rounded-full bg-ember-500 shadow-[0_3px_0_#b4470a]" transition={{ type: 'spring', stiffness: 420, damping: 32 }} />}
-        More ▾
+        {!active && open && <span className="absolute inset-0 -z-10 rounded-full bg-white/10" />}
+        More
+        <motion.span animate={{ rotate: open ? 180 : 0 }} className="text-[10px] leading-none">▼</motion.span>
       </button>
       <AnimatePresence>
         {open && (
-          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} className="absolute right-0 top-full pt-2">
-            <div className="panel flex w-44 flex-col p-1.5">
-              {(['/how', '/terms'] as const).map((to) => (
-                <Link key={to} to={to} className={`rounded-xl px-3 py-2 text-sm font-bold ${path === to ? 'bg-ember-500 text-white' : 'text-white/85 hover:bg-white/10'}`}>
-                  {to === '/how' ? 'How it works' : 'Terms'}
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 32 }}
+            className="absolute left-1/2 top-full z-50 -translate-x-1/2 pt-3"
+          >
+            {/* same glass as the nav pill, with a little notch pointing at "More" */}
+            <div className="glass relative flex w-48 flex-col gap-1 rounded-3xl p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
+              <span className="absolute -top-[9px] left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 rounded-sm border-l-[3px] border-t-[3px] border-grape-500 bg-[rgb(102_93_150)]" />
+              {items.map((it) => (
+                <Link
+                  key={it.to}
+                  to={it.to}
+                  className={`relative flex items-center gap-2.5 rounded-full px-3 py-2 text-sm font-bold outline-none transition-colors ${path === it.to ? 'bg-ember-500 text-white shadow-[0_3px_0_#b4470a]' : 'text-white/85 hover:bg-white/15 hover:text-white'}`}
+                >
+                  <img src={`/art/${it.icon}.webp`} alt="" className="h-6 w-6 object-contain" draggable={false} />
+                  {it.label}
                 </Link>
               ))}
             </div>
