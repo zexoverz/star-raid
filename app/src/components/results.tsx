@@ -6,7 +6,6 @@ import type { Phase } from '../lib/phase'
 import { useActions, usePlayerSeat } from '../lib/player'
 import { useOneTap } from '../lib/onetap'
 import { play } from '../lib/sfx'
-import { STAR_NAMES, starArt } from '../lib/stars'
 import type { Frame } from '../lib/types'
 import { Sprite, Twinkles } from './game'
 import { CrewRow, Guide } from './mascots'
@@ -93,14 +92,13 @@ export function Podium({ frame, shareable = true }: { frame: Frame; shareable?: 
       <div className="flex items-end justify-center gap-3 sm:gap-6">
         {order.map((s) => {
           const rank = frame.seats.indexOf(s)
-          const art = starArt(s.tokenId)
           const won = frame.won
           const share = won && BigInt(frame.counted) > 0n ? (BigInt(t.bounty) * BigInt(s.counted)) / BigInt(frame.counted) : 0n
           return (
             <motion.div key={s.seatKey} initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 * (2 - rank) }} className="flex w-28 flex-col items-center sm:w-36">
               <Sprite name={['medal_gold', 'medal_silver', 'medal_bronze'][rank]} className="-mb-3 h-10 w-10" />
               <PlayerAvatar address={s.holder ?? s.player} size={rank === 0 ? 96 : 76} />
-              <div className="mt-2 truncate text-center text-sm font-bold text-white">{art ? `${STAR_NAMES[art.character] ?? art.character} #${s.tokenId}` : 'Human'}</div>
+              <div className="mt-2 truncate text-center text-sm font-bold text-white">{s.tokenId ? `Star #${s.tokenId}` : 'Human'}</div>
               <PlayerPill address={s.holder ?? s.player} hideAvatar className="max-w-full text-xs text-grape-300" />
               <div className="font-display text-ember-300">{fmt(s.counted, t.quoteDecimals)} counted</div>
               {won && <div className="text-xs text-mint">≈ {fmt(share, t.quoteDecimals)} prize</div>}
