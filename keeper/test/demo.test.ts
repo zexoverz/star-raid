@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { decodeFunctionData } from "viem";
-import { shouldPostDemo, demoTxs, DEMO } from "../src/demo.js";
+import { shouldPostDemo, onDemandBlocker, ON_DEMAND, demoTxs, DEMO } from "../src/demo.js";
 import { Status, type RaidState } from "../src/decide.js";
 import { vaultAbi } from "../src/abi.js";
 
@@ -20,6 +20,16 @@ describe("demo raids", () => {
   });
   it("waits for the last raid's wall to be swept (it would sit in front of the new wall)", () => {
     expect(shouldPostDemo([{ ...r(Status.Settled), wallRecovered: false }], 10_000, 0, 1)).toBe(false);
+  });
+  it("starts a requested raid at once when nothing blocks it", () => {
+    expect(onDemandBlocker([r(Status.Settled)], 1_000_000, 0, 10n ** 18n)).toBeNull();
+    expect(onDemandBlocker([], 1_000_000, 0, 10n ** 18n)).toBeNull();
+  });
+  it("refuses a requested raid while one runs, inside the cooldown, or when the keeper is nearly dry", () => {
+    expect(onDemandBlocker([r(Status.Open)], 1_000_000, 0, 10n ** 18n)).toBe("a raid is already running");
+    expect(onDemandBlocker([{ ...r(Status.Settled), wallRecovered: false }], 1_000_000, 0, 10n ** 18n)).toMatch(/swept/);
+    expect(onDemandBlocker([], 1_000_000, 1_000_000 - 10_000, 10n ** 18n)).toMatch(/try again in 50 s/);
+    expect(onDemandBlocker([], 1_000_000, 0, ON_DEMAND.minBalance - 1n)).toMatch(/low on testnet MON/);
   });
   it("posts terms the vault accepts, with explicit gas on every step", () => {
     const txs = demoTxs({ vault: A, market: A, baseToken: A, quoteToken: A }, A, 1000n);
