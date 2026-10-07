@@ -62,11 +62,15 @@ const CLIPS = {
   // C2: sponsor console, no wallet (form, preview and how it works are visible)
   async sponsor(page) {
     await page.goto(`${SITE}/sponsor`, { waitUntil: 'load' })
+    await wait(3500)
+    await glide(page, 400, 2500)
+    await wait(3500)
+    await glide(page, 900, 2500)
+    await wait(3500)
+    await glide(page, 1400, 2500)
     await wait(3000)
-    await glide(page, 600, 2200)
-    await wait(3000)
-    await glide(page, 1200, 2200)
-    await wait(3000)
+    await glide(page, 0, 2500)
+    await wait(1500)
   },
   // C5 + C6 stand-in: a full practice raid, tapping HIT through the window, then the draw and result
   async practice(page) {
