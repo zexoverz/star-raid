@@ -32,7 +32,8 @@ const reader = new ChainReader(client as never, cfg.deployment.vault);
 const keeper = new Keeper(reader, signer, cfg.deployment.vault, cfg.thinMarkets, telegramAlerter(cfg.telegram));
 const demoEveryMs = Number(process.env.DEMO_EVERY_MIN ?? 0) * 60_000;
 if (demoEveryMs > 0 && cfg.chain.id !== 10143) throw new Error("demo raids are testnet only");
-let lastDemo = 0;
+// The schedule counts from start-up: a restart used to post a raid at once, so every deploy cost one.
+let lastDemo = Date.now();
 console.log(`keeper ${signer.address} on chain ${cfg.chain.id}, vault ${cfg.deployment.vault}`);
 
 // On-demand raids (testnet only): the app asks, the loop below posts.
