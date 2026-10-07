@@ -2,7 +2,7 @@ import { linearTiming, springTiming, TransitionSeries, type TransitionPresentati
 import { fade } from '@remotion/transitions/fade'
 import { slide } from '@remotion/transitions/slide'
 import { wipe } from '@remotion/transitions/wipe'
-import { AbsoluteFill, Html5Audio, staticFile } from 'remotion'
+import { AbsoluteFill, Html5Audio, Sequence, staticFile } from 'remotion'
 import { SLOTS } from './assets'
 import { Cta } from './scenes/Cta'
 import { Draw } from './scenes/Draw'
@@ -45,6 +45,14 @@ export function Main() {
           return [seq, <TransitionSeries.Transition key={`${id}-t`} presentation={presentations[i]} timing={i === 2 ? linearTiming({ durationInFrames: T }) : timing()} />]
         })}
       </TransitionSeries>
+      {SCENES.slice(1).map(({ id }, i) => {
+        const at = SCENES.slice(0, i + 1).reduce((a, s) => a + s.frames, 0) - T * (i + 1) - 4
+        return (
+          <Sequence key={id} from={at} durationInFrames={24} layout="none">
+            <Html5Audio src={staticFile('audio/kit/whoosh.mp3')} volume={0.5} />
+          </Sequence>
+        )
+      })}
     </AbsoluteFill>
   )
 }

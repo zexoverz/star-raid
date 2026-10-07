@@ -122,10 +122,16 @@ export function Callout({ at, until, x, y, children, tone = 'ember' }: { at: num
   const frame = useCurrentFrame()
   const p = usePop(at, { damping: 12, stiffness: 200 })
   const out = until ? interpolate(frame, [until, until + 8], [1, 0], clamp) : 1
-  if (frame < at) return null
+  const pop = (
+    <Sequence from={at} durationInFrames={20} layout="none">
+      <Html5Audio src={staticFile('audio/kit/click.mp3')} volume={0.35} />
+    </Sequence>
+  )
+  if (frame < at) return pop
   const bg = { ember: 'linear-gradient(180deg,#ffb84d,#ff8c42 55%,#fd6b10)', candy: 'linear-gradient(180deg,#ff5cd0,#e826b1 60%,#aa3686)', mint: 'linear-gradient(180deg,#d6ffe9,#a3e3c1)' }[tone]
   return (
     <div className="absolute z-40" style={{ left: x, top: y, transform: `scale(${p}) rotate(-2deg)`, opacity: out, transformOrigin: 'left center' }}>
+      {pop}
       <div className={`rounded-3xl px-6 py-3 font-display text-[30px] shadow-[0_6px_0_#2d2250,0_14px_30px_rgba(0,0,0,0.4)] ${tone === 'mint' ? 'text-grape-900' : 'text-white'}`} style={{ background: bg, border: '4px solid #2d2250' }}>
         {children}
       </div>
