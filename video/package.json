@@ -9,7 +9,8 @@
     "render": "remotion render StarRaidDemo out/star-raid-demo.mp4",
     "sfx": "node scripts/sfx.mjs",
     "snapshot": "node scripts/snapshot.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "record": "node scripts/record.mjs"
   },
   "dependencies": {
     "@remotion/cli": "4.0.534",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@types/react": "^19.2.18",
+    "playwright": "1.63.0",
     "typescript": "~5.9.3"
   }
 }
