@@ -8,10 +8,10 @@ import { WalletButton } from '../components/wallet'
 import { EXPLORER } from '../lib/config'
 import { fmt } from '../lib/format'
 import { useOneTap } from '../lib/onetap'
-import { useWalletKit } from '../lib/player'
+import { useActions, useWalletKit } from '../lib/player'
 import { play } from '../lib/sfx'
 import { blockieOf } from '../lib/profile'
-import { TokenIcon, type Token } from '../components/token'
+import { TokenAmount, TokenIcon, type Token } from '../components/token'
 import { BrickBackdrop } from './index'
 
 export const Route = createFileRoute('/key')({ component: KeyPage })
@@ -21,6 +21,7 @@ const BUDGETS = [10, 25, 50]
 /** Your raid key: where it is, what it holds, how long the seat pass lasts, and the buttons to manage it. */
 function KeyPage() {
   const kit = useWalletKit()
+  const act = useActions()
   // The key is per wallet, not per raid; the raid id only matters for hits, which this page never sends.
   const one = useOneTap('0')
   const [budget, setBudget] = useState(25)
@@ -117,6 +118,12 @@ function KeyPage() {
                   <div className="font-display text-lg text-white">Top up</div>
                   <p className="mb-3 text-sm text-grape-300">Adds tUSDC up to the amount you pick and refills gas if low. One popup.</p>
                   <SetupBox one={one} tokenId={tokenId} budget={budget} setBudget={setBudget} label="⚡ Top up" />
+                  <div className="mt-3 flex items-center justify-between gap-2 text-xs text-grape-300">
+                    <span className="inline-flex items-center gap-1">Wallet: <TokenAmount token="usdc" value={kit.usdc ?? 0n} decimals={6} size={13} /></span>
+                    <button className="btn btn-candy px-3 py-1.5 text-xs" disabled={act.busy} onClick={() => act.getTestKit(false, true).then((ok) => ok && (kit.refetch(), play('coin')))}>
+                      <TokenIcon token="usdc" size={14} /> Mint 50 test tUSDC
+                    </button>
+                  </div>
                 </div>
                 <div className="rounded-2xl bg-grape-950/60 p-4">
                   <div className="font-display text-lg text-white">Seat pass</div>

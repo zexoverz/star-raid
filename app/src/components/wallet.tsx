@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { TokenAmount } from './token'
+import { TokenAmount, TokenIcon } from './token'
+import { useActions, useWalletKit } from '../lib/player'
 import { Link } from '@tanstack/react-router'
 import { useOneTap } from '../lib/onetap'
 import { useAppKit, useAppKitState } from '@reown/appkit/react'
@@ -81,6 +82,7 @@ function ProfileMenu({ address, openAppKit }: { address: string; openAppKit: () 
                 {one.hasKey ? 'Manage raid key' : 'Set up one-tap'}
               </Link>
             </div>
+            <MintRow />
             <button className="mt-2 w-full rounded-2xl px-3 py-2 text-left font-bold text-grape-100 hover:bg-white/10" onClick={() => (setMenu(false), openAppKit())}>
               Wallet and network…
             </button>
@@ -90,6 +92,30 @@ function ProfileMenu({ address, openAppKit }: { address: string; openAppKit: () 
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  )
+}
+
+/** Testnet faucet: anyone can mint test tUSDC and a test Lil Star. */
+function MintRow() {
+  const act = useActions()
+  const kit = useWalletKit()
+  const mint = (star: boolean, usdc: boolean) => act.getTestKit(star, usdc).then((ok) => ok && (kit.refetch(), play('coin')))
+  return (
+    <div className="mt-2 rounded-2xl bg-grape-950/60 p-3">
+      <div className="flex items-center justify-between text-xs text-grape-300">
+        <span className="font-display text-sm text-white">Testnet faucet</span>
+        <TokenAmount token="usdc" value={kit.usdc ?? 0n} decimals={6} size={13} />
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        <button className="btn btn-candy py-1.5 text-xs" disabled={act.busy} onClick={() => mint(false, true)}>
+          <TokenIcon token="usdc" size={14} /> +50 tUSDC
+        </button>
+        <button className="btn btn-ghost py-1.5 text-xs" disabled={act.busy} onClick={() => mint(true, false)}>
+          <TokenIcon token="blindbox" size={14} /> Mint a Star
+        </button>
+      </div>
+      {act.busy && <p className="mt-1 text-[11px] text-grape-300">Confirm in your wallet…</p>}
     </div>
   )
 }
