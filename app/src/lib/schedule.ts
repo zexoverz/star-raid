@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useRaids } from './live'
+import { useHealth, useRaids } from './live'
 import { phaseOf } from './phase'
 import type { LobbyRaid } from './types'
 
@@ -26,14 +26,17 @@ export function rollForward(at: number | null, now: number): number | null {
 
 export function useNextRaid() {
   const raids = useRaids()
+  const health = useHealth()
+  const head = health.data?.proposed ? BigInt(health.data.proposed) : undefined
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
     const i = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(i)
   }, [])
   const rows = raids.data
-  const liveRaid = rows?.find((r) => {
-    const p = phaseOf(r)
+  // Needs the chain head: a raid left at Posted after its window (the keeper never opened it) is called off.
+  const liveRaid = head === undefined ? undefined : rows?.find((r) => {
+    const p = phaseOf(r, head)
     return p === 'live' || p === 'danger' || p === 'upcoming'
   })
   let at = nextRaidAt(rows)
@@ -51,18 +54,20 @@ export function useNextRaid() {
  */
 export function useRaidAlerts(onNew: (raidId: string) => void) {
   const raids = useRaids()
+  const health = useHealth()
+  const head = health.data?.proposed ? BigInt(health.data.proposed) : undefined
   const [seen] = useState(() => new Set<string>())
   const [primed, setPrimed] = useState(false)
   useEffect(() => {
     const rows = raids.data
-    if (!rows) return
+    if (!rows || head === undefined) return
     for (const r of rows) {
-      const p = phaseOf(r)
+      const p = phaseOf(r, head)
       if ((p === 'upcoming' || p === 'live' || p === 'danger') && !seen.has(r.raidId)) {
         seen.add(r.raidId)
         if (primed) onNew(r.raidId)
       }
     }
     if (!primed) setPrimed(true)
-  }, [raids.data, primed, seen, onNew])
+  }, [raids.data, head, primed, seen, onNew])
 }
