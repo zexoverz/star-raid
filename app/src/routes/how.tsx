@@ -41,6 +41,9 @@ function How() {
               <motion.img key={m.name} src={m.src} alt={m.name} className="h-28 sm:h-36" animate={{ y: [0, -8, 0] }} transition={{ duration: 2, repeat: Infinity, delay: i * 0.25 }} />
             ))}
           </div>
+          <Link to="/sponsor" className="btn btn-ghost mr-3 px-6 py-4">
+            🚩 Sponsor a raid
+          </Link>
           <Link to="/" className="btn btn-primary px-10 py-4 text-2xl">
             ⚔ To the lobby
           </Link>

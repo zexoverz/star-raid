@@ -9,6 +9,7 @@ const LINKS: { to: NavTo; label: string }[] = [
   { to: '/', label: 'Lobby' },
   { to: '/raids', label: 'Raid board' },
   { to: '/key', label: 'Raid key' },
+  { to: '/sponsor', label: 'Sponsor a raid' },
   { to: '/practice', label: 'Practice' },
   { to: '/how', label: 'How it works' },
   { to: '/terms', label: 'Terms' },
@@ -84,14 +85,15 @@ export function TopBar() {
   )
 }
 
-type NavTo = '/' | '/raids' | '/key' | '/how' | '/terms' | '/practice'
+type NavTo = '/' | '/raids' | '/key' | '/sponsor' | '/how' | '/terms' | '/practice'
 
 /** How it works and Terms live under one small dropdown, so the pill nav stays short. */
 function MoreMenu({ path }: { path: string }) {
   const [open, setOpen] = useState(false)
   useEffect(() => setOpen(false), [path])
-  const active = path === '/practice' || path === '/how' || path === '/terms'
+  const active = path === '/sponsor' || path === '/practice' || path === '/how' || path === '/terms'
   const items = [
+    { to: '/sponsor' as const, label: 'Sponsor a raid', icon: 'flag_sponsor' },
     { to: '/practice' as const, label: 'Practice', icon: 'dice_block' },
     { to: '/how' as const, label: 'How it works', icon: 'hit_spark' },
     { to: '/terms' as const, label: 'Terms', icon: 'seat_ticket' },
@@ -124,7 +126,7 @@ function MoreMenu({ path }: { path: string }) {
             className="absolute left-1/2 top-full z-50 -translate-x-1/2 pt-3"
           >
             {/* same glass as the nav pill, with a little notch pointing at "More" */}
-            <div className="glass relative flex w-48 flex-col gap-1 rounded-3xl p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
+            <div className="glass relative flex w-52 flex-col gap-1 rounded-3xl p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
               <span className="absolute -top-[9px] left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 rounded-sm border-l-[3px] border-t-[3px] border-grape-500 bg-[rgb(102_93_150)]" />
               {items.map((it) => (
                 <Link
