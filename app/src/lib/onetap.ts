@@ -416,6 +416,44 @@ export function useOneTap(raidId: string) {
   )
 
   /**
+   * Fill the raid key's gas back up to the full budget (about 8 hits + claim), whatever it holds now.
+   * One wallet popup, a plain MON transfer.
+   */
+  const fillGas = useCallback(async () => {
+    if (!address || !client || !account) return false
+    setError(null)
+    try {
+      const f = await fees()
+      const want = gasBudget(f.maxFeePerGas)
+      const have = await pub.getBalance({ address: account.address })
+      if (have >= want) {
+        notify.info('Your raid key already has a full tank of gas.')
+        return true
+      }
+      const need = want - have
+      const w = await pub.getBalance({ address })
+      if (w < need + 21_000n * f.maxFeePerGas * 3n) throw new Error(`Your wallet needs about ${fmtUnits(need, 18, 2)} MON to fill the raid key's gas.`)
+      setStatus('Send MON for gas to your raid key')
+      const { sendTransaction } = await import('wagmi/actions')
+      const { wagmiConfig } = await import('./wagmi')
+      const h = await sendTransaction(wagmiConfig, { to: account.address, value: need, gas: 21_000n })
+      const r = await client.waitForTransactionReceipt({ hash: h })
+      if (r.status !== 'success') throw new Error('The MON transfer to your raid key failed on chain.')
+      await waitSpendable(r.blockNumber)
+      nonce.current = null
+      setStatus(null)
+      await refresh()
+      changed()
+      notify.success(`Gas topped up: +${fmtUnits(need, 18, 2)} MON on your raid key.`)
+      return true
+    } catch (e) {
+      setStatus(null)
+      setError(explainError(e))
+      return false
+    }
+  }, [address, client, account, refresh, setError, setStatus])
+
+  /**
    * Claim / exit from the raid key (the seat is bound to it). Monad bills limit x maxFee up front, so
    * if the key cannot cover that, the holder's wallet tops it up with exactly the gap. The tSTAR and
    * prize land on the key; they go back to the wallet with "Return to wallet".
@@ -576,6 +614,9 @@ export function useOneTap(raidId: string) {
     tap,
     sweep,
     keyCall,
+    fillGas,
+    gasFull: mon >= gasBudget(feeRef.current?.maxFeePerGas ?? 127_000_000_000n) * 95n / 100n,
+    gasPct: Math.min(100, Number((mon * 100n) / (gasBudget(feeRef.current?.maxFeePerGas ?? 127_000_000_000n) || 1n))),
     forget,
     status,
     error,
