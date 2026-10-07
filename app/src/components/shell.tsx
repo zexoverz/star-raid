@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { useHealth } from '../lib/live'
 import { NextRaidChip } from './countdown'
-import { KeyChip, SoundToggle, WalletButton } from './wallet'
+import { SoundToggle, WalletButton } from './wallet'
 
 const LINKS: { to: NavTo; label: string }[] = [
   { to: '/', label: 'Lobby' },
@@ -28,17 +28,18 @@ export function TopBar() {
     <header className="fixed inset-x-0 top-0 z-40 px-3 pt-3 sm:px-6">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
         <Link to="/" className="group flex shrink-0 items-center gap-2">
-          <img src="/art/coin.webp" alt="" className="h-11 w-11 drop-shadow-[0_3px_0_#2d2250] transition-transform group-hover:rotate-12" />
+          <img src="/art/logo.svg" alt="Star Raid" className="h-12 w-12 drop-shadow-[0_3px_0_#2d2250] transition-transform group-hover:-rotate-6 group-hover:scale-110" />
           <span className="title-outline-sm hidden whitespace-nowrap text-2xl leading-none sm:inline sm:text-3xl">
             Star <span className="text-ember-400">Raid</span>
           </span>
         </Link>
         <nav className="glass hidden min-w-0 items-center gap-1 rounded-full px-2 py-1.5 xl:flex">
-          {LINKS.filter((l) => l.to !== '/key').map((l) => (
+          {LINKS.filter((l) => ['/', '/raids', '/practice'].includes(l.to)).map((l) => (
             <NavLink key={l.to} to={l.to}>
               {l.label}
             </NavLink>
           ))}
+          <MoreMenu path={path} />
         </nav>
         <div className="flex shrink-0 items-center gap-2">
           <NextRaidChip />
@@ -50,7 +51,6 @@ export function TopBar() {
             {ok ? `Block ${Number(health.data?.finalized).toLocaleString()}` : 'Offline'}
           </span>
           <SoundToggle />
-          <KeyChip />
           <WalletButton />
           <button
             className="btn btn-ghost h-10 w-10 !p-0 text-lg xl:hidden"
@@ -86,6 +86,34 @@ export function TopBar() {
 }
 
 type NavTo = '/' | '/raids' | '/key' | '/how' | '/terms' | '/practice'
+
+/** How it works and Terms live under one small dropdown, so the pill nav stays short. */
+function MoreMenu({ path }: { path: string }) {
+  const [open, setOpen] = useState(false)
+  useEffect(() => setOpen(false), [path])
+  const active = path === '/how' || path === '/terms'
+  return (
+    <div className="relative" onMouseLeave={() => setOpen(false)}>
+      <button onClick={() => setOpen((o) => !o)} onMouseEnter={() => setOpen(true)} className={`relative whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-bold tracking-wide ${active ? 'text-white' : 'text-white/80 hover:text-white'}`}>
+        {active && <motion.span layoutId="nav-pill" className="absolute inset-0 -z-10 rounded-full bg-ember-500 shadow-[0_3px_0_#b4470a]" transition={{ type: 'spring', stiffness: 420, damping: 32 }} />}
+        More ▾
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} className="absolute right-0 top-full pt-2">
+            <div className="panel flex w-44 flex-col p-1.5">
+              {(['/how', '/terms'] as const).map((to) => (
+                <Link key={to} to={to} className={`rounded-xl px-3 py-2 text-sm font-bold ${path === to ? 'bg-ember-500 text-white' : 'text-white/85 hover:bg-white/10'}`}>
+                  {to === '/how' ? 'How it works' : 'Terms'}
+                </Link>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
 
 /** The active pill is one shared element that glides between links (motion layoutId). */
 function NavLink({ to, children }: { to: NavTo; children: React.ReactNode }) {
