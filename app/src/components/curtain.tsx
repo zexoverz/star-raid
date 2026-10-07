@@ -5,9 +5,10 @@ import type { Phase } from '../lib/phase'
 import { play } from '../lib/sfx'
 import { STAR_NAMES, starArt } from '../lib/stars'
 import type { Frame, FrameBuy } from '../lib/types'
-import { GameBar, Sprite, StarAvatar } from './game'
+import { GameBar, Sprite } from './game'
 import { CrewRow, Guide, Mascot } from './mascots'
 import { PlayerPill } from './profile'
+import { PlayerAvatar } from './profile'
 import { EmptyState } from './empty'
 
 /**
@@ -234,12 +235,12 @@ function JudgedHit({ b, decimals }: { b: FrameBuy; decimals: number }) {
   const art = starArt(b.tokenId)
   return (
     <motion.li layout initial={{ x: -40, opacity: 0, scale: 0.9 }} animate={{ x: 0, opacity: 1, scale: 1 }} className={`flex items-center gap-3 rounded-xl px-2.5 py-1.5 ${late ? 'bg-grape-950/40' : 'bg-mint/10'}`}>
-      <StarAvatar tokenId={b.tokenId} size={34} dim={late} />
+      <PlayerAvatar address={b.holder ?? b.player} size={34} dim={late} />
       <div className="min-w-0 flex-1 text-sm">
         <span className={`font-bold ${late ? 'text-grape-300 line-through' : 'text-white'}`}>{art ? `${STAR_NAMES[art.character] ?? art.character} #${b.tokenId}` : 'Seat'}</span>
         <span className="text-grape-300"> · block {Number(b.block).toLocaleString()}</span>
         <div className="text-[11px] text-grape-300">
-          <PlayerPill address={b.holder ?? b.player} size={14} />
+          <PlayerPill address={b.holder ?? b.player} hideAvatar size={14} />
         </div>
       </div>
       <motion.span initial={{ scale: 2.2, rotate: -12 }} animate={{ scale: 1, rotate: 0 }} className={`chip ${late ? 'bg-grape-700 text-grape-300' : 'bg-mint text-grape-900'}`}>
@@ -256,11 +257,11 @@ function TopSeat({ seat, frame }: { seat: Frame['seats'][number]; frame: Frame }
   return (
     <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.8 }} className="mt-4 flex items-center gap-3 rounded-3xl border-[3px] border-gold bg-grape-900/85 px-4 py-2.5">
       <Sprite name="medal_gold" className="h-10 w-10" />
-      <StarAvatar tokenId={seat.tokenId} size={48} />
+      <PlayerAvatar address={seat.holder ?? seat.player} size={48} />
       <div className="text-left">
         <div className="text-xs font-bold uppercase tracking-widest text-gold">Top seat</div>
         <div className="font-display text-lg text-white">{art ? `${STAR_NAMES[art.character] ?? art.character} #${seat.tokenId}` : 'Human'}</div>
-        <PlayerPill address={seat.holder ?? seat.player} className="text-xs text-grape-300" />
+        <PlayerPill address={seat.holder ?? seat.player} hideAvatar className="text-xs text-grape-300" />
         <div className="text-xs text-grape-300">
           {fmt(seat.counted, t.quoteDecimals)} counted · about {fmt(share, t.quoteDecimals)} tUSDC of the prize
         </div>

@@ -8,10 +8,11 @@ import { useOneTap } from '../lib/onetap'
 import { play } from '../lib/sfx'
 import { STAR_NAMES, starArt } from '../lib/stars'
 import type { Frame } from '../lib/types'
-import { Sprite, StarAvatar, Twinkles } from './game'
+import { Sprite, Twinkles } from './game'
 import { CrewRow, Guide } from './mascots'
 import { TxSteps } from './join'
 import { TokenIcon } from './token'
+import { PlayerAvatar } from './profile'
 import { PlayerPill } from './profile'
 
 /** VICTORY / WALL HELD banner. Every number is one the chain shows. */
@@ -98,9 +99,9 @@ export function Podium({ frame, shareable = true }: { frame: Frame; shareable?: 
           return (
             <motion.div key={s.seatKey} initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 * (2 - rank) }} className="flex w-28 flex-col items-center sm:w-36">
               <Sprite name={['medal_gold', 'medal_silver', 'medal_bronze'][rank]} className="-mb-3 h-10 w-10" />
-              <StarAvatar tokenId={s.tokenId} size={rank === 0 ? 96 : 76} />
+              <PlayerAvatar address={s.holder ?? s.player} size={rank === 0 ? 96 : 76} />
               <div className="mt-2 truncate text-center text-sm font-bold text-white">{art ? `${STAR_NAMES[art.character] ?? art.character} #${s.tokenId}` : 'Human'}</div>
-              <PlayerPill address={s.holder ?? s.player} className="max-w-full text-xs text-grape-300" />
+              <PlayerPill address={s.holder ?? s.player} hideAvatar className="max-w-full text-xs text-grape-300" />
               <div className="font-display text-ember-300">{fmt(s.counted, t.quoteDecimals)} counted</div>
               {won && <div className="text-xs text-mint">≈ {fmt(share, t.quoteDecimals)} prize</div>}
               <div className={`mt-2 w-full rounded-t-2xl ${heights[rank]} grid place-items-start justify-center pt-2 font-display text-3xl text-white`} style={{ background: ['linear-gradient(#ffd27a,#ff8c42)', 'linear-gradient(#ece8ff,#b8aee6)', 'linear-gradient(#ffb48a,#c56a3a)'][rank], boxShadow: '0 4px 0 #2d2250' }}>
