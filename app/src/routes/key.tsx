@@ -105,7 +105,7 @@ function KeyPage() {
               <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <Stat icon="usdc" label="tUSDC" value={fmt(one.usdc, 6)} hint="to raid with" warn={one.usdc === 0n} />
                 <Stat icon="mon" label="MON gas" value={(Number(one.mon) / 1e18).toFixed(2)} hint={`about ${gasHits} hits`} warn={gasHits < 2} />
-                <Stat icon="star" label="tSTAR on key" value={fmt(one.star, 18)} hint={one.star > 0n ? 'tap Return to send it home' : 'you buy it in raids, never deposit'} />
+                <Stat icon="star" label="tSTAR" value={fmt(one.star + (kit.star ?? 0n), 18)} hint={one.star > 0n ? `${fmt(one.star, 18)} still on the key: tap Return` : 'claimed loot, in your wallet'} />
                 <Stat label="Seat pass" value={one.passValid ? `${daysLeft >= 1 ? Math.floor(daysLeft) + 'd' : Math.max(1, Math.round(daysLeft * 24)) + 'h'}` : 'expired'} hint={one.passExpiry ? `until ${new Date(one.passExpiry * 1000).toLocaleDateString([], { month: 'short', day: 'numeric' })}` : 'not signed'} warn={!one.passValid || daysLeft < 1} />
               </div>
 

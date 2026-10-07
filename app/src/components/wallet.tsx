@@ -116,7 +116,10 @@ function MintRow() {
     <div className="mt-2 rounded-2xl bg-grape-950/60 p-3">
       <div className="flex items-center justify-between text-xs text-grape-300">
         <span className="font-display text-sm text-white">Testnet faucet</span>
-        <TokenAmount token="usdc" value={kit.usdc ?? 0n} decimals={6} size={13} />
+        <span className="flex gap-2">
+          <TokenAmount token="usdc" value={kit.usdc ?? 0n} decimals={6} size={13} />
+          <TokenAmount token="star" value={kit.star ?? 0n} decimals={18} size={13} />
+        </span>
       </div>
       <div className="mt-2 grid grid-cols-2 gap-2">
         <button className="btn btn-candy py-1.5 text-xs" disabled={act.busy} onClick={() => mint(false, true)}>
