@@ -1,7 +1,7 @@
 import { AbsoluteFill, interpolate, useCurrentFrame } from 'remotion'
 import { Bg, clamp, Pop, Sprite, Twinkles, usePop } from '../ui'
 
-export const SITE = 'web-production-de387e.up.railway.app'
+export const SITE = 'starraid.xyz'
 
 /** Close: why it is fair, and where to play. */
 export function Cta() {
