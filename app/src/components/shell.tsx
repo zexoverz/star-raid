@@ -1,29 +1,46 @@
 import { Link, useRouterState } from '@tanstack/react-router'
-import { motion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useEffect, useState } from 'react'
 import { useHealth } from '../lib/live'
 import { NextRaidChip } from './countdown'
 import { KeyChip, SoundToggle, WalletButton } from './wallet'
 
+const LINKS: { to: NavTo; label: string }[] = [
+  { to: '/', label: 'Lobby' },
+  { to: '/raids', label: 'Raid board' },
+  { to: '/key', label: 'Raid key' },
+  { to: '/practice', label: 'Practice' },
+  { to: '/how', label: 'How it works' },
+  { to: '/terms', label: 'Terms' },
+]
+
+/**
+ * The bar never overlaps: logo and the right-hand group never shrink, and the pill nav only shows
+ * from xl (where everything fits with a connected wallet). Below that it folds into a menu button.
+ */
 export function TopBar() {
   const health = useHealth()
   const ok = health.data?.ok
+  const [open, setOpen] = useState(false)
+  const path = useRouterState({ select: (s) => s.location.pathname })
+  useEffect(() => setOpen(false), [path])
   return (
     <header className="fixed inset-x-0 top-0 z-40 px-3 pt-3 sm:px-6">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
-        <Link to="/" className="group flex items-center gap-2">
+        <Link to="/" className="group flex shrink-0 items-center gap-2">
           <img src="/art/coin.webp" alt="" className="h-11 w-11 drop-shadow-[0_3px_0_#2d2250] transition-transform group-hover:rotate-12" />
-          <span className="title-outline-sm whitespace-nowrap text-2xl leading-none sm:text-3xl">
+          <span className="title-outline-sm hidden whitespace-nowrap text-2xl leading-none sm:inline sm:text-3xl">
             Star <span className="text-ember-400">Raid</span>
           </span>
         </Link>
-        <nav className="glass hidden items-center gap-1 rounded-full px-2 py-1.5 md:flex">
-          <NavLink to="/">Lobby</NavLink>
-          <NavLink to="/raids">Raid board</NavLink>
-          <NavLink to="/practice">Practice</NavLink>
-          <NavLink to="/how">How it works</NavLink>
-          <NavLink to="/terms">Terms</NavLink>
+        <nav className="glass hidden min-w-0 items-center gap-1 rounded-full px-2 py-1.5 xl:flex">
+          {LINKS.filter((l) => l.to !== '/key').map((l) => (
+            <NavLink key={l.to} to={l.to}>
+              {l.label}
+            </NavLink>
+          ))}
         </nav>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <NextRaidChip />
           <span
             className="chip hidden whitespace-nowrap bg-grape-900/80 text-grape-100 2xl:inline-flex"
@@ -35,13 +52,40 @@ export function TopBar() {
           <SoundToggle />
           <KeyChip />
           <WalletButton />
+          <button
+            className="btn btn-ghost h-10 w-10 !p-0 text-lg xl:hidden"
+            aria-label="Menu"
+            aria-expanded={open}
+            onClick={() => setOpen((o) => !o)}
+          >
+            {open ? '✕' : '☰'}
+          </button>
         </div>
       </div>
+      <AnimatePresence>
+        {open && (
+          <motion.nav
+            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+            className="glass mx-auto mt-2 flex max-w-7xl flex-col gap-1 rounded-3xl p-2 xl:hidden"
+          >
+            {LINKS.map((l) => {
+              const active = l.to === '/' ? path === '/' : path === l.to || (l.to === '/raids' && path.startsWith('/raid/'))
+              return (
+                <Link key={l.to} to={l.to} className={`rounded-2xl px-4 py-2.5 font-bold ${active ? 'bg-ember-500 text-white shadow-[0_3px_0_#b4470a]' : 'text-white/85 hover:bg-white/10'}`}>
+                  {l.label}
+                </Link>
+              )
+            })}
+          </motion.nav>
+        )}
+      </AnimatePresence>
     </header>
   )
 }
 
-type NavTo = '/' | '/raids' | '/how' | '/terms' | '/practice'
+type NavTo = '/' | '/raids' | '/key' | '/how' | '/terms' | '/practice'
 
 /** The active pill is one shared element that glides between links (motion layoutId). */
 function NavLink({ to, children }: { to: NavTo; children: React.ReactNode }) {
