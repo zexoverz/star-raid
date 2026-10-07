@@ -536,3 +536,17 @@ button. The fork e2e plays a second raid with the same key, pass and approval (2
 The lobby also polls `/raids` in background tabs and on focus, rolls a missed schedule estimate to
 the next slot instead of sitting on "soon", and a root-level watcher toasts "Raid #N just opened"
 with a Jump in button on any page.
+
+## D43. Test raids on demand (7 Oct)
+
+**Claim.** The hosted keeper serves `POST /demo` at https://keeper-production-23ee.up.railway.app and the
+lobby has a "Start a test raid now" button (testnet only). A request posts a demo raid at once: on the
+first real run it was in the lobby 9 s later and open after 28 s. `GET /demo` says whether one can
+start and why not. Demo windows are now 300 blocks (`DEMO_WINDOW_BLOCKS`), about two minutes.
+
+**Guards.** The endpoint is public and each raid costs the keeper about 0.35 MON, so it refuses while a
+raid is in flight, while the last wall is unswept, within 60 s of the last post, and when the keeper
+holds under 0.6 MON. The hourly schedule still runs and now counts from start-up, since a restart used
+to post a raid at once.
+
+**Reverses it.** Mainnet: the endpoint does not start off testnet, and the button renders only on 10143.
