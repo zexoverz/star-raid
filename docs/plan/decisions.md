@@ -566,3 +566,19 @@ new wall never sits behind an unswept one (D39). Checked on an anvil fork throug
 fresh sponsor wallet: invalid prize refused with no tx, then 5 txs → raid #26 posted, vault holds
 the wall; keeper-style open → close → entropy timeout → settle: sponsor got the 100k tSTAR wall back
 and 50 tUSDC rollover credit.
+
+## D45. Demo video in Remotion, from real raid frames (7 Oct)
+
+**Claim.** The demo video lives in `video/` as a Remotion project. It reuses the app's tokens, fonts,
+art (symlinked from `app/public`) and sound kit (rendered to WAV by `video/scripts/sfx.mjs`). Every
+number on screen comes from the finalized frames of settled testnet raids #26 and #3, snapshotted from
+the live service into `video/src/data/`. The raid scene replays #26's 58 buys by block number, sped up
+and labelled as a replay. Visuals go through one slot map (`video/src/assets.ts`) so GPT-generated
+art drops in without touching scenes.
+
+**Why.** He asked for a demo video in the app's design, with GPT for assets. Rule 13 rules out a
+scripted mock raid with made-up numbers. Driving the replay from the frame keeps the video honest
+and lets a better raid replace it with `pnpm snapshot <id>`.
+
+**Reverses it.** A screen-recorded demo is preferred, or a mainnet raid replaces the testnet one;
+re-snapshot and update the "testnet" labels.

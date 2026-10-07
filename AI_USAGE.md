@@ -44,3 +44,7 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
 ## App: real Lil Star art, seat labels, test raid in profile menu
 - Files: app/server/index.mjs (/star/:id.png, IPFS fetch + resvg 256px + memory cache), app/src/lib/stars.ts, components/game.tsx, arena/curtain/raidparts/results, r.$raidId.$seat, countdown.tsx, wallet.tsx, vite.config.ts, lib.test.ts.
 - Human reviewed: seat label wording, art fetched by token id from the official CID, button placement.
+
+## Video: Remotion demo cut
+- Files: video/** (Remotion 4.0.534 project: scenes Hook, Sponsor, Seats, Raid, Draw, Victory, Cta; asset slots; app sound kit rendered to WAV; snapshots of raids 26 and 3 from the live service; Lil Star #5, #6, #8 collection art resized from IPFS), docs/plan/decisions.md D45. Written by Claude (Jcode).
+- Human reviewed: pending his watch of out/star-raid-demo.mp4 and the scene stills.
