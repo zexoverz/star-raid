@@ -70,7 +70,14 @@ export function AmountInput({ value, onChange, keyBalance }: { value: string; on
       <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] text-grape-300">
         <div className="rounded-xl bg-grape-950/50 px-2 py-1.5">
           Wallet <TokenAmount token="usdc" value={wallet} decimals={6} size={12} />
-          <div>{tooMuch ? <span className="text-candy-300">not enough</span> : `${Math.round(pct)}% of it`}</div>
+          <div>
+            {tooMuch ? <span className="text-candy-300">not enough</span> : `${Math.round(pct)}% of it`}
+            {wallet < 1_000_000n && (
+              <button type="button" className="ml-1 font-bold text-ember-300 underline" disabled={act.busy} onClick={() => void act.getTestKit(false, true).then((ok) => ok && (kit.refetch(), play('coin')))}>
+                mint 50
+              </button>
+            )}
+          </div>
         </div>
         <div className="rounded-xl bg-grape-950/50 px-2 py-1.5">
           Raid key <TokenAmount token="usdc" value={keyBalance} decimals={6} size={12} />

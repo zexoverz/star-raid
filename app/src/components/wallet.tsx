@@ -75,7 +75,14 @@ function ProfileMenu({ address, openAppKit }: { address: string; openAppKit: () 
               {one.hasKey && (
                 <div className="mt-2 grid grid-cols-3 gap-1 text-center text-[11px] text-grape-300">
                   <div><TokenAmount token="usdc" value={one.usdc} decimals={6} /></div>
-                  <div><TokenAmount token="mon" value={one.mon} decimals={18} dp={2} /></div>
+                  <div>
+                    <TokenAmount token="mon" value={one.mon} decimals={18} dp={2} />
+                    {!one.gasFull && (
+                      <button className="block w-full text-[10px] font-bold text-ember-300 underline" onClick={() => one.fillGas()}>
+                        fill gas
+                      </button>
+                    )}
+                  </div>
                   <div><b className="text-white">{one.passExpiry ? Math.max(0, Math.floor((one.passExpiry - Date.now() / 1000) / 86400)) : 0}d</b> pass</div>
                 </div>
               )}

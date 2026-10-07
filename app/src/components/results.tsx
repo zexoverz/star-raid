@@ -149,8 +149,9 @@ export function LootPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
         </motion.div>
         <div className="flex-1 text-center sm:text-left">
           <div className="title-outline-sm text-3xl">{done ? 'Loot collected' : 'Your loot'}</div>
+          <p className="mt-1 text-xs text-grape-300">Every HIT bought tSTAR from the wall. The router kept it safe for your seat; claiming sends it to your wallet{phase === 'victory' ? ', plus your share of the prize' : ''}.</p>
           <div className="mt-2 flex flex-wrap justify-center gap-2 sm:justify-start">
-            <span className="chip bg-grape-700 text-grape-100"><TokenIcon token="star" size={14} /> {seat.escrowBase !== undefined ? fmt(seat.escrowBase, t.baseDecimals) : '…'} tSTAR held for you</span>
+            <span className="chip bg-grape-700 text-grape-100"><TokenIcon token="star" size={14} /> {seat.escrowBase !== undefined ? fmt(seat.escrowBase, t.baseDecimals) : '…'} tSTAR you bought, waiting for you</span>
             {phase === 'victory' && <span className="chip bg-ember-500/30 text-ember-300">🏆 <TokenIcon token="usdc" size={14} /> {seat.prize !== undefined ? fmt(seat.prize, t.quoteDecimals) : '…'} prize share</span>}
           </div>
           {!settled && <p className="mt-3 text-sm text-grape-300">Claims open once the raid settles.</p>}

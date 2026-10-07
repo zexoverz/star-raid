@@ -97,7 +97,12 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
               )}
               <div className="mt-4 grid grid-cols-3 gap-2 border-t border-grape-700 pt-3 text-center text-xs text-grape-300">
                 <div><div className="font-display text-base text-white">{fmt(one.usdc, t.quoteDecimals)}</div>tUSDC on key</div>
-                <div><div className="font-display text-base text-white">{(Number(one.mon) / 1e18).toFixed(2)}</div>MON gas</div>
+                <div>
+                  <div className="font-display text-base text-white">{one.gasPct}%</div>
+                  <button className="underline hover:text-white disabled:no-underline disabled:opacity-60" disabled={!!one.status || one.gasFull} onClick={() => one.fillGas()}>
+                    {one.gasFull ? 'gas full' : '⛽ fill gas'}
+                  </button>
+                </div>
                 <div><div className="font-display text-base text-white">{passDays}d</div>pass left</div>
               </div>
               <div className="mt-2 flex items-center justify-between gap-2 text-xs text-grape-300">
