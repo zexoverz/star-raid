@@ -3,14 +3,15 @@ import { motion } from 'motion/react'
 import { useState } from 'react'
 import { parseUnits } from 'viem'
 import { EmptyState } from '../components/empty'
-import { StarAvatar } from '../components/game'
-import { Guide, Mascot } from '../components/mascots'
+import { Guide } from '../components/mascots'
 import { WalletButton } from '../components/wallet'
 import { EXPLORER } from '../lib/config'
 import { fmt } from '../lib/format'
 import { useOneTap } from '../lib/onetap'
 import { useWalletKit } from '../lib/player'
 import { play } from '../lib/sfx'
+import { blockieOf } from '../lib/profile'
+import { TokenIcon, type Token } from '../components/token'
 import { BrickBackdrop } from './index'
 
 export const Route = createFileRoute('/key')({ component: KeyPage })
@@ -67,15 +68,8 @@ function KeyPage() {
           ) : (
             <motion.div initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="panel mt-8 p-6">
               <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-                {/* Fixed box so the Star badge always sits on the mascot's corner, whatever the pose art's width. */}
-                <div className="relative mx-auto h-28 w-28 shrink-0 sm:mx-0">
-                  <Mascot who="chog" pose={one.ready ? 'cheer' : 'wait'} className="h-full w-full drop-shadow-[0_6px_6px_rgba(0,0,0,0.4)]" />
-                  {tokenId && (
-                    <span className="absolute -bottom-1 -right-1">
-                      <StarAvatar tokenId={tokenId} size={40} />
-                    </span>
-                  )}
-                </div>
+                {/* The raid key is its own address, so it gets its own blockie (not the Star's art). */}
+                <img src={blockieOf(one.keyAddress ?? '0x0')} alt="" className="mx-auto h-24 w-24 shrink-0 rounded-3xl shadow-[0_0_0_4px_#2d2250,0_0_0_7px_#7a6eb2,0_8px_0_#15122a] sm:mx-0" style={{ imageRendering: 'pixelated' }} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className={`chip ${one.ready ? 'bg-mint text-grape-900' : 'bg-ember-500 text-white'}`}>{one.ready ? 'Ready' : 'Needs attention'}</span>
@@ -107,9 +101,9 @@ function KeyPage() {
               </div>
 
               <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <Stat label="tUSDC" value={fmt(one.usdc, 6)} hint="to raid with" warn={one.usdc === 0n} />
-                <Stat label="MON gas" value={(Number(one.mon) / 1e18).toFixed(2)} hint={`about ${gasHits} hits`} warn={gasHits < 2} />
-                <Stat label="tSTAR" value={fmt(one.star, 18)} hint="bought, not yet returned" />
+                <Stat icon="usdc" label="tUSDC" value={fmt(one.usdc, 6)} hint="to raid with" warn={one.usdc === 0n} />
+                <Stat icon="mon" label="MON gas" value={(Number(one.mon) / 1e18).toFixed(2)} hint={`about ${gasHits} hits`} warn={gasHits < 2} />
+                <Stat icon="star" label="tSTAR" value={fmt(one.star, 18)} hint="bought, not yet returned" />
                 <Stat label="Seat pass" value={one.passValid ? `${daysLeft >= 1 ? Math.floor(daysLeft) + 'd' : Math.max(1, Math.round(daysLeft * 24)) + 'h'}` : 'expired'} hint={one.passExpiry ? `until ${new Date(one.passExpiry * 1000).toLocaleDateString([], { month: 'short', day: 'numeric' })}` : 'not signed'} warn={!one.passValid || daysLeft < 1} />
               </div>
 
@@ -144,11 +138,14 @@ function KeyPage() {
   )
 }
 
-function Stat({ label, value, hint, warn = false }: { label: string; value: string; hint: string; warn?: boolean }) {
+function Stat({ label, value, hint, warn = false, icon }: { label: string; value: string; hint: string; warn?: boolean; icon?: Token }) {
   return (
     <div className={`rounded-2xl px-3 py-3 text-center ${warn ? 'bg-ember-500/15 ring-2 ring-ember-400/60' : 'bg-grape-950/60'}`}>
       <div className="text-[10px] font-bold uppercase tracking-widest text-grape-300">{label}</div>
-      <div className="font-display text-2xl text-white">{value}</div>
+      <div className="flex items-center justify-center gap-1.5 font-display text-2xl text-white">
+        {icon && <TokenIcon token={icon} size={22} />}
+        {value}
+      </div>
       <div className="text-[11px] text-grape-300">{hint}</div>
     </div>
   )
