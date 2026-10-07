@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react'
+import { TokenAmount, TokenIcon } from './token'
 import { useEffect, useState } from 'react'
 import { parseUnits } from 'viem'
-import { fmt } from '../lib/format'
 import { play } from '../lib/sfx'
 import { Sprite, StarAvatar } from './game'
 
@@ -46,6 +46,7 @@ export function HitPad({
   footer,
   error,
   onAmount,
+  refill,
 }: {
   tokenId: string
   decimals: number
@@ -58,6 +59,8 @@ export function HitPad({
   footer?: React.ReactNode
   error?: string | null
   onAmount?: (units: bigint) => void
+  /** When set, the key cannot pay for a hit: the big button becomes this (one wallet popup) instead. */
+  refill?: { label: string; onClick: () => void; busy?: boolean }
 }) {
   const [hit, setHit] = useState(5)
   const [burst, setBurst] = useState(0)
@@ -71,7 +74,7 @@ export function HitPad({
         <div className="min-w-0 flex-1">
           <div className="font-display text-lg leading-tight text-white">One-tap armed</div>
           <div className="text-xs text-grape-300">
-            Star #{tokenId} · {fmt(balance, decimals)} tUSDC left · {hits} {hits === 1 ? 'hit' : 'hits'} landed
+            Star #{tokenId} · <TokenAmount token="usdc" value={balance} decimals={decimals} size={12} /> left · {hits} {hits === 1 ? 'hit' : 'hits'} landed
           </div>
         </div>
         <span className="chip bg-mint/20 text-mint">⚡ no popups</span>
@@ -80,12 +83,18 @@ export function HitPad({
       <div className="mt-4 flex gap-2">
         {HIT_SIZES.map((h) => (
           <button key={h} onClick={() => (setHit(h), play('click'))} className={`flex-1 rounded-2xl py-2 font-display text-lg transition ${hit === h ? 'bg-ember-500 text-white shadow-[0_4px_0_#b4470a]' : 'bg-grape-800 text-grape-100 hover:bg-grape-700'}`}>
+            <TokenIcon token="usdc" size={16} className="mr-1" />
             {h}
-            <span className="ml-1 text-xs opacity-70">tUSDC</span>
           </button>
         ))}
       </div>
 
+      {refill ? (
+        <button className="btn btn-candy mt-4 flex h-28 w-full flex-col items-center justify-center gap-1" disabled={refill.busy} onClick={refill.onClick}>
+          <span className="text-3xl">{refill.label}</span>
+          <span className="text-xs font-semibold opacity-90">one wallet popup, then back to tap-to-hit</span>
+        </button>
+      ) : (
       <motion.button
         whileTap={{ scale: 0.92 }}
         disabled={!can}
@@ -103,6 +112,7 @@ export function HitPad({
         </AnimatePresence>
         {label}
       </motion.button>
+      )}
       <div className="mt-2 flex justify-between text-xs text-grape-300">
         <span>{inflight > 0 ? `${inflight} hit(s) flying…` : 'Tap as fast as you like'}</span>
         <span>{open && balance < units ? 'budget used up' : ''}</span>

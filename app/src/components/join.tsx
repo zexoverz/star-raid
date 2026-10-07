@@ -78,11 +78,16 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
           inflight={one.inflight}
           onAmount={setAmount}
           onHit={(amount) => one.tap(amount)}
+          refill={
+            open && (lowGas || noUsdc)
+              ? { label: `⚡ Top up ${noUsdc ? `${budget} tUSDC` : ''}${noUsdc && lowGas ? ' + ' : ''}${lowGas ? 'gas' : ''}`, busy: !!one.status, onClick: () => void one.arm(one.session!.tokenId, parseUnits(String(budget), t.quoteDecimals)).then((ok) => ok && kit.refetch()) }
+              : undefined
+          }
           error={null}
           footer={
             <>
               {one.status && <p className="mt-3 text-sm text-grape-300">{one.status}…</p>}
-              {(lowGas || noUsdc) && (
+              {!open && (lowGas || noUsdc) && (
                 <button className="btn btn-candy mt-3 w-full py-2.5" disabled={!!one.status} onClick={() => one.arm(one.session!.tokenId, parseUnits(String(budget), t.quoteDecimals)).then((ok) => ok && kit.refetch())}>
                   ⚡ Top up {noUsdc ? `${budget} tUSDC` : ''}{noUsdc && lowGas ? ' + ' : ''}{lowGas ? 'gas' : ''} (one popup)
                 </button>
