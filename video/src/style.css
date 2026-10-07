@@ -1,0 +1,86 @@
+@import 'tailwindcss';
+
+/* Tokens copied from app/src/index.css so the video and the app look like one product.
+   CSS keyframe animations are left out on purpose: in Remotion every motion is driven by the frame. */
+@theme {
+  --font-display: 'Gorditas', 'Gluten', system-ui, sans-serif;
+  --font-fun: 'Gluten', 'Gorditas', system-ui, sans-serif;
+  --font-sans: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+
+  --color-grape-950: #15122a;
+  --color-grape-900: #221d3d;
+  --color-grape-800: #2d2250;
+  --color-grape-700: #4a4373;
+  --color-grape-600: #665d96;
+  --color-grape-500: #7a6eb2;
+  --color-grape-300: #b8aee6;
+  --color-grape-100: #ece8ff;
+
+  --color-ember-600: #fd6b10;
+  --color-ember-500: #ff8c42;
+  --color-ember-400: #ffb84d;
+  --color-ember-300: #ffd27a;
+
+  --color-candy-600: #aa3686;
+  --color-candy-500: #e826b1;
+  --color-candy-300: #f7b2d9;
+
+  --color-cream-100: #fff4e4;
+  --color-cream-200: #ffe1b7;
+
+  --color-mint: #a3e3c1;
+  --color-sky: #b6d6f7;
+  --color-gold: #f7c873;
+}
+
+@layer base {
+  body { font-family: var(--font-sans); color: var(--color-cream-100); -webkit-font-smoothing: antialiased; }
+}
+
+@layer components {
+  .title-outline {
+    font-family: var(--font-display);
+    color: white;
+    -webkit-text-stroke: 10px var(--color-grape-800);
+    paint-order: stroke fill;
+    text-shadow: 0 8px 0 var(--color-grape-800), 0 16px 36px rgb(0 0 0 / 0.35);
+    letter-spacing: 0.02em;
+  }
+  .title-outline-sm {
+    font-family: var(--font-display);
+    color: white;
+    -webkit-text-stroke: 6px var(--color-grape-800);
+    paint-order: stroke fill;
+    text-shadow: 0 5px 0 var(--color-grape-800);
+  }
+  .panel {
+    background: linear-gradient(180deg, rgb(45 34 80 / 0.92), rgb(34 29 61 / 0.94));
+    border: 4px solid var(--color-grape-500);
+    box-shadow: 0 9px 0 var(--color-grape-800), 0 26px 60px rgb(0 0 0 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.12);
+    border-radius: 40px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    padding: 0.35rem 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    border-radius: 999px;
+    font-family: var(--font-display);
+    letter-spacing: 0.04em;
+    color: white;
+    background: linear-gradient(180deg, var(--color-ember-400), var(--color-ember-500) 55%, var(--color-ember-600));
+    box-shadow: 0 9px 0 #b4470a, 0 14px 32px rgb(253 107 16 / 0.45), inset 0 3px 0 rgb(255 255 255 / 0.45);
+    -webkit-text-stroke: 2px #8a3506;
+    paint-order: stroke fill;
+  }
+}

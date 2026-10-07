@@ -1,0 +1,27 @@
+{
+  "name": "video",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "remotion studio",
+    "still": "remotion still StarRaidDemo out/still.png --frame=300",
+    "render": "remotion render StarRaidDemo out/star-raid-demo.mp4",
+    "render:vertical": "remotion render StarRaidVertical out/star-raid-vertical.mp4",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.534",
+    "@remotion/google-fonts": "4.0.534",
+    "@remotion/tailwind-v4": "4.0.534",
+    "@remotion/transitions": "4.0.534",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "remotion": "4.0.534",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "typescript": "~5.9.3"
+  }
+}
