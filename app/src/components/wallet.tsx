@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { TokenAmount, TokenIcon } from './token'
 import { openGuide } from './guide'
+import { StartRaidButton } from './countdown'
 import { useActions, useWalletKit } from '../lib/player'
 import { Link } from '@tanstack/react-router'
 import { useOneTap } from '../lib/onetap'
@@ -129,6 +130,7 @@ function MintRow() {
           <TokenIcon token="blindbox" size={14} /> Mint a Star
         </button>
       </div>
+      <StartRaidButton className="btn btn-primary mt-2 w-full py-1.5 text-xs" />
       {act.busy && <p className="mt-1 text-[11px] text-grape-300">Confirm in your wallet…</p>}
     </div>
   )
