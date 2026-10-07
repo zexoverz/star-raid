@@ -6,7 +6,7 @@ import type { Frame } from '../lib/types'
 import { BotAvatar, Sprite } from './game'
 import { EmptyState } from './empty'
 import { TokenIcon } from './token'
-import { PlayerAvatar } from './profile'
+import { StarAvatar } from './game'
 import { PlayerPill } from './profile'
 
 /**
@@ -103,14 +103,14 @@ export function Party({ frame, me }: { frame: Frame; me?: string }) {
               return (
                 <motion.li key={s.seatKey} layout initial={{ x: -30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className={`flex items-center gap-3 rounded-2xl px-3 py-2 ${mine ? 'bg-ember-500/20 ring-2 ring-ember-400' : 'bg-grape-950/50'}`}>
                   <span className="w-6 text-center font-display text-lg text-grape-300">{i < 3 ? <Sprite name={['medal_gold', 'medal_silver', 'medal_bronze'][i]} className="h-7 w-7" /> : i + 1}</span>
-                  <PlayerAvatar address={s.holder ?? s.player} size={40} />
+                  <StarAvatar tokenId={s.tokenId} size={40} />
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-bold text-white">
-                      {s.tokenId ? `Star #${s.tokenId}` : 'Verified human'}
+                      {s.tokenId ? `Lil Star #${s.tokenId}` : 'Verified human'}
                       {mine && <span className="ml-2 chip bg-ember-500 text-white">you</span>}
                     </div>
                     <div className="flex min-w-0 items-center gap-1 text-xs text-grape-300">
-                      <PlayerPill address={s.holder ?? s.player} hideAvatar /> <span className="shrink-0">· {s.buys} {s.buys === 1 ? 'hit' : 'hits'}</span>
+                      <PlayerPill address={s.holder ?? s.player} /> <span className="shrink-0">· {s.buys} {s.buys === 1 ? 'hit' : 'hits'}</span>
                     </div>
                   </div>
                   <div className="text-right">
@@ -156,12 +156,12 @@ export function HitFeed({ frame }: { frame: Frame }) {
           <AnimatePresence initial={false}>
             {buys.map((b) => (
               <motion.li key={b.id} layout initial={{ opacity: 0, y: -12, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} className={`flex items-center gap-3 rounded-xl px-2.5 py-1.5 ${b.afterEnd ? 'opacity-45 grayscale' : ''} ${b.seatKey ? 'bg-grape-950/50' : 'bg-grape-950/25'}`}>
-                {b.seatKey ? <PlayerAvatar address={b.holder ?? b.player} size={32} ring={false} /> : <BotAvatar size={32} />}
+                {b.seatKey ? <StarAvatar tokenId={b.tokenId} size={32} ring={false} /> : <BotAvatar size={32} />}
                 <div className="min-w-0 flex-1 text-sm">
-                  <span className="font-bold text-white">{b.tokenId ? `Star #${b.tokenId}` : 'No seat'}</span>
+                  <span className="font-bold text-white">{b.tokenId ? `Lil Star #${b.tokenId}` : 'No seat'}</span>
                   <span className="text-grape-300"> bought {fmt(b.wallFillQuote, t.quoteDecimals)} from the wall</span>
                   <div className="flex min-w-0 flex-wrap items-center gap-x-1 text-[11px] text-grape-300">
-                    <PlayerPill address={b.holder ?? b.player} hideAvatar size={14} /> · block {Number(b.block).toLocaleString()} ·{' '}
+                    <PlayerPill address={b.holder ?? b.player} size={14} /> · block {Number(b.block).toLocaleString()} ·{' '}
                     <a className="underline hover:text-white" href={`${EXPLORER}/tx/${b.tx}`} target="_blank" rel="noreferrer">
                       tx
                     </a>

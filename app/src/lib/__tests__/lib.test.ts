@@ -102,12 +102,14 @@ describe('nextRaidAt (hourly demo schedule estimate)', () => {
   })
 })
 
-describe('starArt (testnet preview mapping)', () => {
-  it('maps any token id to bundled official art, labelled preview', () => {
+describe('starArt (real Lil Stars art by token id)', () => {
+  it('serves the collection art for the same token id, with a bundled fallback', () => {
     for (const id of ['0', '7', '8', '31', '12345678901234567890']) {
       const a = starArt(id)!
-      expect(a.src).toMatch(/^\/stars\/\d+\.webp$/)
-      expect(a.preview).toBe(true)
+      expect(a.src).toBe(`/star/${id}.png`) // server thumbnail of IPFS <cid>/<id>.png
+      expect(a.full).toMatch(new RegExp(`/ipfs/[a-z0-9]+/${id}\\.png$`))
+      expect(a.fallback).toMatch(/^\/stars\/\d+\.webp$/)
+      expect(a.preview).toBe(false)
     }
     expect(starArt(null)).toBeNull()
   })

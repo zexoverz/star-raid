@@ -55,7 +55,7 @@ export function Arena({ frame, phase, tentative }: { frame: Frame; phase: Phase;
     comboTimer.current = setTimeout(() => setCombo(0), 3500)
     play(fresh.length > 1 ? 'combo' : 'hit')
     const seated = fresh.filter((b) => b.seatKey)
-    setLine(seated.length ? (fresh.length > 1 ? `Combo! ${fresh.length} hits in one go!` : `Star #${seated[0].tokenId} landed a hit!`) : 'A wallet with no seat bought in. That one counts for nothing.')
+    setLine(seated.length ? (fresh.length > 1 ? `Combo! ${fresh.length} hits in one go!` : `Lil Star #${seated[0].tokenId} landed a hit!`) : 'A wallet with no seat bought in. That one counts for nothing.')
     const ids = add.map((a) => a.key)
     setTimeout(() => setHits((h) => h.filter((x) => !ids.includes(x.key))), 1800)
   }, [fresh])

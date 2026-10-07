@@ -15,6 +15,7 @@ export const IS_TESTNET = true
 
 export interface StarArt {
   src: string
+  fallback: string
   full: string
   artId: string
   character: string
@@ -25,16 +26,20 @@ export interface StarArt {
 
 export function starArt(tokenId: string | null | undefined): StarArt | null {
   if (tokenId === null || tokenId === undefined) return null
-  const artId = IS_TESTNET ? PREVIEW_IDS[Number(BigInt(tokenId) % BigInt(PREVIEW_IDS.length))] : tokenId
+  // The token id is the art id: Lil Star #8 shows the collection's own #8 from IPFS (via /star/<id>.png,
+  // a cached thumbnail served by our web server). Bundled previews are only a fallback if IPFS is down.
+  const artId = tokenId
   const m = META[artId] ?? { character: 'Star', rarity: 'Common' }
+  const fallback = PREVIEW_IDS[Number(BigInt(tokenId) % BigInt(PREVIEW_IDS.length))]
   return {
-    src: META[artId] ? `/stars/${artId}.webp` : `${IPFS_IMG}/${artId}.png`,
+    src: `/star/${artId}.png`,
+    fallback: `/stars/${fallback}.webp`,
     full: `${IPFS_IMG}/${artId}.png`,
     artId,
     character: m.character,
     rarity: m.rarity,
     legendary: m.rarity === 'Legendary',
-    preview: IS_TESTNET,
+    preview: false,
   }
 }
 

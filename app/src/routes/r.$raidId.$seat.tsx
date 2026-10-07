@@ -64,7 +64,7 @@ function SharePage() {
         <div className="absolute inset-0 bg-gradient-to-b from-grape-950/60 to-grape-950" />
       </div>
       <div className="mx-auto max-w-4xl px-4 text-center">
-        <h1 className="title-outline -rotate-1 text-4xl sm:text-6xl">{s ? `Star #${seat}` : `Star Raid #${raidId}`}</h1>
+        <h1 className="title-outline -rotate-1 text-4xl sm:text-6xl">{s ? `Lil Star #${seat}` : `Star Raid #${raidId}`}</h1>
         {s && <PlayerPill address={s.holder ?? s.player} size={28} className="mt-3 text-lg text-grape-200" />}
         <p className="mt-2 text-grape-300">
           {loading ? 'Loading the raid…' : view ? (view.won ? 'broke the wall in this raid' : view.won === false ? 'raided, and the wall held' : 'is raiding right now') : 'This raid could not be found.'}
