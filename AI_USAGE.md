@@ -52,3 +52,7 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
 ## Video: end-to-end explainer
 - Files: video/SCRIPT.md, video/scripts/{record,vo}.mjs (Playwright recordings of the prod app with no wallet; edge-tts voiceover), video/src/explainer/** (StarRaidExplainer, 2:21). Written by Claude (Jcode).
 - Human reviewed: asked for a scripted end-to-end demo recorded by the agent; review of the render pending. Wallet steps are animated cards, not recordings (no testnet keys on this machine).
+
+## Sound: ElevenLabs kit for app and video
+- Files: app/src/lib/sfx.ts (samples via WebAudio, soft synth fallback), app/public/sfx/*.mp3, video/public/audio/kit/*.mp3 (sound effects generated with the ElevenLabs MCP, trimmed and loudness-matched), video/src/{Main,explainer/*,scenes/*}.tsx, video/scripts/eleven.mjs. Written by Claude (Jcode); sounds by ElevenLabs text to sound effects.
+- Human reviewed: asked to replace the 8-bit sounds and to use ElevenLabs; listening review pending.
