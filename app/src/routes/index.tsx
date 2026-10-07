@@ -5,10 +5,10 @@ import { fmt, ratio, duration } from '../lib/format'
 import { useHealth, useRaids } from '../lib/live'
 import { PHASE_LABEL, blocksToSec, isActive, phaseOf, sortLobby, type Phase } from '../lib/phase'
 import { CrewRow, Guide, Mascot } from '../components/mascots'
-import { GetReady } from '../components/getready'
 import { NextRaidCountdown } from '../components/countdown'
 import { EmptyState } from '../components/empty'
 import { PREVIEW_GALLERY } from '../lib/stars'
+import { TokenIcon } from '../components/token'
 import type { LobbyRaid } from '../lib/types'
 
 export const Route = createFileRoute('/')({ component: Lobby })
@@ -66,10 +66,6 @@ function Lobby() {
               </ul>
             </div>
           </div>
-        </section>
-
-        <section className="relative z-10 mx-auto mt-10 max-w-7xl px-4 sm:px-6">
-          <GetReady live={live} />
         </section>
 
         <section className="relative z-10 mx-auto mt-12 max-w-7xl px-4 pb-4 sm:px-6">
@@ -211,13 +207,13 @@ function FeaturedStage({ raid, head }: { raid: LobbyRaid; head?: bigint }) {
             <div className="mb-1 flex justify-between text-xs font-bold uppercase tracking-widest text-grape-300">
               <span>Counted toward target</span>
               <span>
-                {fmt(raid.counted, t.quoteDecimals)} / {fmt(t.target, t.quoteDecimals)} tUSDC
+                <TokenIcon token="usdc" size={12} /> {fmt(raid.counted, t.quoteDecimals)} / {fmt(t.target, t.quoteDecimals)}
               </span>
             </div>
             <GameBar value={progress} height={24} marker={1} />
           </div>
           <div className="flex flex-wrap gap-2 pt-1 text-sm">
-            <span className="chip bg-ember-500/20 text-ember-300">🏆 Prize {fmt(t.bounty, t.quoteDecimals)} tUSDC</span>
+            <span className="chip bg-ember-500/20 text-ember-300">🏆 Prize <TokenIcon token="usdc" size={14} /> {fmt(t.bounty, t.quoteDecimals)}</span>
             <span className="chip bg-grape-600/50 text-grape-100">⭐ {raid.seatCount} seats</span>
             <span className="chip bg-grape-600/50 text-grape-100">⏳ hold {duration(t.hold)}</span>
           </div>

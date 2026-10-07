@@ -5,6 +5,7 @@ import type { Phase } from '../lib/phase'
 import { play } from '../lib/sfx'
 import type { Frame, FrameBuy } from '../lib/types'
 import { GameBar, Sprite, StarAvatar, Twinkles } from './game'
+import { TokenIcon } from './token'
 import { Guide, StageCrew } from './mascots'
 
 interface Hit {
@@ -166,7 +167,7 @@ export function Arena({ frame, phase, tentative }: { frame: Frame; phase: Phase;
           </div>
           <div className={`text-right ${tentative ? 'tentative' : 'firm'}`}>
             <span className="font-display text-2xl text-ember-400">{fmt(frame.counted, t.quoteDecimals)}</span>
-            <span className="text-grape-300"> / {fmt(t.target, t.quoteDecimals)} tUSDC</span>
+            <span className="text-grape-300"> / {fmt(t.target, t.quoteDecimals)} <TokenIcon token="usdc" size={14} /></span>
           </div>
         </div>
         <GameBar value={progress} height={30} tentative={tentative} tone={progress >= 1 ? 'mint' : 'ember'}>

@@ -13,6 +13,7 @@ import { PlayerPill } from '../components/profile'
 import { useRaidStream } from '../lib/live'
 import { PHASE_LABEL, phaseOf } from '../lib/phase'
 import { Guide } from '../components/mascots'
+import { TokenIcon } from '../components/token'
 import { PhaseChip, useHead } from './index'
 
 export const Route = createFileRoute('/raid/$raidId')({ component: RaidPage })
@@ -68,7 +69,7 @@ function RaidPage() {
               <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-grape-300">
                 <PhaseChip phase={phase} />
                 <span className="inline-flex items-center gap-1">sponsor <PlayerPill address={t.sponsor} /></span>
-                <span>· prize {fmt(t.bounty, t.quoteDecimals)} tUSDC</span>
+                <span className="inline-flex items-center gap-1">· prize <TokenIcon token="usdc" size={13} /> {fmt(t.bounty, t.quoteDecimals)}</span>
                 <span>· hold {duration(t.hold)}</span>
               </div>
             </div>

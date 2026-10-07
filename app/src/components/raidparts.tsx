@@ -6,6 +6,7 @@ import { STAR_NAMES, starArt } from '../lib/stars'
 import type { Frame } from '../lib/types'
 import { BotAvatar, Sprite, StarAvatar } from './game'
 import { EmptyState } from './empty'
+import { TokenIcon } from './token'
 import { PlayerPill } from './profile'
 
 /**
@@ -114,7 +115,7 @@ export function Party({ frame, me }: { frame: Frame; me?: string }) {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-display text-lg text-ember-300">{fmt(s.counted, t.quoteDecimals)}</div>
+                    <div className="flex items-center justify-end gap-1 font-display text-lg text-ember-300"><TokenIcon token="usdc" size={15} />{fmt(s.counted, t.quoteDecimals)}</div>
                     <div className="text-[10px] uppercase tracking-widest text-grape-300">counted</div>
                   </div>
                 </motion.li>
