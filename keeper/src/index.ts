@@ -4,7 +4,9 @@ import { CastSigner, KeySigner, type Signer } from "./signer.js";
 import { telegramAlerter } from "./alert.js";
 import { Keeper } from "./keeper.js";
 import { ChainReader } from "./chain.js";
-import { shouldPostDemo, demoTxs, postDemo } from "./demo.js";
+import { shouldPostDemo, onDemandBlocker, demoTxs, postDemo } from "./demo.js";
+import { startDemoServer } from "./http.js";
+import type { RaidState } from "./decide.js";
 
 const cfg = loadConfig();
 const client = createPublicClient({ chain: cfg.chain, transport: http(cfg.rpcUrl) });
@@ -33,6 +35,19 @@ if (demoEveryMs > 0 && cfg.chain.id !== 10143) throw new Error("demo raids are t
 let lastDemo = 0;
 console.log(`keeper ${signer.address} on chain ${cfg.chain.id}, vault ${cfg.deployment.vault}`);
 
+// On-demand raids (testnet only): the app asks, the loop below posts.
+let demoRequested = false;
+let lastRaids: RaidState[] | null = null;
+let balance = 0n;
+if (process.env.PORT && cfg.chain.id === 10143) {
+  startDemoServer(Number(process.env.PORT), {
+    blocker: () => (demoRequested ? "a raid is already on its way" : lastRaids === null ? "the keeper is starting up" : onDemandBlocker(lastRaids, Date.now(), lastDemo, balance)),
+    request: () => (demoRequested = true),
+    keeperMon: () => (Number(balance / 10n ** 14n) / 1e4).toFixed(2),
+  });
+  console.log(`on-demand raids on :${process.env.PORT}`);
+}
+
 const once = process.argv.includes("--once");
 let stop = false;
 process.on("SIGINT", () => (stop = true));
@@ -43,10 +58,15 @@ while (!stop) {
   try {
     const { block, acted } = await keeper.tick();
     if (acted.length) console.log(`block ${block}: ${acted.map((a) => `${a.id}:${a.action}:${a.ok ? "ok" : "fail"}`).join(" ")}`);
-    if (demoEveryMs > 0 && shouldPostDemo(await reader.raids(block), Date.now(), lastDemo, demoEveryMs)) {
+    lastRaids = await reader.raids(block);
+    balance = await client.getBalance({ address: signer.address });
+    const scheduled = demoEveryMs > 0 && shouldPostDemo(lastRaids, Date.now(), lastDemo, demoEveryMs);
+    if (demoRequested || scheduled) {
+      const why = demoRequested ? "requested" : "scheduled";
+      demoRequested = false;
       lastDemo = Date.now();
       await postDemo(signer, demoTxs(cfg.deployment, signer.address, await client.getBlockNumber()));
-      console.log("posted a demo raid");
+      console.log(`posted a demo raid (${why})`);
     }
     if (until !== null && acted.some((a) => a.id === until && a.action === "settle" && a.ok)) break;
   } catch (e) {
