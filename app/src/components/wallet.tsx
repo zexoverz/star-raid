@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { TokenAmount, TokenIcon } from './token'
+import { openGuide } from './guide'
 import { useActions, useWalletKit } from '../lib/player'
 import { Link } from '@tanstack/react-router'
 import { useOneTap } from '../lib/onetap'
@@ -83,6 +84,9 @@ function ProfileMenu({ address, openAppKit }: { address: string; openAppKit: () 
               </Link>
             </div>
             <MintRow />
+            <button className="mt-2 w-full rounded-2xl px-3 py-2 text-left font-bold text-grape-100 hover:bg-white/10" onClick={() => (setMenu(false), openGuide())}>
+              ❓ How to raid (guide)
+            </button>
             <button className="mt-2 w-full rounded-2xl px-3 py-2 text-left font-bold text-grape-100 hover:bg-white/10" onClick={() => (setMenu(false), openAppKit())}>
               Wallet and network…
             </button>
