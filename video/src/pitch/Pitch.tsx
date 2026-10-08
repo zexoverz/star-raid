@@ -1,6 +1,6 @@
 import { AbsoluteFill, Html5Audio, Sequence, Series, staticFile, useCurrentFrame, interpolate } from 'remotion'
 import { clamp } from '../ui'
-import { FPS } from './parts'
+import { FaceMode, FPS } from './parts'
 import { PITCH_SCENES } from './scenes'
 
 export const PITCH_TOTAL = PITCH_SCENES.reduce((a, s) => a + s.frames, 0)
@@ -37,8 +37,9 @@ function Flash() {
   return <AbsoluteFill className="pointer-events-none z-[60] bg-white" style={{ opacity: interpolate(near, [0, 4], [0.35, 0], clamp) }} />
 }
 
-export function Pitch() {
+export function Pitch({ face = 'placeholder' }: { face?: 'placeholder' | 'off' }) {
   return (
+    <FaceMode.Provider value={face}>
     <AbsoluteFill className="bg-grape-950">
       <Series>
         {PITCH_SCENES.map(({ id, C, frames }) => (
@@ -51,5 +52,9 @@ export function Pitch() {
       <Whooshes />
       <Flash />
     </AbsoluteFill>
+    </FaceMode.Provider>
   )
 }
+
+/** The cut without his recordings: placeholder voice, no camera slots. */
+export const PitchNoFace = () => <Pitch face="off" />

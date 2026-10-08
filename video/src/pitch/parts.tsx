@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react'
+import { createContext, useContext, type CSSProperties, type ReactNode } from 'react'
 import { AbsoluteFill, Html5Audio, Img, interpolate, OffthreadVideo, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion'
 import { pose } from '../assets'
 import { clamp } from '../ui'
@@ -27,8 +27,21 @@ const CORNER = { x: 1920 - 70 - 300, y: 1080 - 190 - 300, w: 300, h: 300, r: 150
  * changes: `amount` 0 = full frame, 1 = circle in the corner. Without a recording it shows a
  * labelled placeholder (crew art, file name) so the cut can be reviewed before filming.
  */
+/** 'placeholder' shows a labelled camera slot; 'off' renders the cut without him (branded backdrop). */
+export const FaceMode = createContext<'placeholder' | 'off'>('placeholder')
+
 export function Face({ s, amount }: { s: Section; amount: number }) {
   const k = Math.min(Math.max(amount, 0), 1)
+  const mode = useContext(FaceMode)
+  if (mode === 'off' && !s.video) {
+    // no recording: full-frame sections get the hero street, the corner circle simply isn't there
+    if (k >= 0.99) return null
+    return (
+      <div className="absolute inset-0 z-[5]" style={{ opacity: 1 - k }}>
+        <Backdrop title={BACKDROP_TITLE[s.id]} />
+      </div>
+    )
+  }
   const box = {
     left: interpolate(k, [0, 1], [FULL.x, CORNER.x]),
     top: interpolate(k, [0, 1], [FULL.y, CORNER.y]),
@@ -45,6 +58,35 @@ export function Face({ s, amount }: { s: Section; amount: number }) {
         <FacePlaceholder s={s} corner={k} />
       )}
     </div>
+  )
+}
+
+/** Sections that are only his face get a big title instead when rendered without him. */
+const BACKDROP_TITLE: Record<string, string[]> = {
+  hook: ['A token launch', 'that plays like a boss fight'],
+  close: ['One Star.', 'One seat.', 'One wall.'],
+}
+
+function Backdrop({ title }: { title?: string[] }) {
+  const frame = useCurrentFrame()
+  const { fps } = useVideoConfig()
+  return (
+    <AbsoluteFill className="bg-grape-950">
+      <Img src={staticFile('art/hero_scene.webp')} className="h-full w-full object-cover" style={{ objectPosition: '30% 60%', transform: `scale(${1.04 + frame * 0.0004})` }} />
+      <AbsoluteFill style={{ background: 'linear-gradient(180deg, rgb(21 18 42 / 0.55), rgb(21 18 42 / 0.25) 50%, rgb(21 18 42 / 0.75))' }} />
+      {title && (
+        <AbsoluteFill className="items-center justify-center pb-24">
+          {title.map((t, i) => {
+            const p = spring({ frame: frame - 6 - i * 12, fps, config: { damping: 11, stiffness: 170 } })
+            return (
+              <div key={t} className="title-outline text-center leading-[1.05]" style={{ fontSize: i === 0 && title.length === 2 ? 120 : 104, color: i === title.length - 1 ? '#ffb84d' : '#fff', transform: `translateY(${(1 - p) * 60}px) rotate(-2deg)`, opacity: Math.min(1, p * 1.5) }}>
+                {t}
+              </div>
+            )
+          })}
+        </AbsoluteFill>
+      )}
+    </AbsoluteFill>
   )
 }
 
