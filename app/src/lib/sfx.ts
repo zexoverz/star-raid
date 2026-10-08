@@ -6,8 +6,28 @@
  * fetched and decoded once when sound is turned on, then played through WebAudio so rapid hits can
  * overlap. Until a sample is decoded (or if a fetch fails) the small synthesized fallback plays.
  */
-type Sfx = 'hit' | 'combo' | 'join' | 'tick' | 'drum' | 'reveal' | 'victory' | 'defeat' | 'click' | 'coin'
-const NAMES: Sfx[] = ['hit', 'combo', 'join', 'tick', 'drum', 'reveal', 'victory', 'defeat', 'click', 'coin']
+export type Sfx = 'hit' | 'combo' | 'join' | 'tick' | 'drum' | 'reveal' | 'victory' | 'defeat' | 'click' | 'coin'
+export const NAMES: Sfx[] = ['hit', 'combo', 'join', 'tick', 'drum', 'reveal', 'victory', 'defeat', 'click', 'coin']
+
+/**
+ * Which take to use per sound: 0 is the current /sfx/<name>.mp3, 1-3 is /sfx/takes/<name>-<n>.mp3
+ * (cute kawaii takes, compare them on the hidden /sounds page). A missing take falls back to the
+ * current file, then to the synth.
+ */
+export const PICKS: Record<Sfx, number> = {
+  hit: 0,
+  combo: 0,
+  join: 0,
+  tick: 0,
+  drum: 0,
+  reveal: 0,
+  victory: 0,
+  defeat: 0,
+  click: 0,
+  coin: 0,
+}
+
+export const sfxUrl = (n: Sfx, take = PICKS[n]) => (take ? `/sfx/takes/${n}-${take}.mp3` : `/sfx/${n}.mp3`)
 
 /** Per-sound mix so UI clicks stay quiet and the big moments land. */
 const MIX: Record<Sfx, { gain: number; vary?: number }> = {
@@ -57,12 +77,15 @@ function ensure() {
 async function preload(c: AudioContext) {
   await Promise.all(
     NAMES.map(async (n) => {
-      try {
-        const r = await fetch(`/sfx/${n}.mp3`)
-        if (!r.ok) return
-        buffers.set(n, await c.decodeAudioData(await r.arrayBuffer()))
-      } catch {
-        /* keep the synth fallback for this sound */
+      for (const url of new Set([sfxUrl(n), sfxUrl(n, 0)])) {
+        try {
+          const r = await fetch(url)
+          if (!r.ok) continue
+          buffers.set(n, await c.decodeAudioData(await r.arrayBuffer()))
+          return
+        } catch {
+          /* try the next file, else keep the synth fallback for this sound */
+        }
       }
     }),
   )
