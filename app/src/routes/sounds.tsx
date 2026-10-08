@@ -49,6 +49,7 @@ function Sounds() {
       <div className="mx-auto max-w-3xl px-4">
         <h1 className="title-outline -rotate-2 text-center text-5xl sm:text-6xl">Sound picker</h1>
         <p className="mt-3 text-center text-grape-300">Tap to listen. Pick one per sound, then copy your picks and send them back.</p>
+        <MusicPreview />
         <div className="mt-8 space-y-4">
           {NAMES.map((n) => (
             <section key={n} className="panel p-4">
@@ -83,5 +84,38 @@ function Sounds() {
         </div>
       </div>
     </main>
+  )
+}
+
+/** The three battle loops the in-app music rotates through. */
+function MusicPreview() {
+  const [now, setNow] = useState<number | null>(null)
+  const [el] = useState(() => (typeof Audio !== 'undefined' ? new Audio() : null))
+  const toggle = (i: number) => {
+    if (!el) return
+    if (now === i) {
+      el.pause()
+      setNow(null)
+      return
+    }
+    el.src = `/music/raid-${i}.mp3`
+    el.loop = true
+    el.volume = 0.6
+    void el.play().then(() => setNow(i)).catch(() => setNow(null))
+  }
+  return (
+    <section className="panel mt-8 p-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="font-display text-2xl text-white">music</h2>
+        <span className="text-sm text-grape-300">all three rotate in the app</span>
+      </div>
+      <div className="mt-3 grid grid-cols-3 gap-3">
+        {[1, 2, 3].map((i) => (
+          <button key={i} type="button" onClick={() => toggle(i)} className={`btn ${now === i ? 'btn-candy' : 'btn-primary'} min-h-14 w-full px-3 py-3 text-lg`}>
+            {now === i ? '⏸' : '▶'} Loop {i}
+          </button>
+        ))}
+      </div>
+    </section>
   )
 }
