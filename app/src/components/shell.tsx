@@ -26,12 +26,12 @@ export function TopBar() {
   const path = useRouterState({ select: (s) => s.location.pathname })
   useEffect(() => setOpen(false), [path])
   return (
-    <header className="fixed inset-x-0 top-0 z-40 px-3 pt-3 sm:px-6">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
+    <header className="fixed inset-x-0 top-0 z-40 px-3 pt-[max(0.5rem,env(safe-area-inset-top))] sm:px-6 sm:pt-3">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 sm:gap-3">
         <Link to="/" className="group flex shrink-0 items-center" aria-label="Star Raid home">
           {/* Wordmark in the Lil Stars logo style: crew silhouettes peeking over chunky sticker letters. */}
           <img src="/art/wordmark-h.svg" alt="Star Raid" className="hidden h-12 w-auto drop-shadow-[0_4px_0_#15122a] transition-transform group-hover:-rotate-1 group-hover:scale-105 sm:block" />
-          <img src="/art/wordmark.svg" alt="Star Raid" className="h-14 w-auto -my-1 drop-shadow-[0_4px_0_#15122a] sm:hidden" />
+          <img src="/art/wordmark.svg" alt="Star Raid" className="-my-1 h-12 w-auto drop-shadow-[0_4px_0_#15122a] sm:hidden" />
         </Link>
         <nav className="glass hidden min-w-0 items-center gap-1 rounded-full px-2 py-1.5 xl:flex">
           {LINKS.filter((l) => ['/', '/raids'].includes(l.to)).map((l) => (
@@ -52,8 +52,9 @@ export function TopBar() {
           </span>
           <SoundToggle />
           <WalletButton />
+          {/* phones use the bottom tab bar; the menu stays for tablets */}
           <button
-            className="btn btn-ghost h-10 w-10 !p-0 text-lg xl:hidden"
+            className="btn btn-ghost hidden h-11 w-11 !p-0 text-lg sm:inline-flex xl:hidden"
             aria-label="Menu"
             aria-expanded={open}
             onClick={() => setOpen((o) => !o)}
@@ -87,6 +88,71 @@ export function TopBar() {
 
 type NavTo = '/' | '/raids' | '/key' | '/sponsor' | '/how' | '/terms' | '/practice'
 
+/**
+ * Phones: a thumb-reach tab bar (game style) instead of the hamburger. Hidden on raid pages while a
+ * HIT dock owns the bottom of the screen (the page sets data-hit-dock on <body>).
+ */
+export function TabBar() {
+  const path = useRouterState({ select: (s) => s.location.pathname })
+  const [more, setMore] = useState(false)
+  useEffect(() => setMore(false), [path])
+  const tabs: { to: NavTo; label: string; icon: string; match: (p: string) => boolean }[] = [
+    { to: '/', label: 'Lobby', icon: 'lilstars/logo', match: (p) => p === '/' },
+    { to: '/raids', label: 'Raids', icon: 'wall_boss', match: (p) => p === '/raids' || p.startsWith('/raid/') },
+    { to: '/practice', label: 'Practice', icon: 'hit_spark', match: (p) => p === '/practice' },
+    { to: '/key', label: 'My key', icon: 'seat_ticket', match: (p) => p === '/key' },
+  ]
+  const moreActive = ['/sponsor', '/how', '/terms'].includes(path)
+  return (
+    <>
+      <AnimatePresence>
+        {more && (
+          <motion.div className="fixed inset-0 z-40 bg-grape-950/60 backdrop-blur-[2px] sm:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMore(false)}>
+            <motion.nav
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 30, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+              className="glass absolute inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] flex flex-col gap-1 rounded-3xl p-2"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {[
+                { to: '/sponsor' as const, label: 'Sponsor a raid', icon: 'flag_sponsor' },
+                { to: '/how' as const, label: 'How it works', icon: 'dice_block' },
+                { to: '/terms' as const, label: 'Terms', icon: 'shield' },
+              ].map((it) => (
+                <Link key={it.to} to={it.to} className={`flex min-h-12 items-center gap-3 rounded-2xl px-4 text-base font-bold ${path === it.to ? 'bg-ember-500 text-white shadow-[0_3px_0_#b4470a]' : 'text-white/90 active:bg-white/10'}`}>
+                  <img src={`/art/${it.icon}.webp`} alt="" className="h-8 w-8 object-contain" draggable={false} />
+                  {it.label}
+                </Link>
+              ))}
+            </motion.nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <nav className="tabbar fixed inset-x-0 bottom-0 z-40 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:hidden" aria-label="Main">
+        <div className="mx-auto flex max-w-md items-stretch justify-between gap-1 rounded-[26px] border-[3px] border-grape-500 bg-grape-900/95 p-1 shadow-[0_6px_0_#15122a,0_-6px_24px_rgba(0,0,0,0.35)] backdrop-blur">
+          {tabs.map((t) => {
+            const on = t.match(path)
+            return (
+              <Link key={t.to} to={t.to} className={`relative flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 rounded-[20px] text-[12px] font-extrabold tracking-wide ${on ? 'text-white' : 'text-grape-300'}`}>
+                {on && <motion.span layoutId="tab-pill" className="absolute inset-0 -z-10 rounded-[20px] bg-ember-500 shadow-[0_3px_0_#b4470a]" transition={{ type: 'spring', stiffness: 460, damping: 34 }} />}
+                <motion.img src={`/art/${t.icon}.webp`} alt="" className="h-7 w-7 object-contain" animate={on ? { y: [0, -4, 0], rotate: [0, -6, 0] } : { y: 0 }} transition={{ duration: 0.4 }} draggable={false} />
+                {t.label}
+              </Link>
+            )
+          })}
+          <button onClick={() => setMore((m) => !m)} aria-expanded={more} className={`relative flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 rounded-[20px] text-[12px] font-extrabold tracking-wide ${moreActive || more ? 'text-white' : 'text-grape-300'}`}>
+            {moreActive && <span className="absolute inset-0 -z-10 rounded-[20px] bg-ember-500 shadow-[0_3px_0_#b4470a]" />}
+            <span className="grid h-7 w-7 place-items-center text-xl leading-none">{more ? '✕' : '⋯'}</span>
+            More
+          </button>
+        </div>
+      </nav>
+    </>
+  )
+}
+
 /** How it works and Terms live under one small dropdown, so the pill nav stays short. */
 function MoreMenu({ path }: { path: string }) {
   const [open, setOpen] = useState(false)
@@ -114,7 +180,7 @@ function MoreMenu({ path }: { path: string }) {
         {active && <motion.span layoutId="nav-pill" className="absolute inset-0 -z-10 rounded-full bg-ember-500 shadow-[0_3px_0_#b4470a]" transition={{ type: 'spring', stiffness: 420, damping: 32 }} />}
         {!active && open && <span className="absolute inset-0 -z-10 rounded-full bg-white/10" />}
         More
-        <motion.span animate={{ rotate: open ? 180 : 0 }} className="text-[10px] leading-none">▼</motion.span>
+        <motion.span animate={{ rotate: open ? 180 : 0 }} className="text-[12px] sm:text-[10px] leading-none">▼</motion.span>
       </button>
       <AnimatePresence>
         {open && (
@@ -166,7 +232,7 @@ function NavLink({ to, children }: { to: NavTo; children: React.ReactNode }) {
 
 export function Footer() {
   return (
-    <footer className="relative z-10 mt-16 border-t-4 border-grape-800 bg-[#1A1D24]">
+    <footer className="relative z-10 mt-16 border-t-4 border-grape-800 bg-[#1A1D24] pb-24 sm:pb-0">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-3 px-6 py-8 text-center text-sm text-grape-300 sm:flex-row sm:justify-between sm:text-left">
         <div className="flex items-center gap-3">
           <img src="/art/lilstars/logo.webp" alt="Lil Stars" className="h-14 w-14" />
