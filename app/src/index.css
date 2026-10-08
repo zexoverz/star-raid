@@ -75,6 +75,9 @@
   /* No visible scrollbars anywhere (page and inner lists); scrolling by wheel, touch and keys still works. */
   * { scrollbar-width: none; -ms-overflow-style: none; }
   ::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+  /* No grey flash on tap, no double-tap zoom on game controls. */
+  button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 }
 
 @layer components {
@@ -177,4 +180,14 @@
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+}
+
+/* Unlayered on purpose: these must beat utility classes like `flex`.
+   Phones: the HIT dock takes the bottom of the screen while a raid window is open, so the tab bar
+   and the in-page copy of the same controls fold away. */
+body[data-hit-dock] .tabbar { display: none; }
+@media (max-width: 1023px) {
+  body[data-hit-dock] .hitpad-inline,
+  body[data-hit-dock] [data-pad-hit] { display: none; }
+  body[data-hit-dock] main { padding-bottom: 12rem; }
 }
