@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import { useHealth } from '../lib/live'
 import { NextRaidChip } from './countdown'
-import { SoundToggle, WalletButton } from './wallet'
+import { MusicToggle, SoundToggle, WalletButton } from './wallet'
 
 const LINKS: { to: NavTo; label: string }[] = [
   { to: '/', label: 'Lobby' },
@@ -50,6 +50,7 @@ export function TopBar() {
             <span className={`h-2 w-2 rounded-full ${ok ? 'bg-mint shadow-[0_0_8px_#a3e3c1]' : 'bg-candy-500'}`} />
             {ok ? `Block ${Number(health.data?.finalized).toLocaleString()}` : 'Offline'}
           </span>
+          <MusicToggle />
           <SoundToggle />
           <WalletButton />
           {/* phones use the bottom tab bar; the menu stays for tablets */}

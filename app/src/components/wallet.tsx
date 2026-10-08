@@ -11,6 +11,7 @@ import { useChainId, useConnection, useDisconnect, useSwitchChain } from 'wagmi'
 import { CHAIN_ID } from '../lib/config'
 import { PlayerPill } from './profile'
 import { onSound, play, setSound, soundOn } from '../lib/sfx'
+import { musicOn, onMusic, setMusic } from '../lib/music'
 
 export function WalletButton({ big = false }: { big?: boolean }) {
   const { address, isConnected } = useConnection()
@@ -153,6 +154,25 @@ export function SoundToggle() {
       }}
     >
       {on ? '🔊' : '🔈'}
+    </button>
+  )
+}
+
+export function MusicToggle() {
+  const [on, setOn] = useState(musicOn())
+  useEffect(() => {
+    const off = onMusic(setOn)
+    return () => void off()
+  }, [])
+  return (
+    <button
+      className={`btn btn-ghost h-11 w-11 !p-0 text-lg ${on ? '' : 'opacity-60'}`}
+      title={on ? 'Music on' : 'Music off'}
+      aria-label="Toggle music"
+      aria-pressed={on}
+      onClick={() => setMusic(!on)}
+    >
+      <span className={on ? '' : 'line-through decoration-2'}>🎵</span>
     </button>
   )
 }
