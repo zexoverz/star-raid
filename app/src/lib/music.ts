@@ -4,7 +4,7 @@
  * same; swap the file to change it. During a live raid the mix gets louder
  * (`setIntensity('raid')`); everywhere else it sits quietly under the UI.
  */
-export const TRACK = '/music/raid-1.mp3'
+export const TRACK = '/music/bgm.mp3'
 const VOLUME = { calm: 0.22, raid: 0.42 } as const
 type Intensity = keyof typeof VOLUME
 
