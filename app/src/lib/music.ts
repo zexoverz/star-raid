@@ -1,16 +1,15 @@
 /**
  * Background music. Off by default (browsers block autoplay anyway); the 🎵 button in the top bar
- * turns it on, remembered in localStorage. Three chiptune battle loops (ElevenLabs, ~30 s each)
- * play as a rotating playlist so the same loop never repeats back to back. During a live raid the
- * mix gets louder (`setIntensity('raid')`); everywhere else it sits quietly under the UI.
+ * turns it on, remembered in localStorage. One track on a seamless loop, so it always sounds the
+ * same; swap the file to change it. During a live raid the mix gets louder
+ * (`setIntensity('raid')`); everywhere else it sits quietly under the UI.
  */
-const TRACKS = ['/music/raid-1.mp3', '/music/raid-2.mp3', '/music/raid-3.mp3']
+export const TRACK = '/music/raid-1.mp3'
 const VOLUME = { calm: 0.22, raid: 0.42 } as const
 type Intensity = keyof typeof VOLUME
 
 let enabled = typeof localStorage !== 'undefined' && localStorage.getItem('sr-music') === 'on'
 let intensity: Intensity = 'calm'
-let index = Math.floor(Math.random() * TRACKS.length)
 let audio: HTMLAudioElement | null = null
 let fade: ReturnType<typeof setInterval> | undefined
 let waitingForTap = false
@@ -27,15 +26,10 @@ export function onMusic(l: (on: boolean) => void) {
 
 function el() {
   if (audio) return audio
-  audio = new Audio(TRACKS[index])
+  audio = new Audio(TRACK)
   audio.preload = 'auto'
+  audio.loop = true
   audio.volume = 0
-  // next loop in the playlist when one ends (each file is a seamless ~30 s loop)
-  audio.addEventListener('ended', () => {
-    index = (index + 1) % TRACKS.length
-    audio!.src = TRACKS[index]
-    void start()
-  })
   return audio
 }
 
