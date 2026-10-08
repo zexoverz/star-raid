@@ -45,6 +45,10 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
 - Files: app/server/index.mjs (/star/:id.png, IPFS fetch + resvg 256px + memory cache), app/src/lib/stars.ts, components/game.tsx, arena/curtain/raidparts/results, r.$raidId.$seat, countdown.tsx, wallet.tsx, vite.config.ts, lib.test.ts.
 - Human reviewed: seat label wording, art fetched by token id from the official CID, button placement.
 
+## App: mobile-first pass, cute sound takes, background music
+- Files: app/src/components/{shell,hitpad,arena,mascots,raidparts,results,wallet,join,amount,curtain,game}.tsx, app/src/routes/{__root,practice,raid.$raidId,raids,index,key,sponsor,sounds}.tsx, app/src/index.css, app/src/lib/{sfx,music,toast}.ts(x), app/public/sfx/takes/*.mp3 (30 takes), app/public/music/raid-{1,2,3}.mp3, scripts/serve-local.sh. Written by Claude (Jcode) with two sub-agents (sound takes and /sounds page; music attempt). Sounds and music generated with ElevenLabs text to sound effects (music API is paid only, so the loops are 30 s sound-effect loops).
+- Human reviewed: boss asked for mobile, BGM and cuter sounds; the human picked the three chiptune battle loops by ear; the sound effect takes are still to be picked on /sounds.
+
 ## Video: Remotion demo cut
 - Files: video/** (Remotion 4.0.534 project: scenes Hook, Sponsor, Seats, Raid, Draw, Victory, Cta; asset slots; app sound kit rendered to WAV; snapshots of raids 26 and 3 from the live service; Lil Star #5, #6, #8 collection art resized from IPFS), docs/plan/decisions.md D45. Written by Claude (Jcode).
 - Human reviewed: pending his watch of out/star-raid-demo.mp4 and the scene stills.

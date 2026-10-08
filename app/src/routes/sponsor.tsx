@@ -73,7 +73,7 @@ function SponsorConsole() {
                   <Slider label="Prize hold" value={f.holdSec} min={0} max={3600} step={30} fmt={(v) => (v ? duration(v) : 'none')} onChange={set('holdSec')} />
                 </div>
 
-                <label className="mt-4 block text-[11px] font-bold uppercase tracking-[0.14em] text-grape-300">
+                <label className="mt-4 block text-[12px] sm:text-[11px] font-bold uppercase tracking-[0.14em] text-grape-300">
                   Affiliates <span className="normal-case tracking-normal">· optional, these wallets cannot raid (you never can)</span>
                 </label>
                 <textarea value={f.affiliates} onChange={(e) => set('affiliates')(e.target.value)} rows={2} placeholder="0x… one per line" className="mt-1 w-full rounded-2xl bg-grape-950/70 px-3 py-2 font-mono text-xs text-white outline-none ring-2 ring-transparent focus:ring-ember-400" />
@@ -207,7 +207,7 @@ function HowItWorks() {
             <div className="font-display text-sm text-white">
               {i + 1}. {x.t}
             </div>
-            <div className="text-[11px] text-grape-300">{x.d}</div>
+            <div className="text-[12px] sm:text-[11px] text-grape-300">{x.d}</div>
           </div>
         </div>
       ))}
@@ -218,7 +218,7 @@ function HowItWorks() {
 function Field({ label, hint, icon, value, onChange }: { label: string; hint: string; icon: 'usdc' | 'star'; value: string; onChange: (v: string) => void }) {
   return (
     <label className="mb-3 block">
-      <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-grape-300">
+      <span className="text-[12px] sm:text-[11px] font-bold uppercase tracking-[0.14em] text-grape-300">
         {label} <span className="normal-case tracking-normal">· {hint}</span>
       </span>
       <span className="mt-1 flex items-center gap-2 rounded-2xl bg-grape-950/70 px-3 py-2 ring-2 ring-transparent focus-within:ring-ember-400">
@@ -232,7 +232,7 @@ function Field({ label, hint, icon, value, onChange }: { label: string; hint: st
 function Slider({ label, value, min, max, step, fmt, onChange }: { label: string; value: number; min: number; max: number; step: number; fmt: (v: number) => string; onChange: (v: number) => void }) {
   return (
     <label className="block rounded-2xl bg-grape-950/50 p-2.5">
-      <span className="flex justify-between text-[11px] text-grape-300">
+      <span className="flex justify-between text-[12px] sm:text-[11px] text-grape-300">
         <b className="uppercase tracking-widest">{label}</b>
         <span className="font-bold text-white">{fmt(value)}</span>
       </span>

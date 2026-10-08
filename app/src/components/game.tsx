@@ -109,7 +109,7 @@ export function Stat({ label, value, sub, tentative, icon }: { label: string; va
     <div className="flex items-center gap-3">
       {icon && <Sprite name={icon} className="h-11 w-11 object-contain drop-shadow-[0_3px_0_#2d2250]" />}
       <div className="min-w-0">
-        <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-grape-300">{label}</div>
+        <div className="text-[12px] sm:text-[11px] font-bold uppercase tracking-[0.14em] text-grape-300">{label}</div>
         <div className={`font-display text-2xl leading-tight text-white ${tentative ? 'tentative' : 'firm'}`}>{value}</div>
         {sub && <div className="text-xs text-grape-300">{sub}</div>}
       </div>
