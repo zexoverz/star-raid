@@ -27,12 +27,18 @@ async function swipe(page, to, ms = 1400) {
     [to, ms],
   )
 }
+/** Navigate, let the app paint, then start keeping frames (no blank white tab at the start). */
+async function go(page, url) {
+  await page.goto(url, { waitUntil: 'load' })
+  await wait(1500)
+  page.__roll?.()
+}
 const tap = (page, loc) => loc.first().tap({ timeout: 8000 }).catch(() => loc.first().click({ timeout: 4000 }).catch(() => {}))
 
 const CLIPS = {
   async lobby(p) {
-    await p.goto(SITE, { waitUntil: 'load' })
-    await wait(3500)
+    await go(p, SITE)
+    await wait(2000)
     await swipe(p, 700)
     await wait(2500)
     await swipe(p, 1500)
@@ -41,8 +47,8 @@ const CLIPS = {
     await wait(1200)
   },
   async board(p) {
-    await p.goto(`${SITE}/raids`, { waitUntil: 'load' })
-    await wait(3000)
+    await go(p, `${SITE}/raids`)
+    await wait(1500)
     await tap(p, p.getByRole('button', { name: 'Walls broken' }))
     await wait(2500)
     await swipe(p, 500)
@@ -50,8 +56,7 @@ const CLIPS = {
   },
   // the core loop: the window opens, a burst of real taps on the HIT dock, combo, danger zone, draw, verdict
   async practice(p) {
-    await p.goto(`${SITE}/practice`, { waitUntil: 'load' })
-    await wait(1500)
+    await go(p, `${SITE}/practice`)
     const hit = p.locator('button:visible:has-text("HIT!")').last()
     const t0 = Date.now()
     while (Date.now() - t0 < 30_000 && !(await hit.isEnabled().catch(() => false))) await wait(150)
@@ -65,8 +70,8 @@ const CLIPS = {
     await wait(26_000)
   },
   async raid(p) {
-    await p.goto(`${SITE}/raid/${RAID}`, { waitUntil: 'load' })
-    await wait(4000)
+    await go(p, `${SITE}/raid/${RAID}`)
+    await wait(2500)
     await swipe(p, 800)
     await wait(2500)
     await swipe(p, 0, 900)
@@ -74,8 +79,8 @@ const CLIPS = {
     await wait(24_000)
   },
   async how(p) {
-    await p.goto(`${SITE}/how`, { waitUntil: 'load' })
-    await wait(2500)
+    await go(p, `${SITE}/how`)
+    await wait(1000)
     for (const y of [600, 1300, 2000]) {
       await swipe(p, y)
       await wait(2200)
@@ -93,7 +98,13 @@ async function record(ctx, page, file, run) {
   mkdirSync(dir, { recursive: true })
   const cdp = await ctx.newCDPSession(page)
   const frames = []
+  let rolling = false
+  page.__roll = () => (rolling = true)
   cdp.on('Page.screencastFrame', async (f) => {
+    if (!rolling) {
+      await cdp.send('Page.screencastFrameAck', { sessionId: f.sessionId }).catch(() => {})
+      return
+    }
     const n = frames.length
     writeFileSync(`${dir}/${String(n).padStart(6, '0')}.jpg`, Buffer.from(f.data, 'base64'))
     frames.push(f.metadata.timestamp)
@@ -117,7 +128,9 @@ async function record(ctx, page, file, run) {
 const pick = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(CLIPS)
 const browser = await chromium.launch()
 for (const name of pick) {
-  const ctx = await browser.newContext({ ...devices['iPhone 13'], deviceScaleFactor: 2 })
+  // The iPhone 13 profile's viewport is 390x664 (the page area under Safari's bars). The mockup has
+  // no browser chrome, so render the app at the full 390x844 screen or the bottom would be empty.
+  const ctx = await browser.newContext({ ...devices['iPhone 13'], viewport: { width: 390, height: 844 }, screen: { width: 390, height: 844 }, deviceScaleFactor: 2 })
   // skip the loading screen (it has its own beat in the video)
   await ctx.addInitScript(() => sessionStorage.setItem('sr-loaded', '1'))
   const page = await ctx.newPage()

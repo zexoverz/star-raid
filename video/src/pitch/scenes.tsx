@@ -166,11 +166,11 @@ export function Demo() {
           height={880}
           cuts={[
             { src: rec('lobby'), from: 0.2, at: 0 },
-            { src: rec('board'), from: 3.5, at: c(1) },
+            { src: rec('board'), from: 1.0, at: c(1) },
             { src: rec('practice'), from: 0, at: c(2) },
             { src: rec('practice'), from: 1.0, at: c(3) },
             { src: rec('practice'), from: 6.0, at: c(4) },
-            { src: rec('raid'), from: 17.0, at: c(5) },
+            { src: rec('raid'), from: 19.0, at: c(5) },
           ]}
         />
       </div>
