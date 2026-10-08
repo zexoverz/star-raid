@@ -14,8 +14,20 @@
       href="https://fonts.googleapis.com/css2?family=Gluten:wght@500;700;800&family=Gorditas:wght@400;700&family=Outfit:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <link rel="preload" as="image" href="/art/wordmark.svg" />
+    <style>
+      /* Static splash shown until the app's JS loads (the Loader component then takes over). */
+      html, body { margin: 0; background: #15122a; }
+      #boot-splash { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: radial-gradient(ellipse at 50% 30%, rgb(232 38 177 / 0.25), transparent 60%), #15122a; }
+      #boot-splash img { height: 160px; width: auto; filter: drop-shadow(0 8px 0 #15122a); animation: boot-bob 1.2s ease-in-out infinite; }
+      #boot-splash .ring { margin: 28px auto 0; width: 44px; height: 44px; border-radius: 50%; border: 6px solid #2d2250; border-top-color: #ff8c42; animation: boot-spin 0.8s linear infinite; }
+      @keyframes boot-spin { to { transform: rotate(360deg); } }
+      @keyframes boot-bob { 50% { transform: translateY(-8px); } }
+      @media (prefers-reduced-motion: reduce) { #boot-splash img, #boot-splash .ring { animation: none; } }
+    </style>
   </head>
   <body>
+    <div id="boot-splash" aria-label="Loading Star Raid"><div><img src="/art/wordmark.svg" alt="Star Raid" /><div class="ring"></div></div></div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
