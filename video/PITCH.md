@@ -87,3 +87,17 @@ Roadmap source: `docs/plan/` (mainnet after testnet, Mera passkey account E5 P1,
 - Wear something plain, or a Star Raid / Lil Stars shirt if you have one.
 - Drop the files in `video/public/face/`. The video fits each section to the length of your clip,
   and subtitles are made from your voice.
+
+## Building the video
+
+```
+cd video
+pnpm record:phone      # phone-size recordings of the live app (public/rec/phone/)
+pnpm pitch:sync        # times every section: his clip if public/face/<file> exists, else a placeholder voice
+pnpm dev               # Remotion Studio: StarRaidPitch, and each section under "Pitch"
+pnpm render:pitch      # out/star-raid-pitch.mp4
+```
+
+After dropping his clips in `public/face/`, run `pnpm pitch:sync` again: each section takes the length
+of his take, the clip is trimmed to his speech, and subtitles are what he actually said (ElevenLabs
+speech to text). Edit wording in `src/pitch/lines.json`.

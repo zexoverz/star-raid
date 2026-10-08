@@ -14,7 +14,10 @@
     "vo": "node scripts/vo.mjs",
     "render:explainer": "remotion render StarRaidExplainer out/star-raid-explainer.mp4",
     "record:wallet": "node scripts/record-wallet.mjs",
-    "render:explainer:novo": "remotion render StarRaidExplainerNoVO out/star-raid-explainer-no-vo.mp4"
+    "render:explainer:novo": "remotion render StarRaidExplainerNoVO out/star-raid-explainer-no-vo.mp4",
+    "pitch:sync": "node scripts/pitch-sync.mjs",
+    "render:pitch": "remotion render StarRaidPitch out/star-raid-pitch.mp4",
+    "record:phone": "node scripts/record-phone.mjs"
   },
   "dependencies": {
     "@remotion/cli": "4.0.534",

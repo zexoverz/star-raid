@@ -1,0 +1,102 @@
+[
+  {
+    "id": "hook",
+    "file": "01-hook.mp4",
+    "face": "full",
+    "lines": [{ "t": "What if a token launch felt like a boss fight, and only real people could win it?" }]
+  },
+  { "id": "sting", "face": "none", "fixed": 5 },
+  {
+    "id": "problem",
+    "file": "03-problem.mp4",
+    "face": "full>corner",
+    "lines": [
+      { "t": "Community buys are broken." },
+      { "t": "Bots farm the rewards." },
+      { "t": "Snipers wait for the very last second." },
+      { "t": "And the sponsor never knows if a real community even showed up." },
+      { "t": "Not everyone can trade." },
+      { "t": "But anyone can play a game with their friends." }
+    ]
+  },
+  {
+    "id": "days",
+    "file": "04-days.mp4",
+    "face": "full",
+    "lines": [{ "t": "So we spent five days building Star Raid for Monad Metropolis." }]
+  },
+  {
+    "id": "meet",
+    "file": "05-meet.mp4",
+    "face": "corner",
+    "lines": [
+      { "t": "Star Raid is a co-op raid game on a real on-chain order book." },
+      { "t": "A sponsor puts up a wall of their token." },
+      { "t": "Lil Stars holders take their seats, and break it together, live." }
+    ]
+  },
+  {
+    "id": "demo",
+    "file": "06-demo.mp4",
+    "face": "none",
+    "lines": [
+      { "t": "This is the lobby. The next raid, live, right here on your phone." },
+      { "t": "A sponsor sets the wall, the price cap and a USDC prize, and posts it in a few taps." },
+      { "t": "Your Lil Star is your seat. One Star, one seat. That's the whole bot defence." },
+      { "t": "Set up once, and every raid after that is one tap. No wallet popups." },
+      { "t": "When the window opens, everyone hits the wall. Every hit is a real buy." },
+      { "t": "Then the end block is drawn, every hit is checked, and if the seats hit the target, the wall breaks." }
+    ]
+  },
+  {
+    "id": "how",
+    "file": "07-how.mp4",
+    "face": "corner",
+    "lines": [
+      { "t": "Under the hood, every hit is a buy on Kuru's order book on Monad, capped at the wall price." },
+      { "t": "Cheaper asks fill first, and anything left over is cancelled and refunded in the same transaction." },
+      { "t": "The end of the raid is drawn by Pyth Entropy after the window closes, so nobody can snipe the last block." },
+      { "t": "And only seats count." },
+      { "t": "A wallet without a Lil Star can still buy, but it earns nothing." },
+      {
+        "t": "On testnet, raid #26 broke its wall: 58 hits, 580 counted against a 500 target.",
+        "say": "On testnet, raid twenty-six broke its wall: fifty-eight hits, five hundred eighty counted against a five hundred target."
+      }
+    ]
+  },
+  {
+    "id": "why",
+    "file": "08-why.mp4",
+    "face": "full",
+    "lines": [
+      { "t": "We built it on Monad because a raid only feels like a game when blocks are fast." },
+      { "t": "Kuru gives us a real on-chain order book, so the wall is real liquidity, not a mock." },
+      { "t": "And Pyth Entropy gives us a fair end that nobody, not even us, can know in advance." }
+    ]
+  },
+  {
+    "id": "roadmap",
+    "file": "09-roadmap.mp4",
+    "face": "corner",
+    "lines": [
+      { "t": "Right now Star Raid is live on Monad testnet." },
+      { "t": "Next, we go to mainnet." },
+      { "t": "Then passkey sign-in, so anyone can join without installing a wallet." },
+      { "t": "And more walls: any sponsor token, starting with liquid staking tokens." },
+      { "t": "We think this is something the Monad community would love to play." }
+    ]
+  },
+  {
+    "id": "close",
+    "file": "10-close.mp4",
+    "face": "full",
+    "endCard": 4.5,
+    "lines": [
+      { "t": "This is Star Raid." },
+      { "t": "One Star." },
+      { "t": "One seat." },
+      { "t": "One wall." },
+      { "t": "Grab a seat at starraid.xyz", "say": "Grab a seat at star raid dot x y z." }
+    ]
+  }
+]
