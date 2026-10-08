@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { fmt, ratio } from '../lib/format'
 import type { Phase } from '../lib/phase'
 import { play } from '../lib/sfx'
+import { setIntensity } from '../lib/music'
 import type { Frame, FrameBuy } from '../lib/types'
 import { GameBar, Sprite, StarAvatar, Twinkles } from './game'
 import { TokenIcon } from './token'
@@ -45,6 +46,12 @@ export function Arena({ frame, phase, tentative }: { frame: Frame; phase: Phase;
   const [line, setLine] = useState<string | null>(null)
   const comboTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
+  // Background music gets louder while the window is open, and calms down when the page goes.
+  const fighting = phase === 'live' || phase === 'danger'
+  useEffect(() => {
+    setIntensity(fighting ? 'raid' : 'calm')
+    return () => setIntensity('calm')
+  }, [fighting])
   useEffect(() => {
     if (!fresh.length) return
     const add = fresh.map((b, i) => ({ key: `${b.id}-${Date.now()}`, buy: b, x: 25 + ((i * 37 + Number(b.block) * 13) % 50), y: 18 + ((i * 23 + Number(b.block) * 7) % 45) }))
