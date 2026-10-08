@@ -53,7 +53,7 @@ export function Timeline({ frame, head, phase }: { frame: Frame; head?: bigint; 
           className={`absolute top-5 h-4 rounded-r-full ${phase === 'danger' ? 'animate-pulse' : ''}`}
           style={{ left: `${dangerLeft}%`, right: 0, background: 'repeating-linear-gradient(-45deg,#e826b1 0 8px,#aa3686 8px 16px)' }}
         />
-        <div className="absolute -top-0.5 pl-6 text-[10px] font-bold uppercase tracking-widest text-candy-300" style={{ left: `${dangerLeft}%` }}>
+        <div className="absolute -top-0.5 pl-6 text-[12px] sm:text-[10px] font-bold uppercase tracking-widest text-candy-300" style={{ left: `${dangerLeft}%` }}>
           ☠ danger zone
         </div>
         {frame.buys.map((b) => (
@@ -62,7 +62,7 @@ export function Timeline({ frame, head, phase }: { frame: Frame; head?: bigint; 
         {nowPos !== null && head! <= w1 + 5n && head! >= w0 - 50n && (
           <motion.div className="absolute top-0 -translate-x-1/2" animate={{ left: `${nowPos}%` }} transition={{ type: 'spring', stiffness: 60, damping: 15 }}>
             <div className="h-12 w-[3px] rounded-full bg-sky shadow-[0_0_10px_#b6d6f7]" />
-            <div className="mt-0.5 -translate-x-1/3 text-[10px] font-bold text-sky">NOW</div>
+            <div className="mt-0.5 -translate-x-1/3 text-[12px] sm:text-[10px] font-bold text-sky">NOW</div>
           </motion.div>
         )}
         <AnimatePresence>
@@ -115,7 +115,7 @@ export function Party({ frame, me }: { frame: Frame; me?: string }) {
                   </div>
                   <div className="text-right">
                     <div className="flex items-center justify-end gap-1 font-display text-lg text-ember-300"><TokenIcon token="usdc" size={15} />{fmt(s.counted, t.quoteDecimals)}</div>
-                    <div className="text-[10px] uppercase tracking-widest text-grape-300">counted</div>
+                    <div className="text-[12px] sm:text-[10px] uppercase tracking-widest text-grape-300">counted</div>
                   </div>
                 </motion.li>
               )
@@ -155,16 +155,19 @@ export function HitFeed({ frame }: { frame: Frame }) {
         <ul className="max-h-[360px] space-y-1.5 overflow-y-auto pr-1">
           <AnimatePresence initial={false}>
             {buys.map((b) => (
-              <motion.li key={b.id} layout initial={{ opacity: 0, y: -12, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} className={`flex items-center gap-3 rounded-xl px-2.5 py-1.5 ${b.afterEnd ? 'opacity-45 grayscale' : ''} ${b.seatKey ? 'bg-grape-950/50' : 'bg-grape-950/25'}`}>
+              <motion.li key={b.id} layout initial={{ opacity: 0, y: -12, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} className={`relative flex min-h-12 items-center gap-3 rounded-xl px-2.5 py-1.5 ${b.afterEnd ? 'opacity-45 grayscale' : ''} ${b.seatKey ? 'bg-grape-950/50' : 'bg-grape-950/25'}`}>
+                {/* phones: the whole row opens the transaction (a 14px "tx" link is too small for a thumb) */}
+                <a className="absolute inset-0 z-10 rounded-xl sm:hidden" href={`${EXPLORER}/tx/${b.tx}`} target="_blank" rel="noreferrer" aria-label="Open transaction" />
                 {b.seatKey ? <StarAvatar tokenId={b.tokenId} size={32} ring={false} /> : <BotAvatar size={32} />}
                 <div className="min-w-0 flex-1 text-sm">
                   <span className="font-bold text-white">{b.tokenId ? `Lil Star #${b.tokenId}` : 'No seat'}</span>
                   <span className="text-grape-300"> bought {fmt(b.wallFillQuote, t.quoteDecimals)} from the wall</span>
-                  <div className="flex min-w-0 flex-wrap items-center gap-x-1 text-[11px] text-grape-300">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-1 text-[12px] sm:text-[11px] text-grape-300">
                     <PlayerPill address={b.holder ?? b.player} size={14} /> · block {Number(b.block).toLocaleString()} ·{' '}
-                    <a className="underline hover:text-white" href={`${EXPLORER}/tx/${b.tx}`} target="_blank" rel="noreferrer">
+                    <a className="hidden underline hover:text-white sm:inline" href={`${EXPLORER}/tx/${b.tx}`} target="_blank" rel="noreferrer">
                       tx
                     </a>
+                    <span className="sm:hidden">↗</span>
                     {b.afterEnd && <span className="ml-1 text-candy-300">· after the end, not counted</span>}
                   </div>
                 </div>

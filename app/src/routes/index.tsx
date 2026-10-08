@@ -45,7 +45,7 @@ function Lobby() {
             <div className="panel flex-1 p-4">
               <div className="mb-3 flex items-center justify-between">
                 <div className="font-display text-lg text-white">Recent raids</div>
-                <Link to="/raids" className="text-sm font-bold text-candy-300 hover:text-candy-200">
+                <Link to="/raids" className="inline-flex min-h-11 items-center text-sm font-bold text-candy-300 hover:text-candy-200">
                   Raid board →
                 </Link>
               </div>
@@ -289,9 +289,9 @@ export function RaidCard({ raid, head }: { raid: LobbyRaid; head?: bigint }) {
 function Mini({ label, value, unit }: { label: string; value: string; unit: string }) {
   return (
     <div className="rounded-xl bg-grape-950/60 px-2 py-2">
-      <div className="text-[10px] font-bold uppercase tracking-widest text-grape-300">{label}</div>
+      <div className="text-[12px] sm:text-[10px] font-bold uppercase tracking-widest text-grape-300">{label}</div>
       <div className="font-display text-lg text-white">{value}</div>
-      <div className="text-[10px] text-grape-300">{unit}</div>
+      <div className="text-[12px] sm:text-[10px] text-grape-300">{unit}</div>
     </div>
   )
 }

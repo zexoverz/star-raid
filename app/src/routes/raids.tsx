@@ -55,9 +55,9 @@ function RaidBoard() {
             </Guide>
           </div>
 
-          <div className="glass mt-6 inline-flex flex-wrap gap-1 rounded-full p-1.5">
+          <div className="glass mt-6 flex gap-1 overflow-x-auto rounded-full p-1.5 sm:inline-flex sm:flex-wrap">
             {FILTERS.map((f) => (
-              <button key={f.id} onClick={() => (setFilter(f.id), setShown(PAGE))} className={`relative rounded-full px-4 py-1.5 text-sm font-bold transition-colors ${filter === f.id ? 'text-white' : 'text-white/75 hover:text-white'}`}>
+              <button key={f.id} onClick={() => (setFilter(f.id), setShown(PAGE))} className={`relative min-h-11 shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-bold transition-colors sm:min-h-0 ${filter === f.id ? 'text-white' : 'text-white/75 hover:text-white'}`}>
                 {filter === f.id && <motion.span layoutId="board-filter" className="absolute inset-0 -z-10 rounded-full bg-candy-500 shadow-[0_3px_0_#7a1f5f]" transition={{ type: 'spring', stiffness: 420, damping: 32 }} />}
                 {f.label}
               </button>

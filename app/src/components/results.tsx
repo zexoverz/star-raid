@@ -55,12 +55,12 @@ export function ResultBanner({ frame, phase, onReplay, me, shareable = true }: {
         {lateBuys > 0 && <p className="mt-3 text-xs text-grape-300">{lateBuys} hit(s) landed after the end block and did not count.</p>}
         <div className="mt-5 flex flex-wrap justify-center gap-2">
           {frame.endBlock && (
-            <button className="btn btn-ghost px-5 py-2 text-sm" onClick={onReplay}>
+            <button className="btn btn-ghost min-h-11 px-5 py-2 text-sm" onClick={onReplay}>
               🎭 Replay the draw
             </button>
           )}
           {shareable && (
-            <Link to="/r/$raidId/$seat" params={{ raidId: frame.raidId, seat: mySeat ?? 'raid' }} className="btn btn-candy px-5 py-2 text-sm">
+            <Link to="/r/$raidId/$seat" params={{ raidId: frame.raidId, seat: mySeat ?? 'raid' }} className="btn btn-candy min-h-11 px-5 py-2 text-sm">
               📣 {mySeat ? 'Share your card' : 'Share this raid'}
             </Link>
           )}
@@ -74,7 +74,7 @@ function Big({ label, value, hint }: { label: string; value: string; hint?: stri
   return (
     <div className="rounded-2xl bg-grape-950/60 p-3" title={hint}>
       <div className="font-display text-3xl text-white">{value}</div>
-      <div className="text-[11px] font-bold uppercase tracking-widest text-grape-300">{label}</div>
+      <div className="text-[12px] sm:text-[11px] font-bold uppercase tracking-widest text-grape-300">{label}</div>
     </div>
   )
 }
@@ -106,7 +106,7 @@ export function Podium({ frame, shareable = true }: { frame: Frame; shareable?: 
                 {rank + 1}
               </div>
               {shareable && s.tokenId && (
-                <Link to="/r/$raidId/$seat" params={{ raidId: frame.raidId, seat: s.tokenId }} className="mt-2 text-xs font-bold text-candy-300 underline">
+                <Link to="/r/$raidId/$seat" params={{ raidId: frame.raidId, seat: s.tokenId }} className="mt-1 inline-flex min-h-11 items-center px-2 text-xs font-bold text-candy-300 underline">
                   share card
                 </Link>
               )}
