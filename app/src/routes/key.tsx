@@ -159,12 +159,12 @@ function KeyPage() {
 function Stat({ label, value, hint, warn = false, icon }: { label: string; value: string; hint: string; warn?: boolean; icon?: Token }) {
   return (
     <div className={`rounded-2xl px-3 py-3 text-center ${warn ? 'bg-ember-500/15 ring-2 ring-ember-400/60' : 'bg-grape-950/60'}`}>
-      <div className="text-[10px] font-bold uppercase tracking-widest text-grape-300">{label}</div>
+      <div className="text-[12px] sm:text-[10px] font-bold uppercase tracking-widest text-grape-300">{label}</div>
       <div className="flex items-center justify-center gap-1.5 font-display text-2xl text-white">
         {icon && <TokenIcon token={icon} size={22} />}
         {value}
       </div>
-      <div className="text-[11px] text-grape-300">{hint}</div>
+      <div className="text-[12px] sm:text-[11px] text-grape-300">{hint}</div>
     </div>
   )
 }
@@ -232,7 +232,7 @@ function GasBox({ one }: { one: ReturnType<typeof useOneTap> }) {
           {add === 0n ? `⛽ Enough for ${hits}` : `⛽ Add ${fmtMon(add)} MON`}
         </button>
       </div>
-      <p className="mt-2 text-[11px] text-grape-300">
+      <p className="mt-2 text-[12px] sm:text-[11px] text-grape-300">
         Each hit costs about {fmtMon(hitCost)} MON of gas. Monad charges the full gas limit with no refund, so that is the real cost per hit. Gas you don't use on hits stays on the key; Return everything sends it back.
       </p>
     </div>

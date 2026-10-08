@@ -237,7 +237,7 @@ function JudgedHit({ b, decimals }: { b: FrameBuy; decimals: number }) {
       <div className="min-w-0 flex-1 text-sm">
         <span className={`font-bold ${late ? 'text-grape-300 line-through' : 'text-white'}`}>{b.tokenId ? `Lil Star #${b.tokenId}` : 'Seat'}</span>
         <span className="text-grape-300"> · block {Number(b.block).toLocaleString()}</span>
-        <div className="text-[11px] text-grape-300">
+        <div className="text-[12px] sm:text-[11px] text-grape-300">
           <PlayerPill address={b.holder ?? b.player} size={14} />
         </div>
       </div>
