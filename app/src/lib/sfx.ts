@@ -15,16 +15,16 @@ export const NAMES: Sfx[] = ['hit', 'combo', 'join', 'tick', 'drum', 'reveal', '
  * current file, then to the synth.
  */
 export const PICKS: Record<Sfx, number> = {
-  hit: 0,
+  hit: 3,
   combo: 0,
   join: 0,
-  tick: 0,
+  tick: 3,
   drum: 0,
-  reveal: 0,
+  reveal: 3,
   victory: 0,
   defeat: 0,
   click: 0,
-  coin: 0,
+  coin: 1,
 }
 
 export const sfxUrl = (n: Sfx, take = PICKS[n]) => (take ? `/sfx/takes/${n}-${take}.mp3` : `/sfx/${n}.mp3`)
