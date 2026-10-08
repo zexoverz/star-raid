@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { NAMES, PICKS, sfxUrl, type Sfx } from '../lib/sfx'
+import { TRACK } from '../lib/music'
 
 /** Hidden sound picker (not in the nav): compare the current samples with the cute takes. */
 export const Route = createFileRoute('/sounds')({ component: Sounds })
@@ -87,35 +88,31 @@ function Sounds() {
   )
 }
 
-/** The three battle loops the in-app music rotates through. */
+/** The background music track the app loops (lib/music.ts). */
 function MusicPreview() {
-  const [now, setNow] = useState<number | null>(null)
+  const [on, setOn] = useState(false)
   const [el] = useState(() => (typeof Audio !== 'undefined' ? new Audio() : null))
-  const toggle = (i: number) => {
+  const toggle = () => {
     if (!el) return
-    if (now === i) {
+    if (on) {
       el.pause()
-      setNow(null)
+      setOn(false)
       return
     }
-    el.src = `/music/raid-${i}.mp3`
+    el.src = TRACK
     el.loop = true
     el.volume = 0.6
-    void el.play().then(() => setNow(i)).catch(() => setNow(null))
+    void el.play().then(() => setOn(true)).catch(() => setOn(false))
   }
   return (
     <section className="panel mt-8 p-4">
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="font-display text-2xl text-white">music</h2>
-        <span className="text-sm text-grape-300">all three rotate in the app</span>
+        <span className="text-sm text-grape-300">loops in the app</span>
       </div>
-      <div className="mt-3 grid grid-cols-3 gap-3">
-        {[1, 2, 3].map((i) => (
-          <button key={i} type="button" onClick={() => toggle(i)} className={`btn ${now === i ? 'btn-candy' : 'btn-primary'} min-h-14 w-full px-3 py-3 text-lg`}>
-            {now === i ? '⏸' : '▶'} Loop {i}
-          </button>
-        ))}
-      </div>
+      <button type="button" onClick={toggle} className={`btn ${on ? 'btn-candy' : 'btn-primary'} mt-3 min-h-14 w-full px-3 py-3 text-lg`}>
+        {on ? '⏸ Pause' : '▶ Play'} music
+      </button>
     </section>
   )
 }
