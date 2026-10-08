@@ -67,7 +67,7 @@ export function AmountInput({ value, onChange, keyBalance }: { value: string; on
           </button>
         ))}
       </div>
-      <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] text-grape-300">
+      <div className="mt-2 grid grid-cols-2 gap-2 text-[12px] sm:text-[11px] text-grape-300">
         <div className="rounded-xl bg-grape-950/50 px-2 py-1.5">
           Wallet <TokenAmount token="usdc" value={wallet} decimals={6} size={12} />
           <div>

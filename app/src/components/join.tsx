@@ -80,6 +80,7 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
           hits={one.hits}
           inflight={one.inflight}
           onAmount={setAmount}
+          amount={amount}
           onHit={(amount) => one.tap(amount)}
           refill={
             open && (lowGas || noUsdc)
@@ -119,11 +120,11 @@ export function JoinPanel({ frame, phase }: { frame: Frame; phase: Phase }) {
                   </button>
                 </span>
               </div>
-              {keySeat.seatKey && <p className="mt-1 text-[11px] text-grape-300">Your bought tSTAR is held for this seat; claim it from here after settle.</p>}
+              {keySeat.seatKey && <p className="mt-1 text-[12px] sm:text-[11px] text-grape-300">Your bought tSTAR is held for this seat; claim it from here after settle.</p>}
             </>
           }
         />
-        <FloatingHit open={open && one.ready && one.usdc >= amount} amount={amount} onHit={(a) => one.tap(a)} />
+        <FloatingHit open={open && one.ready && one.usdc >= amount} amount={amount} onAmount={setAmount} decimals={t.quoteDecimals} onHit={(a) => one.tap(a)} sub={`Star #${one.session.tokenId} · ${one.hits} ${one.hits === 1 ? 'hit' : 'hits'} landed${one.inflight ? ` · ${one.inflight} flying` : ''}`} />
       </Shell>
     )
   }
@@ -272,7 +273,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 }
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <div className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-grape-300">{children}</div>
+  return <div className="mb-2 text-[12px] sm:text-[11px] font-bold uppercase tracking-[0.14em] text-grape-300">{children}</div>
 }
 
 /** A raid key from the old one-key-per-raid setup still holds funds: one tap sends them back. */

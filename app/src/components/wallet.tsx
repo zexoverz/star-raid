@@ -11,6 +11,7 @@ import { useChainId, useConnection, useDisconnect, useSwitchChain } from 'wagmi'
 import { CHAIN_ID } from '../lib/config'
 import { PlayerPill } from './profile'
 import { onSound, play, setSound, soundOn } from '../lib/sfx'
+import { musicOn, onMusic, setMusic } from '../lib/music'
 
 export function WalletButton({ big = false }: { big?: boolean }) {
   const { address, isConnected } = useConnection()
@@ -23,7 +24,7 @@ export function WalletButton({ big = false }: { big?: boolean }) {
   if (!isConnected) {
     return (
       <button
-        className={`btn btn-primary ${big ? 'text-xl px-8 py-4' : 'text-sm px-4 py-2'}`}
+        className={`btn btn-primary ${big ? 'text-xl px-8 py-4' : 'min-h-11 text-sm px-4 py-2'}`}
         disabled={modalOpen}
         onClick={() => {
           play('click')
@@ -74,12 +75,12 @@ function ProfileMenu({ address, openAppKit }: { address: string; openAppKit: () 
                 <span className={`chip ${status.c}`}>{status.t}</span>
               </div>
               {one.hasKey && (
-                <div className="mt-2 grid grid-cols-3 gap-1 text-center text-[11px] text-grape-300">
+                <div className="mt-2 grid grid-cols-3 gap-1 text-center text-[12px] sm:text-[11px] text-grape-300">
                   <div><TokenAmount token="usdc" value={one.usdc} decimals={6} /></div>
                   <div>
                     <TokenAmount token="mon" value={one.mon} decimals={18} dp={2} />
                     {!one.gasFull && (
-                      <button className="block w-full text-[10px] font-bold text-ember-300 underline" onClick={() => one.fillGas()}>
+                      <button className="block w-full text-[12px] sm:text-[10px] font-bold text-ember-300 underline" onClick={() => one.fillGas()}>
                         fill gas
                       </button>
                     )}
@@ -131,7 +132,7 @@ function MintRow() {
         </button>
       </div>
       <StartRaidButton className="btn btn-primary mt-2 w-full py-1.5 text-xs" />
-      {act.busy && <p className="mt-1 text-[11px] text-grape-300">Confirm in your wallet…</p>}
+      {act.busy && <p className="mt-1 text-[12px] sm:text-[11px] text-grape-300">Confirm in your wallet…</p>}
     </div>
   )
 }
@@ -144,7 +145,7 @@ export function SoundToggle() {
   }, [])
   return (
     <button
-      className="btn btn-ghost h-10 w-10 !p-0 text-lg"
+      className="btn btn-ghost h-11 w-11 !p-0 text-lg"
       title={on ? 'Sound on' : 'Sound off'}
       aria-label="Toggle sound"
       onClick={() => {
@@ -153,6 +154,25 @@ export function SoundToggle() {
       }}
     >
       {on ? '🔊' : '🔈'}
+    </button>
+  )
+}
+
+export function MusicToggle() {
+  const [on, setOn] = useState(musicOn())
+  useEffect(() => {
+    const off = onMusic(setOn)
+    return () => void off()
+  }, [])
+  return (
+    <button
+      className={`btn btn-ghost h-11 w-11 !p-0 text-lg ${on ? '' : 'opacity-60'}`}
+      title={on ? 'Music on' : 'Music off'}
+      aria-label="Toggle music"
+      aria-pressed={on}
+      onClick={() => setMusic(!on)}
+    >
+      <span className={on ? '' : 'line-through decoration-2'}>🎵</span>
     </button>
   )
 }

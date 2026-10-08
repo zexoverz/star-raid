@@ -1,15 +1,16 @@
 import { Outlet, createRootRoute } from '@tanstack/react-router'
-import { Footer, TopBar } from '../components/shell'
+import { Footer, TabBar, TopBar } from '../components/shell'
 import { RaidAlerts } from '../components/raidalert'
 import { OnboardingGuide } from '../components/guide'
 import { StarToaster } from '../lib/toast'
 
 export const Route = createRootRoute({
   component: () => (
-    <div className="relative min-h-dvh">
+    <div className="relative min-h-dvh overflow-x-clip">
       <TopBar />
       <Outlet />
       <Footer />
+      <TabBar />
       <StarToaster />
       <RaidAlerts />
       <OnboardingGuide />

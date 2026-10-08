@@ -48,7 +48,7 @@ function StarToast({ t, kind, message, title, action }: { t: Toast; kind: Kind; 
             {action.label}
           </button>
         )}
-        <div className="mt-1 text-[10px] font-bold uppercase tracking-widest text-grape-500">{CREW[look.who].name}</div>
+        <div className="mt-1 text-[12px] sm:text-[10px] font-bold uppercase tracking-widest text-grape-500">{CREW[look.who].name}</div>
         <span className="absolute -left-[9px] bottom-4 h-4 w-4 rotate-45 border-b-[3px] border-l-[3px] border-dashed bg-cream-100" style={{ borderColor: look.border }} />
       </div>
     </motion.div>

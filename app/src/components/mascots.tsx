@@ -104,7 +104,7 @@ export function StageCrew({ hitTick, mood }: { hitTick: number; mood: CrewMood }
           >
             {/* Attack poses face right; the right-hand pair faces the wall from the other side. */}
             <div style={{ transform: !left && mood === 'fight' ? 'scaleX(-1)' : undefined }}>
-              <Mascot who={w} pose={MOOD_POSE[mood][w]} className="h-28 w-auto drop-shadow-[0_8px_6px_rgba(0,0,0,0.45)] sm:h-36" />
+              <Mascot who={w} pose={MOOD_POSE[mood][w]} className="h-24 w-auto drop-shadow-[0_8px_6px_rgba(0,0,0,0.45)] sm:h-36" />
             </div>
           </motion.div>
         )

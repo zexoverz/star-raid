@@ -52,20 +52,20 @@ function RaidPage() {
   const settled = phase === 'victory' || phase === 'defeat'
 
   return (
-    <main className="relative pb-10 pt-24">
+    <main className="relative pb-40 pt-20 sm:pb-10 sm:pt-24">
       <div className="pointer-events-none fixed inset-0 -z-10">
         <img src="/art/raid_bg.webp" alt="" className="h-full w-full object-cover opacity-25 blur-sm" />
         <div className="absolute inset-0 bg-gradient-to-b from-grape-950/60 to-grape-950" />
       </div>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 sm:mb-5 sm:gap-3">
           <div className="flex items-center gap-3">
             <Link to="/" className="btn btn-ghost h-11 w-11 !p-0 text-xl" aria-label="Back to lobby">
               ←
             </Link>
             <div>
-              <h1 className="title-outline -rotate-1 text-4xl sm:text-5xl">Raid #{raidId}</h1>
+              <h1 className="title-outline -rotate-1 text-3xl sm:text-5xl">Raid #{raidId}</h1>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-grape-300">
                 <PhaseChip phase={phase} />
                 <span className="inline-flex items-center gap-1">sponsor <PlayerPill address={t.sponsor} /></span>
@@ -113,17 +113,38 @@ function RaidPage() {
           </div>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-          <div className="space-y-6">
-            <Arena frame={view} phase={phase} tentative={tentative} />
-            <Timeline frame={view} head={head} phase={phase} />
-            {settled && <Podium frame={view} />}
+        {/* Phones: arena, join/HIT pad, timeline, then the rest (see practice.tsx for the pattern). */}
+        <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[1fr_380px] lg:gap-6">
+          <div className="contents lg:block lg:space-y-6">
+            <div className="order-1">
+              <Arena frame={view} phase={phase} tentative={tentative} />
+            </div>
+            <div className="order-3">
+              <Timeline frame={view} head={head} phase={phase} />
+            </div>
+            {settled && (
+              <div className="order-4">
+                <Podium frame={view} />
+              </div>
+            )}
           </div>
-          <aside className="space-y-6">
-            {!settled && phase !== 'called-off' && <JoinPanel frame={view} phase={phase} />}
-            {!settled && phase !== 'called-off' && <LootPanel frame={view} phase={phase} />}
-            <Party frame={view} me={address} />
-            <HitFeed frame={view} />
+          <aside className="contents lg:block lg:space-y-6">
+            {!settled && phase !== 'called-off' && (
+              <div className="order-2">
+                <JoinPanel frame={view} phase={phase} />
+              </div>
+            )}
+            {!settled && phase !== 'called-off' && (
+              <div className="order-4">
+                <LootPanel frame={view} phase={phase} />
+              </div>
+            )}
+            <div className="order-5">
+              <Party frame={view} me={address} />
+            </div>
+            <div className="order-6">
+              <HitFeed frame={view} />
+            </div>
           </aside>
         </div>
         <p className="mt-6 text-center text-xs text-grape-300">
