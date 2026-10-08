@@ -87,33 +87,33 @@ export function Arena({ frame, phase, tentative }: { frame: Frame; phase: Phase;
       <Twinkles count={10} />
 
       {/* Boss HP */}
-      <div className="relative z-10 px-5 pt-5 sm:px-8">
+      <div className="relative z-10 px-4 pt-4 sm:px-8 sm:pt-5">
         <div className="mb-1.5 flex items-end justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Sprite name="flag_sponsor" className="h-8 w-8" />
-            <div>
-              <div className="title-outline-sm text-xl leading-none sm:text-2xl">The Sponsor's Wall</div>
-              <div className="text-xs text-grape-300">
-                {fmt(t.wallSize, t.baseDecimals)} tSTAR resting at the cap · {wallStatusText(frame.wall)}
+          <div className="flex min-w-0 items-center gap-2">
+            <Sprite name="flag_sponsor" className="h-8 w-8 shrink-0" />
+            <div className="min-w-0">
+              <div className="title-outline-sm text-lg leading-none sm:text-2xl">The Sponsor's Wall</div>
+              <div className="truncate text-[13px] text-grape-300 sm:text-xs">
+                {fmt(t.wallSize, t.baseDecimals)} tSTAR at the cap · {wallStatusText(frame.wall)}
               </div>
             </div>
           </div>
-          <div className={`font-display text-2xl text-white ${tentative ? 'tentative' : 'firm'}`}>{Math.round(wallLeft * 100)}%</div>
+          <div className={`shrink-0 font-display text-2xl text-white ${tentative ? 'tentative' : 'firm'}`}>{Math.round(wallLeft * 100)}%</div>
         </div>
-        <GameBar value={wallLeft} tone="boss" height={30} tentative={tentative}>
+        <GameBar value={wallLeft} tone="boss" height={28} tentative={tentative}>
           {fmt(BigInt(t.wallSize) - BigInt(frame.wallSold), t.baseDecimals)} left
         </GameBar>
       </div>
 
       {/* Stage */}
-      <div className="relative z-0 flex h-[340px] items-start justify-center pt-4 sm:h-[400px]">
+      <div className="relative z-0 flex h-[260px] items-start justify-center pt-3 sm:h-[400px] sm:pt-4">
         <StageCrew hitTick={shake} mood={crewMood} />
         <motion.div key={shake} animate={shake ? { x: [0, -14, 12, -8, 6, 0], rotate: [0, -2, 2, -1, 0] } : {}} transition={{ duration: 0.45 }} className="relative">
           <motion.img
             src={`/art/${boss}.webp`}
             onError={(e) => ((e.target as HTMLImageElement).src = '/art/wall_boss.webp')}
             alt="The sponsor's wall"
-            className="h-[230px] w-[230px] object-contain drop-shadow-[0_18px_0_rgba(21,18,42,0.55)] sm:h-[290px] sm:w-[290px]"
+            className="h-[180px] w-[180px] object-contain drop-shadow-[0_18px_0_rgba(21,18,42,0.55)] sm:h-[290px] sm:w-[290px]"
             animate={phase === 'defeat' ? { rotate: [0, 3, -3, 0] } : phase === 'victory' ? {} : { y: [0, -8, 0] }}
             transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
             draggable={false}
@@ -136,9 +136,9 @@ export function Arena({ frame, phase, tentative }: { frame: Frame; phase: Phase;
 
         <AnimatePresence>
           {combo > 1 && (
-            <motion.div key={combo} initial={{ scale: 2, opacity: 0, rotate: -12 }} animate={{ scale: 1, opacity: 1, rotate: -6 }} exit={{ opacity: 0 }} className="absolute right-6 top-6 z-30 text-right">
-              <div className="title-outline text-5xl text-candy-300">COMBO</div>
-              <div className="title-outline text-6xl text-ember-400">x{combo}</div>
+            <motion.div key={combo} initial={{ scale: 2, opacity: 0, rotate: -12 }} animate={{ scale: 1, opacity: 1, rotate: -6 }} exit={{ opacity: 0 }} className="absolute right-3 top-2 z-30 text-right sm:right-6 sm:top-6">
+              <div className="title-outline text-3xl text-candy-300 sm:text-5xl">COMBO</div>
+              <div className="title-outline text-4xl text-ember-400 sm:text-6xl">x{combo}</div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -147,8 +147,8 @@ export function Arena({ frame, phase, tentative }: { frame: Frame; phase: Phase;
       </div>
 
       {/* Target meter */}
-      <div className="relative z-10 px-5 pb-5 sm:px-8">
-        <div className="-mt-2 mb-3 flex justify-center">
+      <div className="relative z-10 px-4 pb-4 sm:px-8 sm:pb-5">
+        <div className="-mt-2 mb-3 hidden justify-center sm:flex">
           <Guide
             who={phase === 'danger' || phase === 'drawing' ? 'bunny' : phase === 'defeat' ? 'bear' : phase === 'victory' ? 'chog' : 'fox'}
             pose={phase === 'danger' || phase === 'drawing' ? 'watch' : phase === 'defeat' ? 'sad' : phase === 'victory' ? 'cheer' : line ? 'attack' : 'think'}
@@ -157,20 +157,23 @@ export function Arena({ frame, phase, tentative }: { frame: Frame; phase: Phase;
             {tip}
           </Guide>
         </div>
-        <div className="mb-1.5 flex items-end justify-between">
-          <div className="flex items-center gap-2">
-            <Sprite name="trophy" className="h-9 w-9" />
-            <div>
+        {/* phones: the crew tip as one short line, not a big bubble */}
+        <p className="mb-2 line-clamp-2 text-center text-[13px] font-semibold text-cream-100/90 sm:hidden">{tip}</p>
+        <div className="mb-1.5 flex items-end justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <Sprite name="trophy" className="h-9 w-9 shrink-0" />
+            <div className="min-w-0">
               <div className="font-display text-lg leading-none text-white">Raid target</div>
-              <div className="text-xs text-grape-300">counted wall buys by seats, each seat capped at {fmt(t.seatCap, t.quoteDecimals)}</div>
+              <div className="hidden text-xs text-grape-300 sm:block">counted wall buys by seats, each seat capped at {fmt(t.seatCap, t.quoteDecimals)}</div>
+              <div className="text-[13px] text-grape-300 sm:hidden">seat cap {fmt(t.seatCap, t.quoteDecimals)}</div>
             </div>
           </div>
-          <div className={`text-right ${tentative ? 'tentative' : 'firm'}`}>
+          <div className={`shrink-0 text-right ${tentative ? 'tentative' : 'firm'}`}>
             <span className="font-display text-2xl text-ember-400">{fmt(frame.counted, t.quoteDecimals)}</span>
             <span className="text-grape-300"> / {fmt(t.target, t.quoteDecimals)} <TokenIcon token="usdc" size={14} /></span>
           </div>
         </div>
-        <GameBar value={progress} height={30} tentative={tentative} tone={progress >= 1 ? 'mint' : 'ember'}>
+        <GameBar value={progress} height={28} tentative={tentative} tone={progress >= 1 ? 'mint' : 'ember'}>
           {progress >= 1 ? 'TARGET REACHED' : `${Math.round(progress * 100)}%`}
         </GameBar>
       </div>
