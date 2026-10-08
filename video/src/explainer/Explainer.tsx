@@ -1,7 +1,7 @@
 import { linearTiming, TransitionSeries } from '@remotion/transitions'
 import { fade } from '@remotion/transitions/fade'
 import { AbsoluteFill, Html5Audio, Sequence, staticFile } from 'remotion'
-import { sceneFrames, type LineId } from './parts'
+import { sceneFrames, VoiceContext, type LineId } from './parts'
 import { Close, Draw, Lobby, Open, Problem, Raid, Results, Seats, Sponsor } from './scenes'
 
 /** The 2-3 minute end-to-end explainer. Scene lengths follow the voiceover (src/explainer/vo.json). */
@@ -19,8 +19,9 @@ const ORDER: [LineId, () => React.JSX.Element][] = [
 const T = 12
 export const EXPLAINER_TOTAL = ORDER.reduce((a, [id]) => a + sceneFrames(id), 0) - T * (ORDER.length - 1)
 
-export function Explainer() {
+export function Explainer({ voice = true }: { voice?: boolean }) {
   return (
+    <VoiceContext.Provider value={voice}>
     <AbsoluteFill className="bg-grape-950">
       <TransitionSeries>
         {ORDER.flatMap(([id, C], i) => {
@@ -36,13 +37,16 @@ export function Explainer() {
       {ORDER.slice(1).map(([id], i) => {
         const at = ORDER.slice(0, i + 1).reduce((a, [x]) => a + sceneFrames(x), 0) - T * (i + 1) - 4
         return (
-          <Sequence key={id} from={at} durationInFrames={24} layout="none">
+          <Sequence key={id} from={at} durationInFrames={18} layout="none">
             <Html5Audio src={staticFile('audio/kit/whoosh.mp3')} volume={0.4} />
           </Sequence>
         )
       })}
     </AbsoluteFill>
+    </VoiceContext.Provider>
   )
 }
+
+export const ExplainerSilent = () => <Explainer voice={false} />
 
 export const EXPLAINER_SCENES = ORDER.map(([id, C]) => ({ id, frames: sceneFrames(id), C }))

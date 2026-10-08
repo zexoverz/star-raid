@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { createContext, useContext, type ReactNode } from 'react'
 import { AbsoluteFill, Html5Audio, interpolate, OffthreadVideo, Sequence, staticFile, useCurrentFrame, useVideoConfig } from 'remotion'
 import { SITE } from '../scenes/Cta'
 import { clamp, Twinkles, usePop } from '../ui'
@@ -14,7 +14,7 @@ export const sceneFrames = (id: LineId) => LEAD + voFrames(id) + TAIL
 const text = (id: LineId) => lines.find((l) => l.id === id)!.text
 
 /** Plays the line and shows it as subtitles, one sentence at a time, timed by length. */
-export function Voice({ id }: { id: LineId }) {
+export function Voice({ id, voice = true }: { id: LineId; voice?: boolean }) {
   const frame = useCurrentFrame() - LEAD
   const total = voFrames(id)
   const parts = text(id).match(/[^.!?]+[.!?]+/g)?.map((s) => s.trim()) ?? [text(id)]
@@ -29,9 +29,11 @@ export function Voice({ id }: { id: LineId }) {
   }
   return (
     <>
-      <Sequence from={LEAD} layout="none">
-        <Html5Audio src={staticFile(`audio/vo/${id}.mp3`)} />
-      </Sequence>
+      {voice && (
+        <Sequence from={LEAD} layout="none">
+          <Html5Audio src={staticFile(`audio/vo/${id}.mp3`)} />
+        </Sequence>
+      )}
       {current && (
         <div className="absolute inset-x-0 bottom-7 z-50 flex justify-center px-40">
           <div className="rounded-2xl bg-grape-950/85 px-6 py-2.5 text-center text-[30px] font-semibold leading-snug text-cream-100 shadow-[0_4px_0_#2d2250]">{current}</div>
@@ -139,11 +141,15 @@ export function Callout({ at, until, x, y, children, tone = 'ember' }: { at: num
   )
 }
 
+/** Composition props: `voice: false` renders subtitles and sound effects without the narration. */
+export const VoiceContext = createContext(true)
+
 export function Scene({ id, children }: { id: LineId; children: ReactNode }) {
+  const voice = useContext(VoiceContext)
   return (
     <AbsoluteFill className="bg-grape-950">
       {children}
-      <Voice id={id} />
+      <Voice id={id} voice={voice} />
     </AbsoluteFill>
   )
 }
