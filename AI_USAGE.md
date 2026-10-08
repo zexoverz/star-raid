@@ -44,3 +44,7 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
 ## App: real Lil Star art, seat labels, test raid in profile menu
 - Files: app/server/index.mjs (/star/:id.png, IPFS fetch + resvg 256px + memory cache), app/src/lib/stars.ts, components/game.tsx, arena/curtain/raidparts/results, r.$raidId.$seat, countdown.tsx, wallet.tsx, vite.config.ts, lib.test.ts.
 - Human reviewed: seat label wording, art fetched by token id from the official CID, button placement.
+
+## App: mobile-first pass, cute sound takes, background music
+- Files: app/src/components/{shell,hitpad,arena,mascots,raidparts,results,wallet,join,amount,curtain,game}.tsx, app/src/routes/{__root,practice,raid.$raidId,raids,index,key,sponsor,sounds}.tsx, app/src/index.css, app/src/lib/{sfx,music,toast}.ts(x), app/public/sfx/takes/*.mp3 (30 takes), app/public/music/raid-{1,2,3}.mp3, scripts/serve-local.sh. Written by Claude (Jcode) with two sub-agents (sound takes and /sounds page; music attempt). Sounds and music generated with ElevenLabs text to sound effects (music API is paid only, so the loops are 30 s sound-effect loops).
+- Human reviewed: boss asked for mobile, BGM and cuter sounds; the human picked the three chiptune battle loops by ear; the sound effect takes are still to be picked on /sounds.
