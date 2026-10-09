@@ -12,16 +12,20 @@
 // Writes src/pitch/timing.json, which the Remotion composition reads.
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 
 const root = new URL('../', import.meta.url).pathname
 const sections = JSON.parse(readFileSync(`${root}src/pitch/lines.json`, 'utf8'))
 const VOICE = process.env.VOICE ?? 'en-US-AndrewNeural'
 const EDGE = process.env.EDGE_TTS ?? 'edge-tts'
-const LEAD = 0.35
-const TAIL = 0.55
-const GAP = 0.22
+// YouTuber pace: fast talk, tight gaps. Real takes are jump-cut (pauses removed), never sped up.
+const RATE = process.env.RATE ?? '+22%'
+const LEAD = 0.12
+const TAIL = 0.3
+const GAP = 0.06
+const PAD = 0.07 // breath kept around each spoken run in a jump cut
+const MAX_PAUSE = 0.28 // pauses longer than this are cut out of his takes
 mkdirSync(`${root}public/pitch-vo`, { recursive: true })
 
 const dur = (f) => Number(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f]).toString().trim())
@@ -31,9 +35,14 @@ const key = () => process.env.ELEVENLABS_API_KEY ?? (existsSync(`${homedir()}/.c
 function placeholder(sec) {
   const parts = sec.lines.map((l) => {
     const text = l.say ?? l.t
-    const h = createHash('sha1').update(VOICE + text).digest('hex').slice(0, 10)
+    const h = createHash('sha1').update(VOICE + RATE + text).digest('hex').slice(0, 10)
     const f = `${root}public/pitch-vo/line-${h}.mp3`
-    if (!existsSync(f)) execFileSync(EDGE, ['--voice', VOICE, '--rate=+2%', '--text', text, '--write-media', f], { stdio: 'ignore' })
+    if (!existsSync(f)) {
+      execFileSync(EDGE, ['--voice', VOICE, `--rate=${RATE}`, '--text', text, '--write-media', `${f}.raw.mp3`], { stdio: 'ignore' })
+      // trim the silence TTS leaves at both ends so lines butt up against each other
+      execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', `${f}.raw.mp3`, '-af', 'silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse', f])
+      rmSync(`${f}.raw.mp3`)
+    }
     return { f, d: dur(f) }
   })
   const out = `${root}public/pitch-vo/${sec.id}.mp3`
@@ -78,8 +87,27 @@ async function real(sec, file, plan) {
   }
   const s0 = words[0].start
   const s1 = words[words.length - 1].end
-  const trim = Math.max(0, s0 - LEAD)
-  const shift = (t) => t - trim
+  // Jump cut: keep each spoken run (plus a breath), drop the pauses between them. Speed is untouched.
+  const segs = []
+  let a = Math.max(0, s0 - PAD)
+  for (let i = 0; i < words.length; i++) {
+    const next = words[i + 1]
+    if (!next || next.start - words[i].end > MAX_PAUSE) {
+      const b = Math.min(length, words[i].end + PAD)
+      segs.push({ from: a, len: b - a })
+      if (next) a = Math.max(b, next.start - PAD)
+    }
+  }
+  // source time -> time in the cut
+  const map = (t) => {
+    let acc = 0
+    for (const sg of segs) {
+      if (t <= sg.from + sg.len) return acc + Math.max(0, t - sg.from)
+      acc += sg.len
+    }
+    return acc
+  }
+  const total = segs.reduce((x, sg) => x + sg.len, 0)
   // subtitles: what he said, in chunks of up to 9 words, split at sentence ends and pauses
   const subs = []
   let cur = []
@@ -89,14 +117,13 @@ async function real(sec, file, plan) {
     const next = words[i + 1]
     const pause = next ? next.start - w.end : 1
     if (/[.!?]$/.test(w.text) || cur.length >= 9 || pause > 0.6 || !next) {
-      subs.push({ t: cur.map((x) => x.text).join(' ').replace(/\s+([,.!?])/g, '$1'), start: shift(cur[0].start), end: shift(cur[cur.length - 1].end) })
+      subs.push({ t: cur.map((x) => x.text).join(' ').replace(/\s+([,.!?])/g, '$1'), start: map(cur[0].start), end: map(cur[cur.length - 1].end) })
       cur = []
     }
   }
-  // visual cues follow the scripted line positions, scaled to his speech span
-  const k2 = (s1 - s0) / plan.length
-  const cues = plan.lines.map((l) => shift(s0 + l.start * k2))
-  return { media: `face/${sec.file}`, video: true, length: Math.min(length - trim, shift(s1) + TAIL), trim, speech: [shift(s0), shift(s1)], lines: subs, cues }
+  // visual cues follow the scripted line positions, scaled to the cut's speech span
+  const cues = plan.lines.map((l) => map(s0) + (l.start / plan.length) * (map(s1) - map(s0)))
+  return { media: `face/${sec.file}`, video: true, length: total + TAIL, trim: 0, segments: segs, speech: [map(s0), map(s1)], lines: subs, cues }
 }
 
 const out = []
@@ -120,6 +147,7 @@ for (const sec of sections) {
     media: r.media,
     video: r.video,
     trim: r.trim ?? 0,
+    segments: r.segments ?? null,
     lead,
     lines: r.lines.map((l) => ({ t: l.t, start: +(l.start + lead).toFixed(2), end: +(l.end + lead).toFixed(2) })),
     cues: cues.map((c) => +c.toFixed(2)),
