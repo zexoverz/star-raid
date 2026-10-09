@@ -1,0 +1,1 @@
+Excalifont-Regular.woff2: Latin subset of Excalifont by Excalidraw (Ján Filípek / DizajnDesign, based on Virgil), SIL Open Font License 1.1. From github.com/excalidraw/excalidraw packages/excalidraw/fonts/Excalifont.
