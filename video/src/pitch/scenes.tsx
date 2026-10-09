@@ -1,10 +1,17 @@
-import { AbsoluteFill, Html5Audio, Img, interpolate, Sequence, staticFile, useCurrentFrame } from 'remotion'
+import { AbsoluteFill, getStaticFiles, Html5Audio, Img, interpolate, Sequence, staticFile, useCurrentFrame } from 'remotion'
 import { pose, type Who } from '../assets'
 import { fmt, RAID } from '../data'
 import { SITE } from '../scenes/Cta'
 import { clamp, Twinkles } from '../ui'
 import { BG, Chip, cue, ease, Face, FPS, frames, Phone, Slam, sec, Sticker, usePopAt, Voice, type Section } from './parts'
 import { Captions, LineTicks, Punch, Stickers, useDrift } from './hype'
+import { Diagram } from './diagram'
+
+// GPT-drawn doodles (scripts/doodles.sh); a box without one just shows its label
+const DOODLE_NAMES = ['raider', 'router', 'kuru', 'gate', 'vault', 'pyth', 'settle'] as const
+const DOODLES: Record<string, string | undefined> = Object.fromEntries(
+  DOODLE_NAMES.map((n) => [n, getStaticFiles().some((f) => f.name === `doodle/${n}.png`) ? `doodle/${n}.png` : undefined]),
+)
 
 const art = (p: string) => staticFile(`art/${p}`)
 const rec = (c: string) => `rec/phone/${c}.mp4`
@@ -291,33 +298,15 @@ export function Rules() {
   )
 }
 
-/* 7. How it works: three mechanism cards, then real raid #26 numbers. */
+/* 7. How it works: an Excalidraw-style architecture sketch that draws itself, then real raid #26 numbers. */
 export function How() {
   const s = sec('how')
-  const cards = [
-    { at: cue(s, 0), icon: 'shield.webp', t: 'Capped buys on Kuru', d: 'every hit is a buy on the on-chain order book, never above the wall price; leftovers cancelled and refunded in the same tx' },
-    { at: cue(s, 2), icon: 'dice_block.webp', t: 'Fair end from Pyth', d: 'Pyth Entropy draws the end block after the window, so nobody can snipe it' },
-    { at: cue(s, 3), icon: 'seat_ticket.webp', t: 'One Star, one seat', d: 'buys without a Lil Star go through, but count for nothing' },
-  ]
+  // cues: 0 Kuru buy, 1 cancel + refund, 2 Pyth end, 3 only seats count, 4 no Lil Star, 5 raid #26
+  const c = { kuru: cue(s, 0), cancel: cue(s, 1), pyth: cue(s, 2), seats: cue(s, 3), noSeat: cue(s, 4), result: cue(s, 2) + 70 }
   return (
-    <Shell s={s} bg={BG.sky} face>
-      <div className="absolute left-24 top-16">
-        <Sticker at={2} className="px-7 py-3" tilt={-2} from="left">
-          <div className="font-display text-[50px]">How it works</div>
-        </Sticker>
-      </div>
-      <div className="absolute left-24 top-[200px] flex w-[1380px] flex-col gap-5">
-        {cards.map((c, i) => (
-          <Sticker key={c.t} at={c.at} className="flex items-center gap-6 px-7 py-4" tilt={i === 1 ? 1 : -1} from="left">
-            <Img src={art(c.icon)} className="h-24 w-24 shrink-0 object-contain" />
-            <div>
-              <div className="font-display text-[42px] leading-tight">{c.t}</div>
-              <div className="text-[26px] font-semibold leading-snug text-grape-700">{c.d}</div>
-            </div>
-          </Sticker>
-        ))}
-      </div>
-      <div className="absolute bottom-[150px] left-24 flex items-center gap-5">
+    <Shell s={s} face stickers={false}>
+      <Diagram c={c} icons={DOODLES} />
+      <div className="absolute bottom-[170px] left-[90px]">
         <Sticker at={cue(s, 5)} className="flex items-center gap-6 bg-mint px-7 py-4" tilt={-2} from="pop">
           <Img src={art('trophy.webp')} className="h-20 w-20" />
           <div>
