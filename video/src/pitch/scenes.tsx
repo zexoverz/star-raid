@@ -6,6 +6,7 @@ import { clamp, Twinkles } from '../ui'
 import { BG, Chip, cue, ease, Face, FPS, frames, Phone, Slam, sec, Sticker, usePopAt, Voice, type Section } from './parts'
 import { Captions, LineTicks, Punch, Stickers, useDrift } from './hype'
 import { Diagram } from './diagram'
+import { DemoPanels } from './demo-fx'
 
 // GPT-drawn doodles (scripts/doodles.sh); a box without one just shows its label
 const DOODLE_NAMES = ['raider', 'router', 'kuru', 'gate', 'vault', 'pyth', 'settle'] as const
@@ -170,14 +171,12 @@ export function Demo() {
     { at: c(4), k: 'HIT!', d: 'every hit is a real buy' },
     { at: c(5), k: 'The draw', d: 'end block, every hit checked' },
   ]
-  const frame = useCurrentFrame()
-  const now = steps.filter((x) => frame >= x.at).length - 1
   return (
-    <Shell s={s} bg={BG.grape}>
+    <Shell s={s} bg={BG.grape} stickers={false}>
       <Twinkles count={12} seed={9} />
-      <div className="absolute left-[150px] top-[40px]">
+      <div className="absolute left-[110px] top-[60px]">
         <Phone
-          height={880}
+          height={860}
           cuts={[
             { src: rec('lobby'), from: 0.2, at: 0 },
             { src: rec('board'), from: 1.0, at: c(1) },
@@ -188,21 +187,7 @@ export function Demo() {
           ]}
         />
       </div>
-      {s.face === 'none' && (
-        <div className="absolute left-[720px] top-[120px] flex w-[1050px] flex-col gap-4">
-          {steps.map((x, i) => (
-            <div key={x.k} style={{ opacity: i === now ? 1 : i < now ? 0.45 : 1, transition: 'none' }}>
-              <Sticker at={x.at} className={`flex items-center gap-5 px-6 py-3 ${i === now ? 'bg-ember-300' : ''}`} tilt={i % 2 ? 1.5 : -1.5} from="right">
-                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-grape-800 font-display text-[30px] text-cream-100">{i + 1}</span>
-                <div>
-                  <div className="font-display text-[38px] leading-none">{x.k}</div>
-                  <div className="text-[24px] font-semibold text-grape-700">{x.d}</div>
-                </div>
-              </Sticker>
-            </div>
-          ))}
-        </div>
-      )}
+      {s.face === 'none' && <DemoPanels cues={steps.map((x) => x.at)} total={frames(s)} />}
       <Sequence from={c(4)} layout="none">
         <Html5Audio src={staticFile('audio/kit/combo.mp3')} volume={0.35} />
       </Sequence>
