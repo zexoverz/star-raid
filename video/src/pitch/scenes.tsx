@@ -1,4 +1,4 @@
-import { AbsoluteFill, getStaticFiles, Html5Audio, Img, interpolate, Sequence, staticFile, useCurrentFrame } from 'remotion'
+import { AbsoluteFill, getStaticFiles, Html5Audio, Img, interpolate, Sequence, spring, staticFile, useCurrentFrame } from 'remotion'
 import { pose, type Who } from '../assets'
 import { fmt, RAID } from '../data'
 import { SITE } from '../scenes/Cta'
@@ -310,28 +310,39 @@ export function How() {
 export function Why() {
   const s = sec('why')
   const words = [
-    { at: cue(s, 0) + 20, t: 'FAST BLOCKS', c: '#ffb84d', pos: 'left-[8%] top-[16%]' },
-    { at: cue(s, 1) + 20, t: 'ON-CHAIN ORDER BOOK', c: '#f7b2d9', pos: 'right-[6%] top-[22%]' },
-    { at: cue(s, 2) + 18, t: 'A FAIR END', c: '#a3e3c1', pos: 'left-[10%] top-[58%]' },
+    { at: cue(s, 0) + 20, t: 'FAST BLOCKS', c: '#ffb84d', pos: 'left-[8%] top-[16%]', logo: 'monad' },
+    { at: cue(s, 1) + 20, t: 'ON-CHAIN ORDER BOOK', c: '#f7b2d9', pos: 'right-[6%] top-[22%]', logo: 'kuru' },
+    { at: cue(s, 2) + 18, t: 'A FAIR END', c: '#a3e3c1', pos: 'left-[10%] top-[58%]', logo: 'pyth' },
   ]
   const frame = useCurrentFrame()
   return (
-    <Shell s={s} face faceAmount={0}>
+    <Shell s={s} face faceAmount={0} stickers={false}>
       {words.map((w, i) => {
         const next = words[i + 1]?.at ?? 1e9
         const fade = interpolate(frame, [next, next + 10], [1, 0], clamp)
+        const lp = spring({ frame: frame - (w.at - 6), fps: FPS, config: { damping: 9, stiffness: 200 } })
         return (
-          <div key={w.t} className={`absolute ${w.pos}`} style={{ opacity: fade }}>
+          <div key={w.t} className={`absolute ${w.pos} flex items-center gap-6`} style={{ opacity: fade }}>
+            {frame >= w.at - 6 && (
+              <div className="grid h-[150px] w-[150px] shrink-0 place-items-center rounded-full border-[6px] border-grape-800 bg-white shadow-[0_8px_0_#2d2250]" style={{ transform: `scale(${lp}) rotate(${(1 - lp) * -40}deg)` }}>
+                <Img src={staticFile(`logos/${w.logo}.png`)} className="h-[104px] w-[104px] object-contain" />
+              </div>
+            )}
             <Slam at={w.at} color={w.c} size={108}>
               {w.t}
             </Slam>
           </div>
         )
       })}
-      <div className="absolute right-[6%] top-[62%] flex gap-4" style={{ opacity: ease(frame, cue(s, 0), cue(s, 0) + 10) }}>
-        {['Monad', 'Kuru', 'Pyth'].map((n, i) => (
-          <Sticker key={n} at={cue(s, i) + 4} className="px-6 py-2" tilt={i % 2 ? 2 : -2} from="pop">
-            <span className="font-display text-[34px]">{n}</span>
+      <div className="absolute right-[5%] top-[80%] flex gap-4" style={{ opacity: ease(frame, cue(s, 0), cue(s, 0) + 10) }}>
+        {[
+          { n: 'Monad', l: 'monad' },
+          { n: 'Kuru', l: 'kuru' },
+          { n: 'Pyth', l: 'pyth' },
+        ].map((x, i) => (
+          <Sticker key={x.n} at={cue(s, i) + 4} className="flex items-center gap-3 px-5 py-2" tilt={i % 2 ? 2 : -2} from="pop">
+            <Img src={staticFile(`logos/${x.l}.png`)} className="h-[48px] w-[48px] rounded-lg object-contain" />
+            <span className="font-display text-[34px]">{x.n}</span>
           </Sticker>
         ))}
       </div>
