@@ -67,3 +67,11 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
   `scenes.tsx` (new `rules` section and timeline scene), `video/PITCH.md`.
 - Human reviewed: boss feedback (faster cut-to-cut talk, explain game mechanics); rules checked
   against `docs/plan/DESIGN.md` (counted = block <= endBlock, lost bounty to `rollover[sponsor]`).
+
+## Video: pitch energy + architecture sketch
+- Files: `video/src/pitch/hype.tsx` (punch zooms, word captions, keyword stickers),
+  `video/src/pitch/diagram.tsx` (Excalidraw-style How it works), `video/scripts/doodles.sh`,
+  `video/public/doodle/*.png` (icons generated with GPT image gen via Codex CLI), `scenes.tsx`.
+- Human reviewed: boss feedback (more visual energy, tech architecture sketch); diagram boxes
+  checked against `docs/plan/DESIGN.md` and `contracts/src` (RaidRouter, SeatGate, RaidVault,
+  WallMaker on Kuru, Pyth Entropy end block, settle/rollover). Lil Stars art not generated or altered.
