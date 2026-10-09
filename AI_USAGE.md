@@ -75,3 +75,8 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
 - Human reviewed: boss feedback (more visual energy, tech architecture sketch); diagram boxes
   checked against `docs/plan/DESIGN.md` and `contracts/src` (RaidRouter, SeatGate, RaidVault,
   WallMaker on Kuru, Pyth Entropy end block, settle/rollover). Lil Stars art not generated or altered.
+
+## Video: demo step panels
+- Files: `video/src/pitch/demo-fx.tsx` (one animated panel per demo step), `scenes.tsx`.
+- Human reviewed: boss feedback that the demo's right half felt empty; each panel's text checked
+  against the spoken line and DESIGN.md. No prices or counts shown. Lil Stars poses used unaltered.
