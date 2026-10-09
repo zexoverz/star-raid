@@ -49,6 +49,20 @@
     ]
   },
   {
+    "id": "rules",
+    "file": "06b-rules.mp4",
+    "face": "corner",
+    "lines": [
+      { "t": "Here's how a raid plays." },
+      { "t": "A sponsor puts up a wall and a prize." },
+      { "t": "For about a minute, every seat taps HIT. Each hit buys from the wall." },
+      { "t": "The last stretch is the danger zone: the raid can end on any block in there." },
+      { "t": "Pyth draws the end block. Hits before it count. Hits after it don't." },
+      { "t": "Hit the target, the wall breaks and the seats split the prize." },
+      { "t": "Miss it, and the prize rolls into the sponsor's next raid." }
+    ]
+  },
+  {
     "id": "how",
     "file": "07-how.mp4",
     "face": "corner",

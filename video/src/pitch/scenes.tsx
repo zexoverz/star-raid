@@ -196,6 +196,94 @@ export function Demo() {
   )
 }
 
+/* 6b. Rules: one raid as a timeline, the game mechanics in one picture. */
+export function Rules() {
+  const s = sec('rules')
+  const frame = useCurrentFrame()
+  const c = (i: number) => cue(s, i)
+  // the track: open -> live (hits land) -> danger zone -> end block drawn
+  const x0 = 140
+  const x1 = 1460
+  const danger = 0.72
+  const endAt = 0.86
+  const head = interpolate(frame, [c(2), c(4) + 10], [0, 1], clamp)
+  const hx = x0 + (x1 - x0) * head
+  const dropped = frame >= c(4) + 6
+  const won = frame >= c(5)
+  const lost = frame >= c(6)
+  const hits = Array.from({ length: 14 }, (_, i) => ({ t: 0.06 + (i / 14) * 0.9 + ((i * 37) % 7) * 0.004, late: 0.06 + (i / 14) * 0.9 > endAt }))
+  const boss = won && !lost ? 'wall_boss_ko.webp' : head > 0.45 ? 'wall_boss_hurt.webp' : 'wall_boss.webp'
+  return (
+    <Shell s={s} bg={BG.mint} face>
+      <div className="absolute left-24 top-12">
+        <Sticker at={2} className="px-7 py-3" tilt={-2} from="left">
+          <div className="font-display text-[50px]">How a raid plays</div>
+        </Sticker>
+      </div>
+      {/* the wall and the prize */}
+      <div className="absolute left-[150px] top-[170px] flex items-end gap-8">
+        <Sticker at={c(1)} className="flex items-center gap-4 px-5 py-3" tilt={-1} from="pop">
+          <Img src={art(boss)} className="h-36 w-36" style={{ transform: `translateX(${frame >= c(2) && frame < c(4) ? Math.sin(frame * 1.7) * 4 : 0}px)` }} />
+          <div>
+            <div className="font-display text-[38px] leading-none">The wall</div>
+            <div className="text-[24px] font-semibold text-grape-700">sponsor token at one price</div>
+          </div>
+        </Sticker>
+        <Sticker at={c(1) + 8} className="flex items-center gap-4 px-5 py-3" tilt={2} from="pop">
+          <Img src={art(won && !lost ? 'chest_open.webp' : 'chest_closed.webp')} className="h-28 w-28" />
+          <div>
+            <div className="font-display text-[38px] leading-none">The prize</div>
+            <div className="text-[24px] font-semibold text-grape-700">USDC, only for seats</div>
+          </div>
+        </Sticker>
+      </div>
+      {/* the timeline */}
+      <div className="absolute left-0 top-[520px] h-[200px] w-[1600px]" style={{ opacity: ease(frame, c(2) - 6, c(2) + 6) }}>
+        <div className="absolute h-9 rounded-full border-[5px] border-grape-800 bg-cream-100 shadow-[0_6px_0_#2d2250]" style={{ left: x0, width: x1 - x0, top: 70 }} />
+        <div className="absolute h-9 rounded-r-full" style={{ left: x0 + (x1 - x0) * danger, width: (x1 - x0) * (1 - danger), top: 70, background: 'repeating-linear-gradient(-45deg,#e826b1 0 12px,#aa3686 12px 24px)', opacity: ease(frame, c(3) - 4, c(3) + 8) }} />
+        <div className="absolute font-display text-[30px] text-candy-600" style={{ left: x0 + (x1 - x0) * danger + 8, top: 18, opacity: ease(frame, c(3), c(3) + 8) }}>
+          ☠ danger zone
+        </div>
+        <div className="absolute font-display text-[30px] text-grape-800" style={{ left: x0, top: 18 }}>
+          window opens · tap HIT
+        </div>
+        {hits.map((h, i) => {
+          const hxi = x0 + (x1 - x0) * h.t
+          if (hxi > hx) return null
+          const out = dropped && h.late
+          return (
+            <div key={i} className="absolute" style={{ left: hxi - 18, top: 64, opacity: out ? 0.35 : 1, filter: out ? 'grayscale(1)' : undefined }}>
+              <Img src={art('hit_spark.webp')} className="h-12 w-12" />
+              {out && <div className="absolute -top-1 left-2 font-display text-[34px] text-grape-800">✕</div>}
+            </div>
+          )
+        })}
+        <div className="absolute w-[6px] rounded bg-sky" style={{ left: hx - 3, top: 50, height: 76, boxShadow: '0 0 12px #b6d6f7', opacity: head > 0 && head < 1 ? 1 : 0 }} />
+        {dropped && (
+          <div className="absolute" style={{ left: x0 + (x1 - x0) * endAt - 46, top: 116 }}>
+            <Sticker at={c(4) + 6} className="flex items-center gap-2 bg-ember-300 px-4 py-2" tilt={-3} from="pop">
+              <Img src={art('dice_block.webp')} className="h-12 w-12" />
+              <span className="font-display text-[28px]">end block (Pyth)</span>
+            </Sticker>
+          </div>
+        )}
+        {dropped && <div className="absolute w-[8px] rounded bg-ember-500" style={{ left: x0 + (x1 - x0) * endAt - 4, top: 46, height: 80 }} />}
+      </div>
+      {/* the outcome */}
+      <div className="absolute bottom-[140px] left-[150px] flex gap-6">
+        <Sticker at={c(5)} className="flex items-center gap-4 bg-mint px-6 py-3" tilt={-2} from="pop">
+          <Img src={art('trophy.webp')} className="h-16 w-16" />
+          <span className="font-display text-[32px]">target hit: seats split the prize</span>
+        </Sticker>
+        <Sticker at={c(6)} className="flex items-center gap-4 px-6 py-3" tilt={2} from="pop">
+          <Img src={art('lock.webp')} className="h-16 w-16" />
+          <span className="font-display text-[32px]">missed: prize rolls to the next raid</span>
+        </Sticker>
+      </div>
+    </Shell>
+  )
+}
+
 /* 7. How it works: three mechanism cards, then real raid #26 numbers. */
 export function How() {
   const s = sec('how')
@@ -369,6 +457,7 @@ export const PITCH_SCENES = [
   { id: 'days', C: Days },
   { id: 'meet', C: Meet },
   { id: 'demo', C: Demo },
+  { id: 'rules', C: Rules },
   { id: 'how', C: How },
   { id: 'why', C: Why },
   { id: 'roadmap', C: Roadmap },
