@@ -52,11 +52,7 @@ export function Face({ s, amount }: { s: Section; amount: number }) {
   const ring = k > 0.02 ? { boxShadow: `0 0 0 ${8 * k}px #fff4e4, 0 0 0 ${14 * k}px #2d2250, 0 ${14 * k}px 30px rgba(0,0,0,0.45)` } : {}
   return (
     <div className="absolute z-30 overflow-hidden" style={{ ...box, ...ring }}>
-      {s.video && s.media ? (
-        <OffthreadVideo src={staticFile(s.media)} trimBefore={Math.round((s.trim ?? 0) * FPS)} className="h-full w-full object-cover" />
-      ) : (
-        <FacePlaceholder s={s} corner={k} />
-      )}
+      {s.video && s.media ? <Take s={s} /> : <FacePlaceholder s={s} corner={k} />}
     </div>
   )
 }
@@ -90,6 +86,28 @@ function Backdrop({ title }: { title?: string[] }) {
   )
 }
 
+/** Plays his take, jump-cut: each spoken segment back to back, pauses dropped, speed untouched. */
+function Take({ s, muted = false }: { s: Section; muted?: boolean }) {
+  const segs = (s as { segments?: { from: number; len: number }[] | null }).segments
+  if (!s.media) return null
+  if (!segs?.length) return <OffthreadVideo src={staticFile(s.media)} trimBefore={Math.round((s.trim ?? 0) * FPS)} muted={muted} className="h-full w-full object-cover" />
+  let at = 0
+  return (
+    <>
+      {segs.map((g, i) => {
+        const from = at
+        const len = Math.max(1, Math.round(g.len * FPS))
+        at += len
+        return (
+          <Sequence key={i} from={from} durationInFrames={len} layout="none">
+            <OffthreadVideo src={staticFile(s.media!)} trimBefore={Math.round(g.from * FPS)} muted={muted} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+          </Sequence>
+        )
+      })}
+    </>
+  )
+}
+
 function FacePlaceholder({ s, corner }: { s: Section; corner: number }) {
   const frame = useCurrentFrame()
   const file = (s.media ?? '').replace('pitch-vo/', '').replace('.mp3', '')
@@ -120,8 +138,12 @@ function FacePlaceholder({ s, corner }: { s: Section; corner: number }) {
 export function Voice({ s }: { s: Section }) {
   if (!s.media) return null
   if (s.video) {
-    // face sections play audio through <Face>; voice-only sections need it here
-    return s.face === 'none' ? <Html5Audio src={staticFile(s.media)} trimBefore={Math.round((s.trim ?? 0) * FPS)} /> : null
+    // face sections play audio through <Face>; voice-only sections play the take hidden, for its sound
+    return s.face === 'none' ? (
+      <div className="pointer-events-none absolute h-px w-px opacity-0">
+        <Take s={s} />
+      </div>
+    ) : null
   }
   return (
     <Sequence from={Math.round((s.lead ?? 0) * FPS)} layout="none">
@@ -199,7 +221,6 @@ export function Phone({ cuts, height = 860, className = '', style }: { cuts: { s
           )
         })}
       </div>
-      <div className="absolute left-1/2 top-[26px] h-[26px] w-[120px] -translate-x-1/2 rounded-full bg-[#0d0b18]" />
     </div>
   )
 }
