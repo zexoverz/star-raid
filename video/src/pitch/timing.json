@@ -137,8 +137,8 @@
   {
     "id": "lilstars",
     "face": "corner",
-    "dur": 32.24,
-    "talk": 32.24,
+    "dur": 37.6,
+    "talk": 37.6,
     "media": "pitch-vo/lilstars.mp3",
     "video": false,
     "trim": 0,
@@ -166,19 +166,24 @@
         "end": 20.31
       },
       {
-        "t": "Their motto is that everyone can be a star.",
+        "t": "And people noticed: Backpack, PANews and NFT Evening have all written about them.",
         "start": 20.53,
-        "end": 23.05
+        "end": 25.66
+      },
+      {
+        "t": "Their motto is that everyone can be a star.",
+        "start": 25.88,
+        "end": 28.4
       },
       {
         "t": "In Star Raid, your Lil Star is your seat.",
-        "start": 23.27,
-        "end": 25.91
+        "start": 28.62,
+        "end": 31.26
       },
       {
         "t": "Find them at lilstars.xyz, and on X at lilstarrrs.",
-        "start": 26.13,
-        "end": 31.69
+        "start": 31.48,
+        "end": 37.05
       }
     ],
     "cues": [
@@ -187,8 +192,9 @@
       8.18,
       13.49,
       20.53,
-      23.27,
-      26.13
+      25.88,
+      28.62,
+      31.48
     ]
   },
   {

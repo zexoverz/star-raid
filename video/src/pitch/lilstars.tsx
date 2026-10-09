@@ -55,30 +55,8 @@ export function LilStarsPanel({ cues, total }: { cues: number[]; total: number }
           </div>
         </AbsoluteFill>
       )}
-      {/* 1. what it is: born on Monad, formerly Chogstar, + About page */}
-      {vis(1) && (
-        <>
-          <Browser src={site('about-us.png')} url="lilstars.xyz" at={c(1)} x={760} y={100} w={900} tilt={2} />
-          <div className="absolute left-[90px] top-[150px] flex w-[620px] flex-col gap-5">
-            {[
-              { t: 'digital collectible IP', d: 'one universe, one crew', at: c(1) + 6 },
-              { t: 'born on Monad', d: 'stored on Monad since day 1', at: c(1) + 22, logo: true },
-              { t: 'formerly Chogstar', d: 'grown from the community', at: c(1) + 38 },
-            ].map((x, i) => {
-              const p = pop(F, x.at, 10, 220)
-              return (
-                <div key={x.t} className={`${card} flex items-center gap-5 px-6 py-4`} style={{ transform: `translateX(${(1 - p) * -500}px) rotate(${i % 2 ? 1.5 : -1.5}deg)`, opacity: Math.min(1, p * 1.5) }}>
-                  {x.logo ? <Img src={staticFile('logos/monad.png')} className="h-[70px] w-[70px]" /> : <Img src={ls('logo.webp')} className="h-[70px] w-[70px]" />}
-                  <div>
-                    <div className="font-display text-[44px] leading-none">{x.t}</div>
-                    <div className="mt-1 text-[24px] font-semibold text-grape-700">{x.d}</div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </>
-      )}
+      {/* 1. what it is: a real NFT collection. Cards fan out of the deck, the 6,000-piece wall scrolls behind */}
+      {vis(1) && <Collection at={c(1)} end={c(2)} />}
       {/* 2. the crew: four animated cards land one by one, each with its official one-line bio */}
       {vis(2) && (
         <div className="absolute left-[70px] top-[70px] flex gap-6">
@@ -97,60 +75,43 @@ export function LilStarsPanel({ cues, total }: { cues: number[]; total: number }
           })}
         </div>
       )}
-      {/* 3. growing off-chain: IRL blind boxes + merch (their words: "exploring how Lilstars can live in Web2") */}
-      {vis(3) && (
-        <>
-          <Browser src={site('collection.png')} url="lilstars.xyz · collection" at={c(3)} x={110} y={110} w={1000} tilt={-2} />
-          <div className="absolute left-[1180px] top-[150px] flex w-[620px] flex-col gap-6">
-            {[
-              { t: 'IRL blind boxes', icon: 'chest_closed.webp', at: c(3) + 14 },
-              { t: 'limited merch', icon: 'medal_gold.webp', at: c(3) + 30 },
-              { t: 'for loyal holders', icon: 'seat_ticket.webp', at: c(3) + 46 },
-            ].map((x, i) => {
-              const p = pop(F, x.at, 9, 240)
-              return (
-                <div key={x.t} className={`${card} flex items-center gap-5 px-6 py-4`} style={{ transform: `scale(${p}) rotate(${i % 2 ? 2 : -2}deg)` }}>
-                  <Img src={staticFile(`art/${x.icon}`)} className="h-[90px] w-[90px]" />
-                  <div className="font-display text-[48px] leading-none">{x.t}</div>
-                </div>
-              )
-            })}
-          </div>
-        </>
-      )}
-      {/* 4. motto */}
-      {vis(4) && (
+      {/* 3. growing off-chain: the real merch unboxing and IRL event, from their News page */}
+      {vis(3) && <Irl at={c(3)} />}
+      {/* 4. people noticed: press quote cards (short, credited) */}
+      {vis(4) && <Press at={c(4)} end={c(5)} />}
+      {/* 5. motto */}
+      {vis(5) && (
         <AbsoluteFill className="items-center justify-center pr-[460px]">
           <div className="flex items-end gap-2">
             {CREW.map((m, i) => (
-              <Img key={m.name} src={ls(m.art)} className="h-[300px] w-auto" style={{ transform: `translateY(${(1 - pop(F, c(4) + i * 4, 9, 220)) * 400 - Math.abs(Math.sin((F - i * 5) / 6)) * 16}px)` }} />
+              <Img key={m.name} src={ls(m.art)} className="h-[300px] w-auto" style={{ transform: `translateY(${(1 - pop(F, c(5) + i * 4, 9, 220)) * 400 - Math.abs(Math.sin((F - i * 5) / 6)) * 16}px)` }} />
             ))}
           </div>
-          <div className="title-outline mt-6 text-center text-[88px] leading-[1.05]" style={{ color: '#ffd27a', transform: `scale(${pop(F, c(4) + 14, 8, 260)}) rotate(-3deg)` }}>
+          <div className="title-outline mt-6 text-center text-[88px] leading-[1.05]" style={{ color: '#ffd27a', transform: `scale(${pop(F, c(5) + 14, 8, 260)}) rotate(-3deg)` }}>
             everyone can be a star
           </div>
         </AbsoluteFill>
       )}
-      {/* 5. in Star Raid, your Lil Star is your seat */}
-      {vis(5) && (
+      {/* 6. in Star Raid, your Lil Star is your seat */}
+      {vis(6) && (
         <AbsoluteFill className="items-center justify-center pr-[300px]">
           <div className="flex items-center gap-10">
-            <div className={`${card} p-5`} style={{ transform: `rotate(-4deg) scale(${pop(F, c(5), 10, 220)})` }}>
-              <Img src={ls('Chogstar.webp')} className="h-[320px] w-auto" />
+            <div className={`${card} p-5`} style={{ transform: `rotate(-4deg) scale(${pop(F, c(6), 10, 220)})` }}>
+              <Img src={staticFile('lilstars/nft/c8.png')} className="h-[320px] w-[320px] rounded-[16px]" />
               <div className="mt-2 text-center font-display text-[36px]">your Lil Star</div>
             </div>
-            <div className="title-outline text-[130px]" style={{ transform: `scale(${pop(F, c(5) + 10, 8, 300)})` }}>
+            <div className="title-outline text-[130px]" style={{ transform: `scale(${pop(F, c(6) + 10, 8, 300)})` }}>
               =
             </div>
-            <div className={`${card} p-5`} style={{ transform: `rotate(4deg) scale(${pop(F, c(5) + 18, 10, 220)})` }}>
+            <div className={`${card} p-5`} style={{ transform: `rotate(4deg) scale(${pop(F, c(6) + 18, 10, 220)})` }}>
               <Img src={staticFile('art/seat_ticket.webp')} className="h-[320px] w-[320px]" />
               <div className="mt-2 text-center font-display text-[36px]">one raid seat</div>
             </div>
           </div>
         </AbsoluteFill>
       )}
-      {/* 6. where to find them */}
-      {F >= c(6) - 2 && <FindThem at={c(6)} />}
+      {/* 7. where to find them */}
+      {F >= c(7) - 2 && <FindThem at={c(7)} />}
       {/* beat dots */}
       <div className="absolute left-1/2 top-[22px] flex -translate-x-1/2 gap-3">
         {cues.map((_, i) => (
@@ -188,6 +149,138 @@ export function LilStarsLinks({ at, compact = false }: { at: number; compact?: b
         )
       })}
     </div>
+  )
+}
+
+/* ---------------------------------------------------------------- beat 1: the collection */
+
+const SHOW = ['fox-mythical', 'bear-netrunner', 'bunny-novaku', 'fox-cryptic', 'bunny-comedian', 'bear-terra', 'fox-aura']
+
+/** An NFT card: art, name, and a holo sheen sweeping across. */
+function NftCard({ src, name, x, y, r, s, at }: { src: string; name: string; x: number; y: number; r: number; s: number; at: number }) {
+  const F = useCurrentFrame()
+  const p = pop(F, at, 12, 170)
+  const sheen = ((F - at) * 9) % 900
+  return (
+    <div className="absolute" style={{ left: x, top: y, transform: `translate(${(1 - p) * 0}px, ${(1 - p) * 420}px) rotate(${r * p}deg) scale(${s * (0.6 + 0.4 * p)})`, opacity: Math.min(1, p * 1.6), transformOrigin: '50% 100%' }}>
+      <div className="relative w-[300px] overflow-hidden rounded-[22px] border-[5px] border-grape-800 bg-cream-100 shadow-[0_10px_0_#2d2250,0_22px_40px_rgba(0,0,0,0.4)]">
+        <Img src={src} className="block h-[300px] w-[300px] object-cover" />
+        <div className="flex items-center justify-between px-4 py-2">
+          <span className="font-display text-[26px] text-grape-900">{name}</span>
+          <Img src={staticFile('logos/monad.png')} className="h-[30px] w-[30px]" />
+        </div>
+        <div className="pointer-events-none absolute inset-0" style={{ background: `linear-gradient(115deg, transparent ${sheen - 140}px, rgba(255,255,255,0.55) ${sheen - 60}px, transparent ${sheen}px)` }} />
+      </div>
+    </div>
+  )
+}
+
+function Collection({ at, end }: { at: number; end: number }) {
+  const F = useCurrentFrame()
+  // the collection wall drifts behind, 24 real pieces, two rows scrolling opposite ways
+  const drift = (F - at) * 1.4
+  const len = end - at
+  const tags = [
+    { t: '6,000-piece PFPs', at: at + 10 },
+    { t: 'born on Monad', at: at + Math.round(len * 0.35), logo: true },
+    { t: 'formerly Chogstar', at: at + Math.round(len * 0.6) },
+  ]
+  return (
+    <AbsoluteFill>
+      <div className="absolute inset-x-0 top-[40px] opacity-30">
+        {[0, 1].map((row) => (
+          <div key={row} className="flex gap-4" style={{ transform: `translateX(${row ? -400 + drift : -drift}px)`, marginTop: row ? 16 : 0 }}>
+            {Array.from({ length: 16 }, (_, i) => (
+              <Img key={i} src={staticFile(`lilstars/nft/c${((i + row * 8) % 24) + 1}.png`)} className="h-[200px] w-[200px] rounded-[14px]" />
+            ))}
+          </div>
+        ))}
+      </div>
+      <AbsoluteFill style={{ background: 'linear-gradient(180deg, rgba(21,18,42,0.2), rgba(21,18,42,0.85) 55%)' }} />
+      {/* the fan of showcase cards */}
+      {SHOW.map((n, i) => {
+        const k = i - (SHOW.length - 1) / 2
+        return <NftCard key={n} src={staticFile(`lilstars/nft/${n}.png`)} name={`Lilstars · ${n.split('-')[1]}`} x={960 + k * 112} y={310 + Math.abs(k) * 22} r={k * 6} s={0.92 - Math.abs(k) * 0.04} at={at + 4 + i * 4} />
+      })}
+      <div className="absolute left-[70px] top-[330px] flex w-[520px] flex-col gap-5">
+        {tags.map((x, i) => {
+          const p = pop(F, x.at, 10, 230)
+          return (
+            <div key={x.t} className={`${card} flex items-center gap-4 px-6 py-4`} style={{ transform: `translateX(${(1 - p) * -500}px) rotate(${i % 2 ? 1.5 : -1.5}deg)`, opacity: Math.min(1, p * 1.5) }}>
+              <Img src={x.logo ? staticFile('logos/monad.png') : ls('logo.webp')} className="h-[62px] w-[62px]" />
+              <span className="font-display text-[36px] leading-none">{x.t}</span>
+            </div>
+          )
+        })}
+      </div>
+    </AbsoluteFill>
+  )
+}
+
+/* ---------------------------------------------------------------- beat 3: IRL */
+
+/** A photo pinned like a polaroid. */
+function Polaroid({ src, cap, x, y, w, r, at, fit = 'cover' }: { src: string; cap: string; x: number; y: number; w: number; r: number; at: number; fit?: 'cover' | 'contain' }) {
+  const F = useCurrentFrame()
+  const p = pop(F, at, 9, 190)
+  const h = Math.round(w * 0.72)
+  return (
+    <div className="absolute rounded-[10px] bg-white p-4 pb-3 shadow-[0_18px_40px_rgba(0,0,0,0.45)]" style={{ left: x, top: y, width: w + 32, transform: `rotate(${r + (1 - p) * 25}deg) scale(${0.4 + 0.6 * p})`, opacity: Math.min(1, p * 1.6) }}>
+      <div className="overflow-hidden rounded-[4px] bg-grape-950" style={{ height: h }}>
+        <Img src={src} className="h-full w-full" style={{ objectFit: fit, transform: `scale(${interpolate(F - at, [0, 120], [1.04, 1.12], clamp)})` }} />
+      </div>
+      <div className="mt-2 text-center text-[30px] font-bold text-grape-800" style={{ fontFamily: 'var(--font-display)' }}>
+        {cap}
+      </div>
+      <span className="absolute -top-4 left-1/2 h-8 w-24 -translate-x-1/2 rotate-[-4deg] bg-ember-300/80" />
+    </div>
+  )
+}
+
+function Irl({ at }: { at: number }) {
+  const F = useCurrentFrame()
+  return (
+    <AbsoluteFill>
+      <Polaroid src={staticFile('lilstars/merch/NewsMerch.jpg')} cap="holder merch, unboxed" x={80} y={110} w={680} r={-5} at={at + 2} />
+      <Polaroid src={staticFile('lilstars/merch/NewsW3W.jpg')} cap="first IRL event · Jakarta" x={860} y={80} w={430} r={4} at={at + 16} fit="contain" />
+      <Polaroid src={staticFile('lilstars/merch/NewsLootgoIRL.jpg')} cap="collabs" x={820} y={530} w={400} r={-3} at={at + 30} />
+      <div className="absolute left-[110px] top-[720px] title-outline text-[78px]" style={{ color: '#ffd27a', transform: `scale(${pop(F, at + 40, 8, 260)}) rotate(-4deg)` }}>
+        IRL too!
+      </div>
+    </AbsoluteFill>
+  )
+}
+
+/* ---------------------------------------------------------------- beat 4: press */
+
+const PRESS = [
+  { who: 'Backpack Learn', q: 'gained traction for its playful art style and community engagement', icon: 'merch/NewsBackpack.jpg' },
+  { who: 'PANews', q: 'the Monad community also naturally likes this NFT project', icon: null },
+  { who: 'NFT Evening', q: 'Top 5 Monad NFT Projects Worth Watching', icon: null },
+]
+
+function Press({ at, end }: { at: number; end: number }) {
+  const F = useCurrentFrame()
+  const step = Math.max(14, Math.round((end - at) / (PRESS.length + 1)))
+  return (
+    <AbsoluteFill>
+      <div className="absolute left-[90px] top-[70px] title-outline text-[74px]" style={{ transform: `scale(${pop(F, at, 9, 240)}) rotate(-3deg)` }}>
+        people noticed
+      </div>
+      {PRESS.map((x, i) => {
+        const a = at + 8 + i * step
+        const p = pop(F, a, 10, 210)
+        return (
+          <div key={x.who} className={`${card} absolute flex w-[1180px] items-center gap-6 px-8 py-6`} style={{ left: 120 + i * 70, top: 230 + i * 210, transform: `translateX(${(1 - p) * 900}px) rotate(${[-1.5, 1.2, -1][i]}deg)`, opacity: Math.min(1, p * 1.5) }}>
+            <span className="font-display text-[120px] leading-[0.6] text-candy-500">&ldquo;</span>
+            <div className="flex-1">
+              <div className="text-[40px] font-bold leading-tight text-grape-900">{x.q}</div>
+              <div className="mt-2 text-[26px] font-extrabold uppercase tracking-widest text-grape-600">{x.who}</div>
+            </div>
+          </div>
+        )
+      })}
+    </AbsoluteFill>
   )
 }
 
