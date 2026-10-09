@@ -82,8 +82,11 @@ Roadmap source: `docs/plan/` (mainnet after testnet, Mera passkey account E5 P1,
 - **Leave space**: head and shoulders, a bit of room above the head. The edit crops to a circle for
   the CORNER sections, so stay roughly centred.
 - **One file per section**, named by number: `01-hook.mp4`, `03-problem.mp4`, `04-days.mp4`,
-  `05-meet.mp4`, `06-demo.mp4` (voice only is fine), `07-how.mp4`, `08-why.mp4`, `09-roadmap.mp4`,
-  `10-close.mp4`. Pause one second before and after each line.
+  `05-meet.mp4`, `06-demo.mp4` (voice only is fine), `06b-rules.mp4` (how a raid plays, lines in
+  `src/pitch/lines.json`), `07-how.mp4`, `08-why.mp4`, `09-roadmap.mp4`, `10-close.mp4`.
+- **Talk fast, YouTuber style.** Pauses and mistakes don't matter: `pitch:sync` jump-cuts every
+  pause longer than 0.28 s out of your take (playback speed stays normal). Fluffed a line? Stop,
+  breathe, say it again, then delete the bad bit or leave it and tell the editor.
 - Wear something plain, or a Star Raid / Lil Stars shirt if you have one.
 - Drop the files in `video/public/face/`. The video fits each section to the length of your clip,
   and subtitles are made from your voice.
