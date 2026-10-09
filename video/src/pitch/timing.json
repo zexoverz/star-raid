@@ -2,22 +2,22 @@
   {
     "id": "hook",
     "face": "full",
-    "dur": 3.74,
-    "talk": 3.74,
+    "dur": 5.39,
+    "talk": 5.39,
     "media": "pitch-vo/hook.mp3",
     "video": false,
     "trim": 0,
     "segments": null,
-    "lead": 0.12,
+    "lead": 0.35,
     "lines": [
       {
         "t": "What if a token launch felt like a boss fight, and only real people could win it?",
-        "start": 0.12,
-        "end": 3.44
+        "start": 0.35,
+        "end": 4.84
       }
     ],
     "cues": [
-      0.12
+      0.35
     ]
   },
   {
@@ -32,388 +32,388 @@
   {
     "id": "problem",
     "face": "full>corner",
-    "dur": 9.25,
-    "talk": 9.25,
+    "dur": 15.99,
+    "talk": 15.99,
     "media": "pitch-vo/problem.mp3",
     "video": false,
     "trim": 0,
     "segments": null,
-    "lead": 0.12,
+    "lead": 0.35,
     "lines": [
       {
         "t": "Community buys are broken.",
-        "start": 0.12,
-        "end": 1.13
+        "start": 0.35,
+        "end": 2.22
       },
       {
         "t": "Bots farm the rewards.",
-        "start": 1.19,
-        "end": 2.13
+        "start": 2.44,
+        "end": 4.31
       },
       {
         "t": "Snipers wait for the very last second.",
-        "start": 2.19,
-        "end": 3.8
+        "start": 4.53,
+        "end": 6.98
       },
       {
         "t": "And the sponsor never knows if a real community even showed up.",
-        "start": 3.86,
-        "end": 6.46
+        "start": 7.2,
+        "end": 10.8
       },
       {
         "t": "Not everyone can trade.",
-        "start": 6.52,
-        "end": 7.37
+        "start": 11.02,
+        "end": 12.89
       },
       {
         "t": "But anyone can play a game with their friends.",
-        "start": 7.43,
-        "end": 8.95
+        "start": 13.11,
+        "end": 15.44
       }
     ],
     "cues": [
-      0.12,
-      1.19,
-      2.19,
-      3.86,
-      6.52,
-      7.43
+      0.35,
+      2.44,
+      4.53,
+      7.2,
+      11.02,
+      13.11
     ]
   },
   {
     "id": "days",
     "face": "full",
-    "dur": 3.16,
-    "talk": 3.16,
+    "dur": 4.69,
+    "talk": 4.69,
     "media": "pitch-vo/days.mp3",
     "video": false,
     "trim": 0,
     "segments": null,
-    "lead": 0.12,
+    "lead": 0.35,
     "lines": [
       {
         "t": "So we spent five days building Star Raid for Monad Metropolis.",
-        "start": 0.12,
-        "end": 2.86
+        "start": 0.35,
+        "end": 4.14
       }
     ],
     "cues": [
-      0.12
+      0.35
     ]
   },
   {
     "id": "meet",
     "face": "corner",
-    "dur": 8.06,
-    "talk": 8.06,
+    "dur": 11.83,
+    "talk": 11.83,
     "media": "pitch-vo/meet.mp3",
     "video": false,
     "trim": 0,
     "segments": null,
-    "lead": 0.12,
+    "lead": 0.35,
     "lines": [
       {
         "t": "Star Raid is a co-op raid game on a real on-chain order book.",
-        "start": 0.12,
-        "end": 3.12
+        "start": 0.35,
+        "end": 4.43
       },
       {
         "t": "A sponsor puts up a wall of their token.",
-        "start": 3.18,
-        "end": 4.79
+        "start": 4.65,
+        "end": 7.07
       },
       {
         "t": "Lil Stars holders take their seats, and break it together, live.",
-        "start": 4.85,
-        "end": 7.76
+        "start": 7.29,
+        "end": 11.28
       }
     ],
     "cues": [
-      0.12,
-      3.18,
-      4.85
+      0.35,
+      4.65,
+      7.29
     ]
   },
   {
     "id": "demo",
     "face": "none",
-    "dur": 23.74,
-    "talk": 23.74,
+    "dur": 32.53,
+    "talk": 32.53,
     "media": "pitch-vo/demo.mp3",
     "video": false,
     "trim": 0,
     "segments": null,
-    "lead": 0.12,
+    "lead": 0.35,
     "lines": [
       {
         "t": "This is the lobby. The next raid, live, right here on your phone.",
-        "start": 0.12,
-        "end": 3.28
+        "start": 0.35,
+        "end": 4.62
       },
       {
         "t": "A sponsor sets the wall, the price cap and a USDC prize, and posts it in a few taps.",
-        "start": 3.34,
-        "end": 7.85
+        "start": 4.84,
+        "end": 10.75
       },
       {
         "t": "Your Lil Star is your seat. One Star, one seat. That's the whole bot defence.",
-        "start": 7.91,
-        "end": 11.75
+        "start": 10.97,
+        "end": 16.05
       },
       {
         "t": "Set up once, and every raid after that is one tap. No wallet popups.",
-        "start": 11.81,
-        "end": 15.3
+        "start": 16.27,
+        "end": 20.95
       },
       {
         "t": "When the window opens, everyone hits the wall. Every hit is a real buy.",
-        "start": 15.36,
-        "end": 18.68
+        "start": 21.17,
+        "end": 25.61
       },
       {
         "t": "Then the end block is drawn, every hit is checked, and if the seats hit the target, the wall breaks.",
-        "start": 18.74,
-        "end": 23.44
+        "start": 25.83,
+        "end": 31.98
       }
     ],
     "cues": [
-      0.12,
-      3.34,
-      7.91,
-      11.81,
-      15.36,
-      18.74
+      0.35,
+      4.84,
+      10.97,
+      16.27,
+      21.17,
+      25.83
     ]
   },
   {
     "id": "rules",
     "face": "corner",
-    "dur": 18.85,
-    "talk": 18.85,
+    "dur": 27.8,
+    "talk": 27.8,
     "media": "pitch-vo/rules.mp3",
     "video": false,
     "trim": 0,
     "segments": null,
-    "lead": 0.12,
+    "lead": 0.35,
     "lines": [
       {
         "t": "Here's how a raid plays.",
-        "start": 0.12,
-        "end": 0.92
+        "start": 0.35,
+        "end": 2.22
       },
       {
         "t": "A sponsor puts up a wall and a prize.",
-        "start": 0.98,
-        "end": 2.72
+        "start": 2.44,
+        "end": 5.03
       },
       {
         "t": "For about a minute, every seat taps HIT. Each hit buys from the wall.",
-        "start": 2.78,
-        "end": 5.78
+        "start": 5.25,
+        "end": 9.36
       },
       {
         "t": "The last stretch is the danger zone: the raid can end on any block in there.",
-        "start": 5.84,
-        "end": 9.37
+        "start": 9.58,
+        "end": 14.31
       },
       {
         "t": "Pyth draws the end block. Hits before it count. Hits after it don't.",
-        "start": 9.43,
-        "end": 13.02
+        "start": 14.53,
+        "end": 19.33
       },
       {
         "t": "Hit the target, the wall breaks and the seats split the prize.",
-        "start": 13.08,
-        "end": 15.91
+        "start": 19.55,
+        "end": 23.46
       },
       {
         "t": "Miss it, and the prize rolls into the sponsor's next raid.",
-        "start": 15.97,
-        "end": 18.55
+        "start": 23.68,
+        "end": 27.25
       }
     ],
     "cues": [
-      0.12,
-      0.98,
-      2.78,
-      5.84,
-      9.43,
-      13.08,
-      15.97
+      0.35,
+      2.44,
+      5.25,
+      9.58,
+      14.53,
+      19.55,
+      23.68
     ]
   },
   {
     "id": "how",
     "face": "corner",
-    "dur": 24.65,
-    "talk": 24.65,
+    "dur": 33.99,
+    "talk": 33.99,
     "media": "pitch-vo/how.mp3",
     "video": false,
     "trim": 0,
     "segments": null,
-    "lead": 0.12,
+    "lead": 0.35,
     "lines": [
       {
         "t": "Under the hood, every hit is a buy on Kuru's order book on Monad, capped at the wall price.",
-        "start": 0.12,
-        "end": 4.54
+        "start": 0.35,
+        "end": 6.16
       },
       {
         "t": "Cheaper asks fill first, and anything left over is cancelled and refunded in the same transaction.",
-        "start": 4.6,
-        "end": 9.36
+        "start": 6.38,
+        "end": 12.57
       },
       {
         "t": "The end of the raid is drawn by Pyth Entropy after the window closes, so nobody can snipe the last block.",
-        "start": 9.42,
-        "end": 14.73
+        "start": 12.79,
+        "end": 19.65
       },
       {
         "t": "And only seats count.",
-        "start": 14.79,
-        "end": 15.66
+        "start": 19.87,
+        "end": 21.75
       },
       {
         "t": "A wallet without a Lil Star can still buy, but it earns nothing.",
-        "start": 15.72,
-        "end": 18.34
+        "start": 21.97,
+        "end": 25.59
       },
       {
         "t": "On testnet, raid #26 broke its wall: 58 hits, 580 counted against a 500 target.",
-        "start": 18.4,
-        "end": 24.35
+        "start": 25.81,
+        "end": 33.44
       }
     ],
     "cues": [
-      0.12,
-      4.6,
-      9.42,
-      14.79,
-      15.72,
-      18.4
+      0.35,
+      6.38,
+      12.79,
+      19.87,
+      21.97,
+      25.81
     ]
   },
   {
     "id": "why",
     "face": "full",
-    "dur": 13.36,
-    "talk": 13.36,
+    "dur": 18.31,
+    "talk": 18.31,
     "media": "pitch-vo/why.mp3",
     "video": false,
     "trim": 0,
     "segments": null,
-    "lead": 0.12,
+    "lead": 0.35,
     "lines": [
       {
         "t": "We built it on Monad because a raid only feels like a game when blocks are fast.",
-        "start": 0.12,
-        "end": 3.74
+        "start": 0.35,
+        "end": 5.27
       },
       {
         "t": "Kuru gives us a real on-chain order book, so the wall is real liquidity, not a mock.",
-        "start": 3.8,
-        "end": 8.11
+        "start": 5.49,
+        "end": 11.18
       },
       {
         "t": "And Pyth Entropy gives us a fair end that nobody, not even us, can know in advance.",
-        "start": 8.17,
-        "end": 13.06
+        "start": 11.4,
+        "end": 17.76
       }
     ],
     "cues": [
-      0.12,
-      3.8,
-      8.17
+      0.35,
+      5.49,
+      11.4
     ]
   },
   {
     "id": "roadmap",
     "face": "corner",
-    "dur": 12.79,
-    "talk": 12.79,
+    "dur": 19.08,
+    "talk": 19.08,
     "media": "pitch-vo/roadmap.mp3",
     "video": false,
     "trim": 0,
     "segments": null,
-    "lead": 0.12,
+    "lead": 0.35,
     "lines": [
       {
         "t": "Right now Star Raid is live on Monad testnet.",
-        "start": 0.12,
-        "end": 2.41
+        "start": 0.35,
+        "end": 3.61
       },
       {
         "t": "Next, we go to mainnet.",
-        "start": 2.47,
-        "end": 3.44
+        "start": 3.83,
+        "end": 5.71
       },
       {
         "t": "Then passkey sign-in, so anyone can join without installing a wallet.",
-        "start": 3.5,
-        "end": 6.53
+        "start": 5.93,
+        "end": 10.13
       },
       {
         "t": "And more walls: any sponsor token, starting with liquid staking tokens.",
-        "start": 6.59,
-        "end": 10.09
+        "start": 10.35,
+        "end": 15.05
       },
       {
         "t": "We think this is something the Monad community would love to play.",
-        "start": 10.15,
-        "end": 12.49
+        "start": 15.27,
+        "end": 18.53
       }
     ],
     "cues": [
-      0.12,
-      2.47,
-      3.5,
-      6.59,
-      10.15
+      0.35,
+      3.83,
+      5.93,
+      10.35,
+      15.27
     ]
   },
   {
     "id": "close",
     "face": "full",
-    "dur": 8.97,
-    "talk": 4.47,
+    "dur": 16.58,
+    "talk": 12.08,
     "media": "pitch-vo/close.mp3",
     "video": false,
     "trim": 0,
     "segments": null,
-    "lead": 0.12,
+    "lead": 0.35,
     "lines": [
       {
         "t": "This is Star Raid.",
-        "start": 0.12,
-        "end": 0.78
+        "start": 0.35,
+        "end": 2.22
       },
       {
         "t": "One Star.",
-        "start": 0.84,
-        "end": 1.27
+        "start": 2.44,
+        "end": 4.31
       },
       {
         "t": "One seat.",
-        "start": 1.33,
-        "end": 1.73
+        "start": 4.53,
+        "end": 6.41
       },
       {
         "t": "One wall.",
-        "start": 1.79,
-        "end": 2.16
+        "start": 6.63,
+        "end": 8.5
       },
       {
         "t": "Grab a seat at starraid.xyz",
-        "start": 2.22,
-        "end": 4.17
+        "start": 8.72,
+        "end": 11.53
       }
     ],
     "cues": [
-      0.12,
-      0.84,
-      1.33,
-      1.79,
-      2.22
+      0.35,
+      2.44,
+      4.53,
+      6.63,
+      8.72
     ]
   }
 ]

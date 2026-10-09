@@ -12,18 +12,18 @@
 // Writes src/pitch/timing.json, which the Remotion composition reads.
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 
 const root = new URL('../', import.meta.url).pathname
 const sections = JSON.parse(readFileSync(`${root}src/pitch/lines.json`, 'utf8'))
 const VOICE = process.env.VOICE ?? 'en-US-AndrewNeural'
 const EDGE = process.env.EDGE_TTS ?? 'edge-tts'
-// YouTuber pace: fast talk, tight gaps. Real takes are jump-cut (pauses removed), never sped up.
-const RATE = process.env.RATE ?? '+22%'
-const LEAD = 0.12
-const TAIL = 0.3
-const GAP = 0.06
+// Narration pace as originally cut (the energy lives in the visuals). Real takes still lose dead air.
+const RATE = process.env.RATE ?? '+2%'
+const LEAD = 0.35
+const TAIL = 0.55
+const GAP = 0.22
 const PAD = 0.07 // breath kept around each spoken run in a jump cut
 const MAX_PAUSE = 0.28 // pauses longer than this are cut out of his takes
 mkdirSync(`${root}public/pitch-vo`, { recursive: true })
@@ -35,14 +35,9 @@ const key = () => process.env.ELEVENLABS_API_KEY ?? (existsSync(`${homedir()}/.c
 function placeholder(sec) {
   const parts = sec.lines.map((l) => {
     const text = l.say ?? l.t
-    const h = createHash('sha1').update(VOICE + RATE + text).digest('hex').slice(0, 10)
+    const h = createHash('sha1').update(VOICE + text).digest('hex').slice(0, 10)
     const f = `${root}public/pitch-vo/line-${h}.mp3`
-    if (!existsSync(f)) {
-      execFileSync(EDGE, ['--voice', VOICE, `--rate=${RATE}`, '--text', text, '--write-media', `${f}.raw.mp3`], { stdio: 'ignore' })
-      // trim the silence TTS leaves at both ends so lines butt up against each other
-      execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', `${f}.raw.mp3`, '-af', 'silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse', f])
-      rmSync(`${f}.raw.mp3`)
-    }
+    if (!existsSync(f)) execFileSync(EDGE, ['--voice', VOICE, `--rate=${RATE}`, '--text', text, '--write-media', f], { stdio: 'ignore' })
     return { f, d: dur(f) }
   })
   const out = `${root}public/pitch-vo/${sec.id}.mp3`
