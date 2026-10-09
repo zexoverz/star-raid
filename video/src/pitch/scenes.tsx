@@ -3,20 +3,27 @@ import { pose, type Who } from '../assets'
 import { fmt, RAID } from '../data'
 import { SITE } from '../scenes/Cta'
 import { clamp, Twinkles } from '../ui'
-import { BG, Chip, cue, ease, Face, FPS, frames, Phone, Slam, sec, Sticker, Subtitles, usePopAt, Voice, type Section } from './parts'
+import { BG, Chip, cue, ease, Face, FPS, frames, Phone, Slam, sec, Sticker, usePopAt, Voice, type Section } from './parts'
+import { Captions, LineTicks, Punch, Stickers, useDrift } from './hype'
 
 const art = (p: string) => staticFile(`art/${p}`)
 const rec = (c: string) => `rec/phone/${c}.mp4`
 
-function Shell({ s, bg, children, face, faceAmount }: { s: Section; bg?: object; children?: React.ReactNode; face?: boolean; faceAmount?: number }) {
+function Shell({ s, bg, children, face, faceAmount, stickers = true }: { s: Section; bg?: object; children?: React.ReactNode; face?: boolean; faceAmount?: number; stickers?: boolean }) {
   // over a full-frame face the graphics sit on top of him; with the corner circle they sit underneath
   const over = face && (faceAmount ?? 1) < 0.5
+  const drift = useDrift()
   return (
     <AbsoluteFill style={bg ?? BG.grape}>
-      {face && <Face s={s} amount={faceAmount ?? 1} />}
-      <AbsoluteFill style={{ zIndex: over ? 40 : 20 }}>{children}</AbsoluteFill>
+      <AbsoluteFill className="opacity-[0.07]" style={{ backgroundImage: 'radial-gradient(#2d2250 3px, transparent 3.5px)', backgroundSize: '44px 44px', ...drift }} />
+      <Punch s={s}>
+        {face && <Face s={s} amount={faceAmount ?? 1} />}
+        <AbsoluteFill style={{ zIndex: over ? 40 : 20 }}>{children}</AbsoluteFill>
+      </Punch>
+      <Stickers s={s} skip={!stickers} />
+      <LineTicks s={s} />
       <Voice s={s} />
-      <Subtitles s={s} />
+      <Captions s={s} />
     </AbsoluteFill>
   )
 }
@@ -413,7 +420,7 @@ export function Close() {
     <AbsoluteFill style={BG.grape}>
       <Face s={s} amount={0} />
       <Voice s={s} />
-      {frame < end && <Subtitles s={s} />}
+      {frame < end && <Captions s={s} />}
       {frame >= end - 6 && (
         <AbsoluteFill style={{ opacity: card, zIndex: 45 }}>
           <EndCard start={end} />
