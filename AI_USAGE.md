@@ -80,3 +80,11 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
 - Files: `video/src/pitch/demo-fx.tsx` (one animated panel per demo step), `scenes.tsx`.
 - Human reviewed: boss feedback that the demo's right half felt empty; each panel's text checked
   against the spoken line and DESIGN.md. No prices or counts shown. Lil Stars poses used unaltered.
+
+## Video: sketch diagram, partner logos, music fix
+- Files: `video/src/pitch/diagram.tsx` (rough.js + Excalifont, stickman raider and bot, hopping
+  coins synced to taps), `video/src/pitch/scenes.tsx` (logos in Why), `video/src/pitch/Pitch.tsx`
+  (music bed ducked where the loop restarts), `video/public/logos/*` + SOURCES.md,
+  `video/public/fonts/Excalifont-Regular.woff2` (OFL 1.1).
+- Human reviewed: feedback that How it works was not sketchy enough, dots moved oddly, no chain or
+  sponsor logos, music too loud at 1:30 to 1:40. Logos are the official marks, unaltered.
