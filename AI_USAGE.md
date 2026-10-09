@@ -88,3 +88,13 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
   `video/public/fonts/Excalifont-Regular.woff2` (OFL 1.1).
 - Human reviewed: feedback that How it works was not sketchy enough, dots moved oddly, no chain or
   sponsor logos, music too loud at 1:30 to 1:40. Logos are the official marks, unaltered.
+
+## Video v2: backup + Lil Stars section
+- Backup: tag `pitch-v1` (pushed), plus `~/Work/tries/star-raid-backups/pitch-v1-2026-10-09`
+  (both MP4s, source tarball incl. gitignored assets, git bundle; restore tested).
+- Files (branch `pitch-v2`): `video/src/pitch/lilstars.tsx`, `lines.json` (new `lilstars` section),
+  `scenes.tsx` (scene + Lil Stars links on the end card), `video/scripts/lilstars-scan.mjs`,
+  `video/public/lilstars/site/*.png` (screenshots of lilstars.xyz).
+- Human reviewed: boss asked to tell who Lil Stars are, their X and site. All claims and the four
+  character bios are quoted or paraphrased from lilstars.xyz; X handle @lilstarrrs from the site's
+  own link. Official art used unaltered; no NFT prices or counts shown.
