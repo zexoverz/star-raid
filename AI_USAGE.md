@@ -98,3 +98,6 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
 - Human reviewed: boss asked to tell who Lil Stars are, their X and site. All claims and the four
   character bios are quoted or paraphrased from lilstars.xyz; X handle @lilstarrrs from the site's
   own link. Official art used unaltered; no NFT prices or counts shown.
+- Follow-up: Lil Stars section now shows real NFT cards (showcase pieces + collection #1-24 from
+  lilstars.xyz / IPFS), the holder merch unboxing and first IRL event images from their News page,
+  and three short credited press quotes (Backpack Learn, PANews, NFT Evening). No ratings or prices.
