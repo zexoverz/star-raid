@@ -8,13 +8,27 @@ const starts = PITCH_SCENES.map((_, i) => PITCH_SCENES.slice(0, i).reduce((a, s)
 const at = (id: string) => starts[PITCH_SCENES.findIndex((s) => s.id === id)]
 
 /** Music bed: louder on the logo sting and the end card, tucked under the voice everywhere else. */
+const BGM_LOOP = 88.04 // seconds; the track's intro is its loudest bit
 function Bed() {
   const sting = at('sting')
   const meet = at('problem')
   const end = PITCH_TOTAL - Math.round(4.5 * FPS)
-  const volume = (f: number) =>
+  const loop = Math.round(BGM_LOOP * FPS)
+  // absolute-frame level; `loop` on Html5Audio passes a per-iteration frame, so play each pass explicitly
+  const level = (f: number) =>
     interpolate(f, [0, sting - 6, sting + 4, meet - 8, meet + 6, end - 12, end, PITCH_TOTAL - 25, PITCH_TOTAL], [0.07, 0.07, 0.42, 0.42, 0.08, 0.08, 0.42, 0.42, 0], clamp)
-  return <Html5Audio src={staticFile('audio/bgm.mp3')} volume={volume} loop />
+  // on every pass after the first, the intro would jump out under the voice: hold it down, ease back in
+  const intro = (t: number) => interpolate(t, [0, 14 * FPS, 18 * FPS], [0.4, 0.4, 1], clamp)
+  const passes = Math.ceil(PITCH_TOTAL / loop)
+  return (
+    <>
+      {Array.from({ length: passes }, (_, i) => (
+        <Sequence key={i} from={i * loop} durationInFrames={Math.min(loop, PITCH_TOTAL - i * loop)} layout="none">
+          <Html5Audio src={staticFile('audio/bgm.mp3')} volume={(t) => level(i * loop + t) * (i === 0 || i * loop + t >= end - 12 ? 1 : intro(t))} />
+        </Sequence>
+      ))}
+    </>
+  )
 }
 
 function Whooshes() {
