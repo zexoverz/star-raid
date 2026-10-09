@@ -60,3 +60,10 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
 ## Sound: ElevenLabs kit for app and video
 - Files: app/src/lib/sfx.ts (samples via WebAudio, soft synth fallback), app/public/sfx/*.mp3, video/public/audio/kit/*.mp3 (sound effects generated with the ElevenLabs MCP, trimmed and loudness-matched), video/src/{Main,explainer/*,scenes/*}.tsx, video/scripts/eleven.mjs. Written by Claude (Jcode); sounds by ElevenLabs text to sound effects.
 - Human reviewed: asked to replace the 8-bit sounds and to use ElevenLabs; listening review pending.
+
+## Video: pitch pace + mechanics section
+- Files: `video/src/pitch/parts.tsx` (notch removed, jump-cut `Take`), `video/scripts/pitch-sync.mjs`
+  (TTS rate +22%, silence trim, jump cuts on real takes), `video/src/pitch/lines.json` and
+  `scenes.tsx` (new `rules` section and timeline scene), `video/PITCH.md`.
+- Human reviewed: boss feedback (faster cut-to-cut talk, explain game mechanics); rules checked
+  against `docs/plan/DESIGN.md` (counted = block <= endBlock, lost bounty to `rollover[sponsor]`).
