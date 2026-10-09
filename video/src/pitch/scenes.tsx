@@ -7,6 +7,7 @@ import { BG, Chip, cue, ease, Face, FPS, frames, Phone, Slam, sec, Sticker, useP
 import { Captions, LineTicks, Punch, Stickers, useDrift } from './hype'
 import { Diagram } from './diagram'
 import { DemoPanels } from './demo-fx'
+import { LilStarsLinks, LilStarsPanel } from './lilstars'
 
 // GPT-drawn doodles (scripts/doodles.sh); a box without one just shows its label
 const DOODLE_NAMES = ['raider', 'router', 'kuru', 'gate', 'vault', 'pyth', 'settle'] as const
@@ -283,6 +284,17 @@ export function Rules() {
   )
 }
 
+/* 5b. Who are the Lil Stars: what it is, the crew, off-chain IP, links. Him in the corner. */
+export function LilStars() {
+  const s = sec('lilstars')
+  return (
+    <Shell s={s} bg={BG.grape} face stickers={false}>
+      <Twinkles count={14} seed={7} />
+      <LilStarsPanel cues={s.cues.map((_, i) => cue(s, i))} total={frames(s)} />
+    </Shell>
+  )
+}
+
 /* 7. How it works: an Excalidraw-style architecture sketch that draws itself, then real raid #26 numbers. */
 export function How() {
   const s = sec('how')
@@ -433,8 +445,12 @@ function EndCard({ start }: { start: number }) {
           ))}
         </div>
         <div className="mt-5 flex items-center gap-4">
-          <span className="text-[30px] font-bold text-cream-100">now at</span>
+          <span className="text-[30px] font-bold text-cream-100">play at</span>
           <Chip className="!bg-ember-400 !text-[34px] text-white">{SITE}</Chip>
+        </div>
+        <div className="mt-6 flex items-center gap-4">
+          <span className="text-[26px] font-bold text-cream-100">Lil Stars</span>
+          <LilStarsLinks at={start + 20} compact />
         </div>
         <div className="absolute bottom-10 text-center text-[22px] text-grape-300">Built in 5 days for Monad Metropolis 2026 · Kuru · Pyth Entropy · Lil Stars art by the Lil Stars team</div>
       </AbsoluteFill>
@@ -448,6 +464,7 @@ export const PITCH_SCENES = [
   { id: 'problem', C: Problem },
   { id: 'days', C: Days },
   { id: 'meet', C: Meet },
+  { id: 'lilstars', C: LilStars },
   { id: 'demo', C: Demo },
   { id: 'rules', C: Rules },
   { id: 'how', C: How },

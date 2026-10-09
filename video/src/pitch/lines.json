@@ -36,6 +36,20 @@
     ]
   },
   {
+    "id": "lilstars",
+    "file": "05b-lilstars.mp4",
+    "face": "corner",
+    "lines": [
+      { "t": "So who are the Lil Stars?" },
+      { "t": "Lilstars, formerly Chogstar, is a digital collectible IP born on Monad." },
+      { "t": "Meet the Stars crew: Chogstar, Bunnystar, Foxstar and Bearstar." },
+      { "t": "One universe, one IP, and it's growing off-chain too, with IRL blind boxes and merch for holders." },
+      { "t": "Their motto is that everyone can be a star." },
+      { "t": "In Star Raid, your Lil Star is your seat." },
+      { "t": "Find them at lilstars.xyz, and on X at lilstarrrs.", "say": "Find them at lil stars dot x y z, and on X at lil stars, with three R's." }
+    ]
+  },
+  {
     "id": "demo",
     "file": "06-demo.mp4",
     "face": "none",
