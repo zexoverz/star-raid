@@ -5,6 +5,7 @@
  */
 import { AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame } from 'remotion'
 import { clamp } from '../ui'
+import { Sfx, type SfxKind } from './parts'
 
 const ls = (p: string) => staticFile(`art/lilstars/${p}`)
 const site = (p: string) => staticFile(`lilstars/site/${p}`)
@@ -118,7 +119,54 @@ export function LilStarsPanel({ cues, total }: { cues: number[]; total: number }
           <span key={i} className="h-[12px] w-[44px] rounded-full border-[3px] border-grape-800" style={{ background: i <= beat ? '#ffb84d' : '#2d2250' }} />
         ))}
       </div>
+      <PanelSounds c={c} n={cues.length} />
     </AbsoluteFill>
+  )
+}
+
+/**
+ * Every element that enters gets a sound on the frame it starts moving, and every beat gets a
+ * slide-out on the frame its visuals leave. Offsets mirror the `pop(F, ...)` delays above.
+ */
+function PanelSounds({ c, n }: { c: (i: number) => number; n: number }) {
+  const s: { at: number; kind: SfxKind }[] = []
+  const add = (at: number, kind: SfxKind) => s.push({ at, kind })
+  // 0 logo slam + question
+  add(c(0), 'stamp')
+  add(c(0) + 8, 'boing')
+  // 1 collection: card fan, holo shine, three tags
+  SHOW.forEach((_, i) => add(c(1) + 4 + i * 4, 'card'))
+  add(c(1) + 34, 'sparkle')
+  const len1 = c(2) - c(1)
+  ;[10, Math.round(len1 * 0.35), Math.round(len1 * 0.6)].forEach((d) => add(c(1) + d, 'slide-in'))
+  // 2 crew cards
+  CREW.forEach((_, i) => add(c(2) + Math.round(((c(3) - c(2)) / 5) * i), 'card'))
+  // 3 IRL photos + caption
+  ;[2, 16, 30].forEach((d) => add(c(3) + d, 'photo'))
+  add(c(3) + 40, 'stamp')
+  // 4 press title + quotes
+  add(c(4), 'boing')
+  const step = Math.max(14, Math.round((c(5) - c(4)) / (PRESS.length + 1)))
+  PRESS.forEach((_, i) => add(c(4) + 8 + i * step, 'slide-in'))
+  // 5 motto: crew hops in, then the line
+  add(c(5), 'boing')
+  add(c(5) + 14, 'sparkle')
+  // 6 your Lil Star = your seat
+  add(c(6), 'card')
+  add(c(6) + 10, 'stamp')
+  add(c(6) + 18, 'card')
+  // 7 find them: browser slides up, two link cards
+  add(c(7), 'slide-in')
+  add(c(7) + 8, 'boing')
+  add(c(7) + 16, 'boing')
+  // slide-out at the end of every beat but the last
+  for (let i = 0; i < n - 1; i++) add(c(i + 1) - 4, 'slide-out')
+  return (
+    <>
+      {s.map((x, i) => (
+        <Sfx key={i} at={x.at} kind={x.kind} />
+      ))}
+    </>
   )
 }
 

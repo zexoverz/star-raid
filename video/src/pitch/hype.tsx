@@ -2,10 +2,10 @@
  * YouTuber energy layer for the pitch: punch-in zooms on every line, word-by-word captions with the
  * spoken word lit up, keyword stickers that pop in with a sound, and a background that never sits still.
  */
-import type { ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import { AbsoluteFill, Html5Audio, Img, interpolate, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion'
 import { clamp } from '../ui'
-import { FPS, type Section } from './parts'
+import { FPS, Sfx, type Section } from './parts'
 
 const art = (p: string) => staticFile(`art/${p}`)
 
@@ -159,9 +159,10 @@ export function Stickers({ s, skip = false }: { s: Section; skip?: boolean }) {
         )
       })}
       {items.map((it, n) => (
-        <Sequence key={`a${n}`} from={it.at} durationInFrames={20} layout="none">
-          <Html5Audio src={staticFile('audio/kit/click.mp3')} volume={0.28} />
-        </Sequence>
+        <Fragment key={`a${n}`}>
+          <Sfx at={it.at} kind="boing" />
+          <Sfx at={it.end} kind="slide-out" volume={0.16} />
+        </Fragment>
       ))}
     </>
   )

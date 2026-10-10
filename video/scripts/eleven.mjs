@@ -11,6 +11,9 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 const KEY = process.env.ELEVENLABS_API_KEY
 if (!KEY) throw new Error('Set ELEVENLABS_API_KEY in your shell (not in a file in the repo).')
 const root = new URL('../public/audio/', import.meta.url).pathname
+// `sfx --out kit` writes into public/audio/kit (the pitch's kit) instead of public/audio/sfx
+const outIdx = process.argv.indexOf('--out')
+const OUTDIR = outIdx > 0 ? process.argv.splice(outIdx, 2)[1] : 'sfx'
 
 // One style line keeps the whole kit coherent: soft, rounded, cartoon game UI, no chiptune.
 const STYLE = 'polished mobile game UI sound, soft and rounded, warm, cartoon, high quality, clean, no 8-bit, no chiptune, no music'
@@ -27,6 +30,15 @@ const SFX = {
   defeat: { text: `soft sad cartoon descending trombone wah wah, gentle game lose stinger`, duration: 2.0 },
   whoosh: { text: `quick soft swoosh for a scene transition, airy, ${STYLE}`, duration: 0.6 },
   pop: { text: `soft bubble pop as a speech bubble appears, ${STYLE}`, duration: 0.5 },
+  // motion kit for the pitch: every element that enters or leaves gets one of these
+  'slide-in': { text: `short bright airy swoosh of a card sliding onto the screen from the side, ends crisply, ${STYLE}`, duration: 0.5 },
+  'slide-out': { text: `short soft descending swoosh of a card sliding away off the screen, ${STYLE}`, duration: 0.5 },
+  card: { text: `crisp single playing card flick and snap onto a table, ${STYLE}`, duration: 0.5 },
+  photo: { text: `a polaroid photo slapped onto a corkboard, light paper slap with tiny tape sound, ${STYLE}`, duration: 0.5 },
+  boing: { text: `tiny bouncy cartoon boing as a sticker pops into place, ${STYLE}`, duration: 0.5 },
+  stamp: { text: `satisfying rubber stamp thunk on paper, ${STYLE}`, duration: 0.5 },
+  sparkle: { text: `quick glittery sparkle shimmer, holographic card shine, ${STYLE}`, duration: 0.7 },
+  scribble: { text: `quick marker pen scribble on a whiteboard, ${STYLE}`, duration: 0.6 },
 }
 
 const MUSIC = {
@@ -51,12 +63,12 @@ async function post(path, body) {
 
 const [mode, ...only] = process.argv.slice(2)
 if (mode === 'sfx') {
-  mkdirSync(`${root}sfx`, { recursive: true })
+  mkdirSync(`${root}${OUTDIR}`, { recursive: true })
   for (const [name, s] of Object.entries(SFX)) {
     if (only.length && !only.includes(name)) continue
     const mp3 = await post('/v1/sound-generation?output_format=mp3_44100_128', { text: s.text, duration_seconds: s.duration, prompt_influence: 0.5, model_id: 'eleven_text_to_sound_v2' })
-    writeFileSync(`${root}sfx/${name}.mp3`, mp3)
-    console.log(`sfx/${name}.mp3  ${(mp3.length / 1024).toFixed(0)} KB`)
+    writeFileSync(`${root}${OUTDIR}/${name}.mp3`, mp3)
+    console.log(`${OUTDIR}/${name}.mp3  ${(mp3.length / 1024).toFixed(0)} KB`)
   }
 } else if (mode === 'music') {
   mkdirSync(`${root}music`, { recursive: true })

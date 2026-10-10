@@ -12,6 +12,7 @@ import { useMemo } from 'react'
 import { AbsoluteFill, cancelRender, continueRender, delayRender, Html5Audio, interpolate, Sequence, spring, staticFile, useCurrentFrame } from 'remotion'
 import rough from 'roughjs'
 import { clamp } from '../ui'
+import { Sfx } from './parts'
 
 /* ------------------------------------------------------------------ font */
 
@@ -348,6 +349,20 @@ export function Diagram({ c, icons }: { c: DiagramCues; icons: Record<string, st
           <Html5Audio src={staticFile('audio/kit/hit.mp3')} volume={0.12} />
         </Sequence>
       ))}
+      {/* pen sounds as each box and arrow draws itself, a snap for each partner logo sticker */}
+      {boxes.map((b) => (
+        <Sfx key={`b${b.id}`} at={b.at} kind="scribble" />
+      ))}
+      {arrows.map((a) => (
+        <Sfx key={`a${a.id}`} at={a.at} kind="scribble" volume={0.12} />
+      ))}
+      {boxes.filter((b) => b.logo).map((b) => (
+        <Sfx key={`l${b.id}`} at={b.at + 12} kind="boing" />
+      ))}
+      <Sfx at={c.kuru + 24} kind="boing" />
+      <Sfx at={2} kind="slide-in" />
+      <Sfx at={c.noSeat} kind="slide-in" />
+      <Sfx at={c.result + 22} kind="sparkle" />
     </AbsoluteFill>
   )
 }

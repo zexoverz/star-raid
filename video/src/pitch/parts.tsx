@@ -173,20 +173,49 @@ export const BG = {
   grape: { background: 'radial-gradient(ellipse at 50% 20%, #4a4373, #15122a 70%)' },
 } as const
 
+/* ------------------------------------------------------------- motion sound */
+
+export type SfxKind = 'slide-in' | 'slide-out' | 'card' | 'photo' | 'boing' | 'stamp' | 'sparkle' | 'scribble' | 'whoosh' | 'click' | 'coin' | 'hit' | 'join' | 'reveal' | 'combo' | 'tick' | 'victory' | 'defeat'
+const SFX_VOL: Partial<Record<SfxKind, number>> = { 'slide-in': 0.32, 'slide-out': 0.22, card: 0.3, photo: 0.38, boing: 0.3, stamp: 0.4, sparkle: 0.22, scribble: 0.18, whoosh: 0.25, click: 0.28 }
+
+/** One kit sound at a frame (relative to the current Sequence). Negative or NaN frames are skipped. */
+export function Sfx({ at, kind, volume }: { at: number; kind: SfxKind; volume?: number }) {
+  if (!Number.isFinite(at) || at < 0) return null
+  return (
+    <Sequence from={Math.round(at)} durationInFrames={24} layout="none">
+      <Html5Audio src={staticFile(`audio/kit/${kind}.mp3`)} volume={volume ?? SFX_VOL[kind] ?? 0.3} />
+    </Sequence>
+  )
+}
+
+/** Sounds for an element that enters at `at` and (optionally) leaves at `out`. */
+export function InOut({ at, out, kind = 'slide-in' }: { at: number; out?: number; kind?: SfxKind }) {
+  return (
+    <>
+      <Sfx at={at} kind={kind} />
+      {out !== undefined && <Sfx at={out - 4} kind="slide-out" />}
+    </>
+  )
+}
+
 /** Sticker card: thick dark outline and a hard drop shadow, the reference's slide look in our palette. */
-export function Sticker({ at, children, className = '', style, tilt = 0, from = 'up' }: { at: number; children: ReactNode; className?: string; style?: CSSProperties; tilt?: number; from?: 'up' | 'left' | 'right' | 'pop' }) {
+export function Sticker({ at, children, className = '', style, tilt = 0, from = 'up', sfx = true }: { at: number; children: ReactNode; className?: string; style?: CSSProperties; tilt?: number; from?: 'up' | 'left' | 'right' | 'pop'; sfx?: boolean }) {
   const p = usePopAt(at)
   const frame = useCurrentFrame()
-  if (frame < at) return null
+  const sound = sfx ? <Sfx at={at} kind={from === 'pop' ? 'boing' : 'slide-in'} /> : null
+  if (frame < at) return sound
   const d = (1 - p) * 140
   const move = { up: `translateY(${d}px)`, left: `translateX(${-d}px)`, right: `translateX(${d}px)`, pop: `scale(${0.3 + 0.7 * p})` }[from]
   return (
-    <div
-      className={`rounded-[28px] border-[5px] border-grape-800 bg-cream-100 text-grape-900 shadow-[0_9px_0_#2d2250] ${className}`}
-      style={{ ...style, transform: `${move} rotate(${tilt}deg)`, opacity: Math.min(1, p * 1.5) }}
-    >
-      {children}
-    </div>
+    <>
+      {sound}
+      <div
+        className={`rounded-[28px] border-[5px] border-grape-800 bg-cream-100 text-grape-900 shadow-[0_9px_0_#2d2250] ${className}`}
+        style={{ ...style, transform: `${move} rotate(${tilt}deg)`, opacity: Math.min(1, p * 1.5) }}
+      >
+        {children}
+      </div>
+    </>
   )
 }
 
@@ -194,11 +223,15 @@ export function Sticker({ at, children, className = '', style, tilt = 0, from = 
 export function Slam({ at, children, className = '', color = '#ffb84d', size = 150 }: { at: number; children: ReactNode; className?: string; color?: string; size?: number }) {
   const frame = useCurrentFrame()
   const p = usePopAt(at, { damping: 9, stiffness: 220 })
-  if (frame < at) return null
+  const sound = <Sfx at={at} kind="stamp" />
+  if (frame < at) return sound
   return (
-    <div className={`title-outline z-40 leading-none ${className}`} style={{ fontSize: size, color, transform: `scale(${interpolate(p, [0, 1], [2.2, 1])}) rotate(-4deg)`, opacity: Math.min(1, p * 2) }}>
-      {children}
-    </div>
+    <>
+      {sound}
+      <div className={`title-outline z-40 leading-none ${className}`} style={{ fontSize: size, color, transform: `scale(${interpolate(p, [0, 1], [2.2, 1])}) rotate(-4deg)`, opacity: Math.min(1, p * 2) }}>
+        {children}
+      </div>
+    </>
   )
 }
 

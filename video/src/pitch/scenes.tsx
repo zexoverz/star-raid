@@ -3,7 +3,7 @@ import { pose, type Who } from '../assets'
 import { fmt, RAID } from '../data'
 import { SITE } from '../scenes/Cta'
 import { clamp, Twinkles } from '../ui'
-import { BG, Chip, cue, ease, Face, FPS, frames, Phone, Slam, sec, Sticker, usePopAt, Voice, type Section } from './parts'
+import { BG, Chip, cue, ease, Face, FPS, frames, Phone, Sfx, Slam, sec, Sticker, usePopAt, Voice, type Section } from './parts'
 import { Captions, LineTicks, Punch, Stickers, useDrift } from './hype'
 import { Diagram } from './diagram'
 import { DemoPanels } from './demo-fx'
@@ -261,7 +261,7 @@ export function Rules() {
         <div className="absolute w-[6px] rounded bg-sky" style={{ left: hx - 3, top: 50, height: 76, boxShadow: '0 0 12px #b6d6f7', opacity: head > 0 && head < 1 ? 1 : 0 }} />
         {dropped && (
           <div className="absolute" style={{ left: x0 + (x1 - x0) * endAt - 46, top: 116 }}>
-            <Sticker at={c(4) + 6} className="flex items-center gap-2 bg-ember-300 px-4 py-2" tilt={-3} from="pop">
+            <Sticker at={c(4) + 6} className="flex items-center gap-2 bg-ember-300 px-4 py-2" tilt={-3} from="pop" sfx={false}>
               <Img src={art('dice_block.webp')} className="h-12 w-12" />
               <span className="font-display text-[28px]">end block (Pyth)</span>
             </Sticker>
@@ -280,6 +280,16 @@ export function Rules() {
           <span className="font-display text-[32px]">missed: prize rolls to the next raid</span>
         </Sticker>
       </div>
+      {/* timeline slides in, each hit sparks as the playhead passes it, the end block stamps down,
+          and the hits after it get crossed out */}
+      <Sfx at={c(2) - 6} kind="slide-in" />
+      <Sfx at={c(3)} kind="whoosh" />
+      {hits.map((h, i) => {
+        const f = c(2) + Math.round(h.t * (c(4) + 10 - c(2)))
+        return <Sfx key={i} at={f} kind="tick" volume={0.18} />
+      })}
+      <Sfx at={c(4) + 6} kind="stamp" />
+      <Sfx at={c(4) + 9} kind="defeat" volume={0.12} />
     </Shell>
   )
 }

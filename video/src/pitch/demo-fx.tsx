@@ -3,9 +3,10 @@
  * every line he says has something happening on screen. Art is the app's own (Lil Stars crew poses
  * are used as-is, never altered). No invented numbers: nothing here shows a price, amount or count.
  */
-import { AbsoluteFill, Html5Audio, Img, interpolate, Sequence, spring, staticFile, useCurrentFrame } from 'remotion'
+import { AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame } from 'remotion'
 import { pose } from '../assets'
 import { clamp } from '../ui'
+import { Sfx, type SfxKind } from './parts'
 
 const art = (p: string) => staticFile(`art/${p}`)
 const doodle = (p: string) => staticFile(`doodle/${p}.png`)
@@ -257,12 +258,52 @@ export function DemoPanels({ cues, total }: { cues: number[]; total: number }) {
             <div className="absolute left-[660px] top-[290px] h-[640px] w-[1220px]">
               <C at={at} len={end - at} />
             </div>
-            <Sequence from={at} durationInFrames={30} layout="none">
-              <Html5Audio src={staticFile(`audio/kit/${s.sfx}.mp3`)} volume={0.35} />
-            </Sequence>
           </AbsoluteFill>
         )
       })}
+      <DemoSounds cues={cues} total={total} />
     </AbsoluteFill>
+  )
+}
+
+/** Step sound, title slide-in, each element's entrance, and a slide-out as the step leaves. */
+function DemoSounds({ cues, total }: { cues: number[]; total: number }) {
+  const s: { at: number; kind: SfxKind }[] = []
+  const add = (at: number, kind: SfxKind) => s.push({ at, kind })
+  STEPS.forEach((st, n) => {
+    const at = cues[n] ?? 0
+    const end = cues[n + 1] ?? total
+    const len = end - at
+    add(at, st.sfx as SfxKind)
+    add(at + 2, 'slide-in')
+    if (n === 0) {
+      add(at + 6, 'card')
+      add(at + 14, 'boing')
+      ;[18, 23, 28].forEach((d) => add(at + d, 'boing'))
+    } else if (n === 1) {
+      add(at, 'slide-in')
+      ;[0.08, 0.35, 0.6].forEach((o) => add(at + Math.round(len * o), 'slide-in'))
+      add(at + Math.round(len * 0.66), 'coin')
+    } else if (n === 2) {
+      add(at + 4, 'slide-in')
+      add(at + 22, 'boing')
+      add(at + Math.round(len * 0.55) + 10, 'hit')
+    } else if (n === 3) {
+      ;[0, 5, 10].forEach((d) => add(at + d, 'card'))
+      ;[0, 3, 6].forEach((d) => add(at + Math.round(len * 0.4) + d, 'slide-out'))
+      add(at + Math.round(len * 0.4) + 8, 'boing')
+    } else if (n === 5) {
+      add(at + Math.round(len * 0.4), 'stamp')
+      ;[12, 20].forEach((d) => add(at + Math.round(len * 0.4) + d, 'slide-in'))
+      add(at + Math.round(len * 0.7), 'victory')
+    }
+    if (n < STEPS.length - 1) add(end - 4, 'slide-out')
+  })
+  return (
+    <>
+      {s.map((x, i) => (
+        <Sfx key={i} at={x.at} kind={x.kind} volume={x.kind === 'victory' ? 0.3 : undefined} />
+      ))}
+    </>
   )
 }
