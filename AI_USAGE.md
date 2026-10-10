@@ -101,3 +101,7 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
 - Follow-up: Lil Stars section now shows real NFT cards (showcase pieces + collection #1-24 from
   lilstars.xyz / IPFS), the holder merch unboxing and first IRL event images from their News page,
   and three short credited press quotes (Backpack Learn, PANews, NFT Evening). No ratings or prices.
+- Motion sound pass: 8 new ElevenLabs SFX in `video/public/audio/kit` (slide-in, slide-out, card,
+  photo, boing, stamp, sparkle, scribble; prompts in `scripts/eleven.mjs`). Shared `Sfx`/`InOut`
+  in `parts.tsx`; Sticker and Slam now sound on entry everywhere; Lil Stars, demo, rules, diagram
+  and side stickers get a sound per element in and a slide-out per beat out. Mix peak -3.1 dBFS.
