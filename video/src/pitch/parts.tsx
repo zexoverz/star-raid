@@ -188,6 +188,17 @@ export function Sfx({ at, kind, volume }: { at: number; kind: SfxKind; volume?: 
   )
 }
 
+/**
+ * Slides its children away over the last `len` frames before `out` (the frame they disappear),
+ * so the slide-out sound has a matching picture. Direction alternates by `dir`.
+ */
+export function Exit({ out, children, len = 9, dir = 1 }: { out: number; children: ReactNode; len?: number; dir?: 1 | -1 }) {
+  const frame = useCurrentFrame()
+  const t = interpolate(frame, [out - len, out], [0, 1], { ...clamp, easing: (x) => x * x })
+  if (t <= 0) return <>{children}</>
+  return <AbsoluteFill style={{ transform: `translateX(${dir * -t * 1400}px) rotate(${dir * -t * 6}deg)`, opacity: 1 - t * 0.6 }}>{children}</AbsoluteFill>
+}
+
 /** Sounds for an element that enters at `at` and (optionally) leaves at `out`. */
 export function InOut({ at, out, kind = 'slide-in' }: { at: number; out?: number; kind?: SfxKind }) {
   return (

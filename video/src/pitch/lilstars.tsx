@@ -3,9 +3,10 @@
  * the animated crew art and logos from lilstars.xyz (public/art/lilstars) and screenshots of the
  * site (public/lilstars/site). Every claim is from lilstars.xyz (About + Characters pages).
  */
+import type { ReactNode } from 'react'
 import { AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame } from 'remotion'
 import { clamp } from '../ui'
-import { Sfx, type SfxKind } from './parts'
+import { Exit, Sfx, type SfxKind } from './parts'
 
 const ls = (p: string) => staticFile(`art/lilstars/${p}`)
 const site = (p: string) => staticFile(`lilstars/site/${p}`)
@@ -45,21 +46,31 @@ export function LilStarsPanel({ cues, total }: { cues: number[]; total: number }
   const beat = Math.max(0, cues.filter((c) => F >= c).length - 1)
   const c = (i: number) => cues[i] ?? total
   const vis = (i: number, j = i + 1) => F >= c(i) - 2 && F < c(j)
+  // every beat slides out (with its slide-out sound) as the next one starts
+  const ex = (i: number, node: ReactNode) => (
+    <Exit out={c(i + 1)} dir={i % 2 ? -1 : 1}>
+      {node}
+    </Exit>
+  )
   return (
     <AbsoluteFill>
       {/* 0. "So who are the Lil Stars?" logo slam */}
-      {vis(0) && (
+      {vis(0) &&
+        ex(
+          0,
         <AbsoluteFill className="items-center justify-center">
           <Img src={ls('graffiti_logo.webp')} className="h-[520px] w-auto drop-shadow-[0_18px_24px_rgba(0,0,0,0.45)]" style={{ transform: `scale(${0.3 + 0.7 * pop(F, c(0), 8, 180)}) rotate(${(1 - pop(F, c(0), 8, 180)) * -20}deg)` }} />
           <div className="title-outline mt-2 text-[86px]" style={{ transform: `scale(${pop(F, c(0) + 8, 9, 260)})` }}>
             who are they?
           </div>
-        </AbsoluteFill>
+        </AbsoluteFill>,
       )}
       {/* 1. what it is: a real NFT collection. Cards fan out of the deck, the 6,000-piece wall scrolls behind */}
-      {vis(1) && <Collection at={c(1)} end={c(2)} />}
+      {vis(1) && ex(1, <Collection at={c(1)} end={c(2)} />)}
       {/* 2. the crew: four animated cards land one by one, each with its official one-line bio */}
-      {vis(2) && (
+      {vis(2) &&
+        ex(
+          2,
         <div className="absolute left-[70px] top-[70px] flex gap-6">
           {CREW.map((m, i) => {
             const at = c(2) + Math.round(((c(3) - c(2)) / 5) * i)
@@ -74,14 +85,16 @@ export function LilStarsPanel({ cues, total }: { cues: number[]; total: number }
               </div>
             )
           })}
-        </div>
+        </div>,
       )}
       {/* 3. growing off-chain: the real merch unboxing and IRL event, from their News page */}
-      {vis(3) && <Irl at={c(3)} />}
+      {vis(3) && ex(3, <Irl at={c(3)} />)}
       {/* 4. people noticed: press quote cards (short, credited) */}
-      {vis(4) && <Press at={c(4)} end={c(5)} />}
+      {vis(4) && ex(4, <Press at={c(4)} end={c(5)} />)}
       {/* 5. motto */}
-      {vis(5) && (
+      {vis(5) &&
+        ex(
+          5,
         <AbsoluteFill className="items-center justify-center pr-[460px]">
           <div className="flex items-end gap-2">
             {CREW.map((m, i) => (
@@ -91,10 +104,12 @@ export function LilStarsPanel({ cues, total }: { cues: number[]; total: number }
           <div className="title-outline mt-6 text-center text-[88px] leading-[1.05]" style={{ color: '#ffd27a', transform: `scale(${pop(F, c(5) + 14, 8, 260)}) rotate(-3deg)` }}>
             everyone can be a star
           </div>
-        </AbsoluteFill>
+        </AbsoluteFill>,
       )}
       {/* 6. in Star Raid, your Lil Star is your seat */}
-      {vis(6) && (
+      {vis(6) &&
+        ex(
+          6,
         <AbsoluteFill className="items-center justify-center pr-[300px]">
           <div className="flex items-center gap-10">
             <div className={`${card} p-5`} style={{ transform: `rotate(-4deg) scale(${pop(F, c(6), 10, 220)})` }}>
@@ -109,7 +124,7 @@ export function LilStarsPanel({ cues, total }: { cues: number[]; total: number }
               <div className="mt-2 text-center font-display text-[36px]">one raid seat</div>
             </div>
           </div>
-        </AbsoluteFill>
+        </AbsoluteFill>,
       )}
       {/* 7. where to find them */}
       {F >= c(7) - 2 && <FindThem at={c(7)} />}
@@ -160,7 +175,7 @@ function PanelSounds({ c, n }: { c: (i: number) => number; n: number }) {
   add(c(7) + 8, 'boing')
   add(c(7) + 16, 'boing')
   // slide-out at the end of every beat but the last
-  for (let i = 0; i < n - 1; i++) add(c(i + 1) - 4, 'slide-out')
+  for (let i = 0; i < n - 1; i++) add(c(i + 1) - 9, 'slide-out')
   return (
     <>
       {s.map((x, i) => (

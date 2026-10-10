@@ -6,7 +6,7 @@
 import { AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame } from 'remotion'
 import { pose } from '../assets'
 import { clamp } from '../ui'
-import { Sfx, type SfxKind } from './parts'
+import { Exit, Sfx, type SfxKind } from './parts'
 
 const art = (p: string) => staticFile(`art/${p}`)
 const doodle = (p: string) => staticFile(`doodle/${p}.png`)
@@ -251,7 +251,8 @@ export function DemoPanels({ cues, total }: { cues: number[]; total: number }) {
         if (frame < at - 2 || frame >= end) return null
         const C = s.C
         return (
-          <AbsoluteFill key={s.k}>
+          <Exit key={s.k} out={n < STEPS.length - 1 ? end : end + 999} dir={n % 2 ? -1 : 1}>
+          <AbsoluteFill>
             <div className="absolute left-[700px] top-[96px]">
               <Title n={n + 1} k={s.k} d={s.d} at={at} />
             </div>
@@ -259,6 +260,7 @@ export function DemoPanels({ cues, total }: { cues: number[]; total: number }) {
               <C at={at} len={end - at} />
             </div>
           </AbsoluteFill>
+          </Exit>
         )
       })}
       <DemoSounds cues={cues} total={total} />
@@ -297,7 +299,7 @@ function DemoSounds({ cues, total }: { cues: number[]; total: number }) {
       ;[12, 20].forEach((d) => add(at + Math.round(len * 0.4) + d, 'slide-in'))
       add(at + Math.round(len * 0.7), 'victory')
     }
-    if (n < STEPS.length - 1) add(end - 4, 'slide-out')
+    if (n < STEPS.length - 1) add(end - 9, 'slide-out')
   })
   return (
     <>
