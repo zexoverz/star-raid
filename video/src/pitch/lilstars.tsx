@@ -89,45 +89,47 @@ export function LilStarsPanel({ cues, total }: { cues: number[]; total: number }
       )}
       {/* 3. growing off-chain: the real merch unboxing and IRL event, from their News page */}
       {vis(3) && ex(3, <Irl at={c(3)} />)}
-      {/* 4. people noticed: press quote cards (short, credited) */}
-      {vis(4) && ex(4, <Press at={c(4)} end={c(5)} />)}
-      {/* 5. motto */}
-      {vis(5) &&
+      {/* 4. their community, with the X profile as evidence */}
+      {vis(4) && ex(4, <Community at={c(4)} />)}
+      {/* 5. people noticed: press quote cards (short, credited) */}
+      {vis(5) && ex(5, <Press at={c(5)} end={c(6)} />)}
+      {/* 6. motto */}
+      {vis(6) &&
         ex(
-          5,
+          6,
         <AbsoluteFill className="items-center justify-center pr-[460px]">
           <div className="flex items-end gap-2">
             {CREW.map((m, i) => (
-              <Img key={m.name} src={ls(m.art)} className="h-[300px] w-auto" style={{ transform: `translateY(${(1 - pop(F, c(5) + i * 4, 9, 220)) * 400 - Math.abs(Math.sin((F - i * 5) / 6)) * 16}px)` }} />
+              <Img key={m.name} src={ls(m.art)} className="h-[300px] w-auto" style={{ transform: `translateY(${(1 - pop(F, c(6) + i * 4, 9, 220)) * 400 - Math.abs(Math.sin((F - i * 5) / 6)) * 16}px)` }} />
             ))}
           </div>
-          <div className="title-outline mt-6 text-center text-[88px] leading-[1.05]" style={{ color: '#ffd27a', transform: `scale(${pop(F, c(5) + 14, 8, 260)}) rotate(-3deg)` }}>
+          <div className="title-outline mt-6 text-center text-[88px] leading-[1.05]" style={{ color: '#ffd27a', transform: `scale(${pop(F, c(6) + 14, 8, 260)}) rotate(-3deg)` }}>
             everyone can be a star
           </div>
         </AbsoluteFill>,
       )}
-      {/* 6. in Star Raid, your Lil Star is your seat */}
-      {vis(6) &&
+      {/* 7. in Star Raid, your Lil Star is your seat */}
+      {vis(7) &&
         ex(
-          6,
+          7,
         <AbsoluteFill className="items-center justify-center pr-[300px]">
           <div className="flex items-center gap-10">
-            <div className={`${card} p-5`} style={{ transform: `rotate(-4deg) scale(${pop(F, c(6), 10, 220)})` }}>
+            <div className={`${card} p-5`} style={{ transform: `rotate(-4deg) scale(${pop(F, c(7), 10, 220)})` }}>
               <Img src={staticFile('lilstars/nft/c8.png')} className="h-[320px] w-[320px] rounded-[16px]" />
               <div className="mt-2 text-center font-display text-[36px]">your Lil Star</div>
             </div>
-            <div className="title-outline text-[130px]" style={{ transform: `scale(${pop(F, c(6) + 10, 8, 300)})` }}>
+            <div className="title-outline text-[130px]" style={{ transform: `scale(${pop(F, c(7) + 10, 8, 300)})` }}>
               =
             </div>
-            <div className={`${card} p-5`} style={{ transform: `rotate(4deg) scale(${pop(F, c(6) + 18, 10, 220)})` }}>
+            <div className={`${card} p-5`} style={{ transform: `rotate(4deg) scale(${pop(F, c(7) + 18, 10, 220)})` }}>
               <Img src={staticFile('art/seat_ticket.webp')} className="h-[320px] w-[320px]" />
               <div className="mt-2 text-center font-display text-[36px]">one raid seat</div>
             </div>
           </div>
         </AbsoluteFill>,
       )}
-      {/* 7. where to find them */}
-      {F >= c(7) - 2 && <FindThem at={c(7)} />}
+      {/* 8. where to find them */}
+      {F >= c(8) - 2 && <FindThem at={c(8)} />}
       {/* beat dots */}
       <div className="absolute left-1/2 top-[22px] flex -translate-x-1/2 gap-3">
         {cues.map((_, i) => (
@@ -159,21 +161,25 @@ function PanelSounds({ c, n }: { c: (i: number) => number; n: number }) {
   // 3 IRL photos + caption
   ;[2, 16, 30].forEach((d) => add(c(3) + d, 'photo'))
   add(c(3) + 40, 'stamp')
-  // 4 press title + quotes
-  add(c(4), 'boing')
-  const step = Math.max(14, Math.round((c(5) - c(4)) / (PRESS.length + 1)))
-  PRESS.forEach((_, i) => add(c(4) + 8 + i * step, 'slide-in'))
-  // 5 motto: crew hops in, then the line
+  // 4 community: phone slides up, the follower count gets circled and counts up
+  add(c(4), 'slide-in')
+  add(c(4) + 22, 'scribble')
+  add(c(4) + 30, 'coin')
+  // 5 press title + quotes
   add(c(5), 'boing')
-  add(c(5) + 14, 'sparkle')
-  // 6 your Lil Star = your seat
-  add(c(6), 'card')
-  add(c(6) + 10, 'stamp')
-  add(c(6) + 18, 'card')
-  // 7 find them: browser slides up, two link cards
-  add(c(7), 'slide-in')
-  add(c(7) + 8, 'boing')
-  add(c(7) + 16, 'boing')
+  const step = Math.max(14, Math.round((c(6) - c(5)) / (PRESS.length + 1)))
+  PRESS.forEach((_, i) => add(c(5) + 8 + i * step, 'slide-in'))
+  // 6 motto: crew hops in, then the line
+  add(c(6), 'boing')
+  add(c(6) + 14, 'sparkle')
+  // 7 your Lil Star = your seat
+  add(c(7), 'card')
+  add(c(7) + 10, 'stamp')
+  add(c(7) + 18, 'card')
+  // 8 find them: browser slides up, two link cards
+  add(c(8), 'slide-in')
+  add(c(8) + 8, 'boing')
+  add(c(8) + 16, 'boing')
   // slide-out at the end of every beat but the last
   for (let i = 0; i < n - 1; i++) add(c(i + 1) - 9, 'slide-out')
   return (
@@ -314,7 +320,49 @@ function Irl({ at }: { at: number }) {
   )
 }
 
-/* ---------------------------------------------------------------- beat 4: press */
+/* ---------------------------------------------------------------- beat 4: community (X) */
+
+/**
+ * The @Lilstarrrs X profile, as captured on 2026-10-10 (public/lilstars/x/profile.png, 601x619).
+ * The count shown is exactly what the screenshot shows: 129.5K followers. A hand-drawn ring
+ * circles that line on the screenshot itself, so the number is backed by the evidence on screen.
+ */
+function Community({ at }: { at: number }) {
+  const F = useCurrentFrame()
+  const p = pop(F, at, 13, 160)
+  const W = 620 // screenshot width on screen; source is 601x619
+  const k = W / 601
+  // the "129.5K Followers" line in the source image sits at about x 120-240, y 495-520
+  const ring = { x: 112 * k, y: 486 * k, w: 136 * k, h: 40 * k }
+  const draw = interpolate(F, [at + 22, at + 36], [0, 1], { ...clamp, easing: (x) => 1 - (1 - x) ** 2 })
+  const n = interpolate(F, [at + 30, at + 60], [0, 129.5], { ...clamp, easing: (x) => 1 - (1 - x) ** 3 })
+  const tag = pop(F, at + 30, 9, 230)
+  return (
+    <AbsoluteFill>
+      <div className="absolute left-[150px] top-[90px] overflow-hidden rounded-[26px] border-[6px] border-grape-800 bg-black shadow-[0_14px_0_#2d2250,0_30px_60px_rgba(0,0,0,0.45)]" style={{ width: W + 12, transform: `translateY(${(1 - p) * 600}px) rotate(${-2 * p}deg)`, opacity: Math.min(1, p * 1.5) }}>
+        <div className="relative" style={{ width: W, height: 619 * k }}>
+          <Img src={staticFile('lilstars/x/profile.png')} style={{ width: W, height: 619 * k }} />
+          <svg className="absolute left-0 top-0" width={W} height={619 * k} style={{ overflow: 'visible' }}>
+            <ellipse cx={ring.x + ring.w / 2} cy={ring.y + ring.h / 2} rx={ring.w / 2 + 14} ry={ring.h / 2 + 10} fill="none" stroke="#ffb84d" strokeWidth={6} strokeLinecap="round" pathLength={1} strokeDasharray={1} strokeDashoffset={1 - draw} transform={`rotate(-4 ${ring.x + ring.w / 2} ${ring.y + ring.h / 2})`} />
+          </svg>
+        </div>
+      </div>
+      <div className="absolute left-[860px] top-[230px]" style={{ transform: `scale(${tag}) rotate(-3deg)`, opacity: Math.min(1, tag * 1.5) }}>
+        <div className="title-outline text-[150px] leading-none" style={{ color: '#ffd27a' }}>
+          {n >= 129.5 ? '129.5K' : `${n.toFixed(1)}K`}
+        </div>
+        <div className="title-outline mt-2 text-[64px] leading-none">followers on X</div>
+        <div className={`${card} mt-8 inline-flex items-center gap-3 px-6 py-3`}>
+          <span className="grid h-[48px] w-[48px] place-items-center rounded-[12px] bg-black text-[30px] font-black text-white">𝕏</span>
+          <span className="font-display text-[38px]">@Lilstarrrs</span>
+          <span className="text-[24px] font-bold text-grape-600">· screenshot, Oct 2026</span>
+        </div>
+      </div>
+    </AbsoluteFill>
+  )
+}
+
+/* ---------------------------------------------------------------- beat 5: press */
 
 const PRESS = [
   { who: 'Backpack Learn', q: 'gained traction for its playful art style and community engagement', icon: 'merch/NewsBackpack.jpg' },

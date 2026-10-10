@@ -137,8 +137,8 @@
   {
     "id": "lilstars",
     "face": "corner",
-    "dur": 37.6,
-    "talk": 37.6,
+    "dur": 42.76,
+    "talk": 42.76,
     "media": "pitch-vo/lilstars.mp3",
     "video": false,
     "trim": 0,
@@ -166,24 +166,29 @@
         "end": 20.31
       },
       {
-        "t": "And people noticed: Backpack, PANews and NFT Evening have all written about them.",
+        "t": "Their community is real: 129.5K followers on X.",
         "start": 20.53,
-        "end": 25.66
+        "end": 25.47
+      },
+      {
+        "t": "And people noticed: Backpack, PANews and NFT Evening have all written about them.",
+        "start": 25.69,
+        "end": 30.83
       },
       {
         "t": "Their motto is that everyone can be a star.",
-        "start": 25.88,
-        "end": 28.4
+        "start": 31.05,
+        "end": 33.57
       },
       {
         "t": "In Star Raid, your Lil Star is your seat.",
-        "start": 28.62,
-        "end": 31.26
+        "start": 33.79,
+        "end": 36.43
       },
       {
         "t": "Find them at lilstars.xyz, and on X at lilstarrrs.",
-        "start": 31.48,
-        "end": 37.05
+        "start": 36.65,
+        "end": 42.21
       }
     ],
     "cues": [
@@ -192,9 +197,10 @@
       8.18,
       13.49,
       20.53,
-      25.88,
-      28.62,
-      31.48
+      25.69,
+      31.05,
+      33.79,
+      36.65
     ]
   },
   {

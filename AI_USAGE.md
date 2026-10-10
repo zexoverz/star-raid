@@ -110,3 +110,6 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
   Generic cute creatures only, no Lil Stars characters (rule 17), no text in the images.
   Scene in `scenes.tsx` (`Problem`, `PicCard`): picture cards with slide-in, card sounds, a drawn
   red X on "not everyone can trade". Human reviewed: boss said the scene was too text-heavy.
+- Lil Stars community beat: the @Lilstarrrs X profile screenshot supplied by the human
+  (`video/public/lilstars/x/profile.png`) with a ring drawn on its follower line. The figure shown
+  is the one in the screenshot, 129.5K (the request said 1k; the evidence says 129.5K).
