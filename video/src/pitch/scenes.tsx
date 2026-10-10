@@ -433,6 +433,12 @@ export function Close() {
           <EndCard start={end} />
         </AbsoluteFill>
       )}
+      {/* end card: whoosh in, logo stamp, site chip and the two Lil Stars link cards pop */}
+      <Sfx at={end - 6} kind="whoosh" />
+      <Sfx at={end} kind="stamp" />
+      <Sfx at={end + 10} kind="boing" />
+      <Sfx at={end + 20} kind="boing" />
+      <Sfx at={end + 28} kind="boing" />
     </AbsoluteFill>
   )
 }
