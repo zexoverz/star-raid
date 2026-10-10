@@ -73,38 +73,73 @@ export function Problem() {
   const frame = useCurrentFrame()
   const go = cue(s, 1) - 8
   const k = ease(frame, go, go + 14)
-  const cards = [
-    { at: cue(s, 1), icon: 'bot.webp', title: 'Bots farm the rewards', tilt: -3 },
-    { at: cue(s, 2), icon: 'hourglass.webp', title: 'Snipers wait for the last second', tilt: 2 },
-    { at: cue(s, 3), icon: 'flag_sponsor.webp', title: "Sponsors can't tell who's real", tilt: -2 },
-  ]
   const turn = cue(s, 4)
+  // one illustrated card per pain point; each lands big, then the next pushes it back into a fan
+  const cards = [
+    { at: cue(s, 1), img: 'bots', title: 'Bots farm the rewards', icon: 'bot.webp' },
+    { at: cue(s, 2), img: 'sniper', title: 'Snipers wait for the last second', icon: 'hourglass.webp' },
+    { at: cue(s, 3), img: 'sponsor', title: "Sponsors can't tell who's real", icon: 'flag_sponsor.webp' },
+  ]
+  const out = interpolate(frame, [turn - 9, turn], [0, 1], { ...clamp, easing: (x) => x * x })
   return (
-    <Shell s={s} bg={BG.checker} face faceAmount={k}>
-      <div className="absolute left-24 top-20" style={{ opacity: ease(frame, go + 4, go + 14) }}>
+    <Shell s={s} bg={BG.checker} face faceAmount={k} stickers={false}>
+      <div className="absolute left-24 top-12" style={{ opacity: ease(frame, go + 4, go + 14), transform: `translateY(${-out * 200}px)` }}>
         <Sticker at={go + 4} className="px-8 py-3" tilt={-2} from="left">
           <div className="font-display text-[54px] leading-none">Community buys are broken</div>
         </Sticker>
       </div>
-      <div className="absolute left-24 top-[240px] flex w-[1300px] flex-col gap-6">
-        {cards.map((c, i) => (
-          <div key={c.title} style={{ marginLeft: i * 60, filter: frame > turn ? 'saturate(0.35) brightness(0.92)' : undefined }}>
-            <Sticker at={c.at} className="flex w-[760px] items-center gap-6 px-7 py-4" tilt={c.tilt} from="left">
-              <Img src={art(c.icon)} className="h-24 w-24 object-contain" />
-              <div className="font-display text-[44px] leading-tight">{c.title}</div>
-            </Sticker>
-          </div>
-        ))}
-      </div>
-      <div className="absolute left-[1090px] top-[240px] flex w-[440px] flex-col items-start gap-5">
-        <Sticker at={turn} className="bg-grape-800 px-6 py-3 text-cream-100" tilt={3} from="pop">
-          <div className="font-display text-[34px] text-grape-300 line-through decoration-candy-500 decoration-[5px]">not everyone can trade</div>
-        </Sticker>
-        <Sticker at={cue(s, 5)} className="bg-ember-400 px-7 py-4" tilt={-3} from="pop">
-          <div className="font-display text-[46px] leading-tight text-grape-900">anyone can play a game</div>
-        </Sticker>
-      </div>
+      {frame < turn && (
+        <AbsoluteFill style={{ transform: `translateX(${-out * 1500}px) rotate(${-out * 8}deg)` }}>
+          {cards.map((c, i) => {
+            const next = cards[i + 1]?.at ?? 1e9
+            // 0 while it is the newest card, 1 once the next card has arrived
+            const back = spring({ frame: frame - next, fps: FPS, config: { damping: 14, stiffness: 160 } })
+            const depth = cards.filter((x) => frame >= x.at).length - 1 - i
+            const x = 120 + i * 40 - (frame >= next ? depth * 360 * Math.min(1, back) : 0)
+            return <PicCard key={c.img} at={c.at} img={c.img} title={c.title} icon={c.icon} x={x + 340} y={190} w={880} tilt={[-3, 2, -2][i]} dim={depth > 0 ? 0.25 * Math.min(1, back) : 0} />
+          })}
+        </AbsoluteFill>
+      )}
+      {/* the turn: not everyone can trade (crossed out) -> anyone can play a game */}
+      <PicCard at={turn} img="trading" title="not everyone can trade" x={70} y={230} w={640} tilt={-3} strike={turn + 14} from="left" />
+      <PicCard at={cue(s, 5)} img="together" title="anyone can play a game" x={760} y={150} w={780} tilt={2} accent from="right" />
     </Shell>
+  )
+}
+
+/** A big illustrated card (GPT art from public/gen/problem) with a caption strip. */
+function PicCard({ at, img, title, icon, x, y, w, tilt, dim = 0, strike, accent, from = 'right' }: { at: number; img: string; title: string; icon?: string; x: number; y: number; w: number; tilt: number; dim?: number; strike?: number; accent?: boolean; from?: 'left' | 'right' }) {
+  const frame = useCurrentFrame()
+  const p = spring({ frame: frame - at, fps: FPS, config: { damping: 12, stiffness: 170 } })
+  const sound = <Sfx at={at} kind="card" />
+  if (frame < at) return sound
+  const h = Math.round((w * 2) / 3)
+  const dx = (1 - p) * (from === 'left' ? -900 : 900)
+  const sk = strike === undefined ? 0 : interpolate(frame, [strike, strike + 12], [0, 1], clamp)
+  return (
+    <>
+      {sound}
+      {strike !== undefined && <Sfx at={strike} kind="scribble" volume={0.3} />}
+      <div className="absolute" style={{ left: x, top: y, width: w, transform: `translateX(${dx}px) rotate(${tilt * p}deg)`, opacity: Math.min(1, p * 1.6) }}>
+        <div className={`overflow-hidden rounded-[30px] border-[6px] border-grape-800 shadow-[0_12px_0_#2d2250,0_30px_50px_rgba(0,0,0,0.3)] ${accent ? 'bg-ember-400' : 'bg-cream-100'}`}>
+          <div className="relative" style={{ height: h }}>
+            <Img src={staticFile(`gen/problem/${img}.png`)} className="h-full w-full object-cover" style={{ filter: `saturate(${1 - dim * 2}) brightness(${1 - dim})`, transform: `scale(${interpolate(frame - at, [0, 150], [1.06, 1], clamp)})` }} />
+            {sk > 0 && (
+              <svg className="absolute inset-0" viewBox="0 0 100 66" preserveAspectRatio="none">
+                <path d="M8 10 L92 58" stroke="#e8264f" strokeWidth="5" strokeLinecap="round" pathLength={1} strokeDasharray={1} strokeDashoffset={1 - sk} fill="none" />
+                <path d="M92 10 L8 58" stroke="#e8264f" strokeWidth="5" strokeLinecap="round" pathLength={1} strokeDasharray={1} strokeDashoffset={1 - Math.max(0, sk * 2 - 1)} fill="none" />
+              </svg>
+            )}
+          </div>
+          <div className="flex items-center gap-4 px-6 py-3">
+            {icon && <Img src={art(icon)} className="h-14 w-14 object-contain" />}
+            <div className={`font-display leading-tight ${accent ? 'text-[48px] text-grape-900' : 'text-[40px] text-grape-900'}`} style={{ textDecoration: sk >= 1 ? 'line-through' : undefined, textDecorationColor: '#e8264f', textDecorationThickness: 5 }}>
+              {title}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }
 

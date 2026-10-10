@@ -105,3 +105,8 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
   photo, boing, stamp, sparkle, scribble; prompts in `scripts/eleven.mjs`). Shared `Sfx`/`InOut`
   in `parts.tsx`; Sticker and Slam now sound on entry everywhere; Lil Stars, demo, rules, diagram
   and side stickers get a sound per element in and a slide-out per beat out. Mix peak -3.1 dBFS.
+- Problem section illustrations: 5 images generated with GPT image gen via Codex CLI
+  (`video/scripts/gen-problem.sh`, prompts in the script) into `video/public/gen/problem/`.
+  Generic cute creatures only, no Lil Stars characters (rule 17), no text in the images.
+  Scene in `scenes.tsx` (`Problem`, `PicCard`): picture cards with slide-in, card sounds, a drawn
+  red X on "not everyone can trade". Human reviewed: boss said the scene was too text-heavy.
