@@ -178,12 +178,20 @@ export const BG = {
 export type SfxKind = 'slide-in' | 'slide-out' | 'card' | 'photo' | 'boing' | 'stamp' | 'sparkle' | 'scribble' | 'whoosh' | 'click' | 'coin' | 'hit' | 'join' | 'reveal' | 'combo' | 'tick' | 'victory' | 'defeat'
 const SFX_VOL: Partial<Record<SfxKind, number>> = { 'slide-in': 0.32, 'slide-out': 0.22, card: 0.3, photo: 0.38, boing: 0.3, stamp: 0.4, sparkle: 0.22, scribble: 0.18, whoosh: 0.25, click: 0.28 }
 
-/** One kit sound at a frame (relative to the current Sequence). Negative or NaN frames are skipped. */
+/** The section being rendered, so a sound can tell whether he is talking at that moment. */
+export const SectionCtx = createContext<Section | null>(null)
+
+/** One kit sound at a frame (relative to the current Sequence). Negative or NaN frames are skipped.
+ *  If it lands on a spoken line it plays a little softer, so it never fights the voice. */
 export function Sfx({ at, kind, volume }: { at: number; kind: SfxKind; volume?: number }) {
+  const s = useContext(SectionCtx)
   if (!Number.isFinite(at) || at < 0) return null
+  const t = at / FPS
+  const onVoice = !!s && s.lines.some((l) => t >= l.start - 0.05 && t <= l.end)
+  const v = (volume ?? SFX_VOL[kind] ?? 0.3) * (onVoice ? 0.6 : 1)
   return (
     <Sequence from={Math.round(at)} durationInFrames={24} layout="none">
-      <Html5Audio src={staticFile(`audio/kit/${kind}.mp3`)} volume={volume ?? SFX_VOL[kind] ?? 0.3} />
+      <Html5Audio src={staticFile(`audio/kit/${kind}.mp3`)} volume={v} />
     </Sequence>
   )
 }
