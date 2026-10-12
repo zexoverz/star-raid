@@ -121,3 +121,8 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
 - Song generated with ElevenLabs Music (music_v1, two takes; take1 chosen: 90% lyric-word coverage
   by STT vs 86%). Footage is the app's own screen recordings. On-screen numbers come from the raid
   #26 chain snapshot. Human asked for a short demo where a song is actually sung.
+- Rework after human review ("too empty, just a phone"): 18 scene illustrations + 4 singing Lil Stars
+  generated with GPT image gen via Codex CLI (`video/scripts/gen-song.sh`, real sprites attached as
+  references), redrawn poses allowed by the human for this video only (docs/plan/decisions.md).
+  Karaoke words jump on each sung word with a bouncing star and inline logos (Kuru, Monad, Pyth,
+  USDC, Lil Star). Real app recordings stay on screen as "the real app" phone. Human reviews by ear/eye.

@@ -6,3 +6,6 @@ public/face/
 public/doodle/.*.log
 public/gen/problem/.*.log
 public/audio/song/take*.stt.json
+public/gen/song/*.png
+public/gen/song/.*.log
+public/gen/song/.ref/

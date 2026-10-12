@@ -15,8 +15,8 @@ gen() {
   local name="$1" ratio="$2" what="$3"
   if [ -f "$OUT/$name.png" ]; then echo "JCODE_PROGRESS {\"message\":\"$name cached\"}"; return; fi
   timeout 600 codex exec --skip-git-repo-check --sandbox workspace-write -C "$OUT" \
-    -i "$REF/bear.png" -i "$REF/bunny.png" -i "$REF/chog.png" -i "$REF/fox.png" \
     "Use your image generation tool to create ONE $ratio image: $what. $CAST $STYLE. Save it as $name.png in the current directory. Reply only with the saved path." \
+    -i "$REF/bear.png" -i "$REF/bunny.png" -i "$REF/chog.png" -i "$REF/fox.png" \
     </dev/null >"$OUT/.$name.log" 2>&1
   if [ -f "$OUT/$name.png" ]; then echo "JCODE_PROGRESS {\"message\":\"$name ok\"}"; else echo "JCODE_PROGRESS {\"message\":\"$name FAIL\"}"; fi
 }

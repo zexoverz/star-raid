@@ -3,3 +3,4 @@
 - pyth.svg/png: Pyth Network mark, from Web3 Icons (tokens/branded/PYTH.svg)
 - kuru.png: Kuru mark, from kuru.io (web-app-manifest-512x512.png)
 Trademarks belong to their owners.
+- usdc.svg, lilstar.svg: from app/public/tokens (the app's own token icons)
