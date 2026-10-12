@@ -1,0 +1,66 @@
+{
+  "songId": "7bBsHIMaoiZlg7X3dE6z",
+  "sections": [
+    {
+      "name": "Intro",
+      "ms": 6000,
+      "lines": [
+        "Star Raid!"
+      ]
+    },
+    {
+      "name": "Verse 1 - the lobby and the sponsor",
+      "ms": 16000,
+      "lines": [
+        "Open up the lobby, the next raid's on the way",
+        "A sponsor builds a wall of tokens, sets the price to pay",
+        "A prize in USDC is waiting at the top",
+        "The countdown's ticking, ticking, and it's never gonna stop"
+      ]
+    },
+    {
+      "name": "Pre-chorus - the seat",
+      "ms": 12000,
+      "lines": [
+        "Bring your Lil Star, that's your seat",
+        "One Star, one seat, the bots get beat",
+        "Set it up once, then just one tap"
+      ]
+    },
+    {
+      "name": "Chorus - hit the wall",
+      "ms": 18000,
+      "lines": [
+        "Hit! Hit! Hit the wall!",
+        "Every hit's a real buy on Kuru, one and all",
+        "Capped at the price, the leftovers come back",
+        "Together we raid on Monad, fast track!"
+      ]
+    },
+    {
+      "name": "Bridge - the draw",
+      "ms": 12000,
+      "lines": [
+        "The window closes, nobody knows",
+        "Pyth rolls the dice, the end block shows",
+        "Hits before it count, the rest don't score"
+      ]
+    },
+    {
+      "name": "Final chorus - the wall breaks",
+      "ms": 14000,
+      "lines": [
+        "Hit the target, watch the wall break down",
+        "The seats split the prize, the Stars take the crown",
+        "One Star, one seat, one wall"
+      ]
+    },
+    {
+      "name": "Outro",
+      "ms": 7000,
+      "lines": [
+        "Grab a seat at Star Raid!"
+      ]
+    }
+  ]
+}

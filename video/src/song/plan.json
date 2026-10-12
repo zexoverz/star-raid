@@ -1,0 +1,87 @@
+{
+  "title": "Star Raid (One Star, One Seat)",
+  "model": "music_v1",
+  "positive_global_styles": [
+    "upbeat j-pop anime opening",
+    "energetic chiptune synths with live band",
+    "punchy drums, driving bass, bright electric guitar",
+    "catchy sing-along chorus",
+    "clear, cheerful female lead vocal, crisp diction, every word intelligible",
+    "128 bpm",
+    "great production quality"
+  ],
+  "negative_global_styles": ["slow ballad", "sad", "heavy metal screaming", "mumbled vocals", "rap", "lo-fi", "spoken word"],
+  "sections": [
+    {
+      "section_name": "Intro",
+      "duration_ms": 6000,
+      "positive_local_styles": ["chiptune arpeggio build", "drum fill", "short vocal shout"],
+      "negative_local_styles": [],
+      "lines": ["Star Raid!"]
+    },
+    {
+      "section_name": "Verse 1 - the lobby and the sponsor",
+      "duration_ms": 16000,
+      "positive_local_styles": ["bouncy verse", "light drums", "clear lead vocal"],
+      "negative_local_styles": [],
+      "lines": [
+        "Open up the lobby, the next raid's on the way",
+        "A sponsor builds a wall of tokens, sets the price to pay",
+        "A prize in USDC is waiting at the top",
+        "The countdown's ticking, ticking, and it's never gonna stop"
+      ]
+    },
+    {
+      "section_name": "Pre-chorus - the seat",
+      "duration_ms": 12000,
+      "positive_local_styles": ["rising pre-chorus", "build-up", "claps"],
+      "negative_local_styles": [],
+      "lines": [
+        "Bring your Lil Star, that's your seat",
+        "One Star, one seat, the bots get beat",
+        "Set it up once, then just one tap"
+      ]
+    },
+    {
+      "section_name": "Chorus - hit the wall",
+      "duration_ms": 18000,
+      "positive_local_styles": ["huge anthemic chorus", "full band", "gang vocals on HIT", "big energy"],
+      "negative_local_styles": [],
+      "lines": [
+        "Hit! Hit! Hit the wall!",
+        "Every hit's a real buy on Kuru, one and all",
+        "Capped at the price, the leftovers come back",
+        "Together we raid on Monad, fast track!"
+      ]
+    },
+    {
+      "section_name": "Bridge - the draw",
+      "duration_ms": 12000,
+      "positive_local_styles": ["half-time breakdown", "suspense", "ticking hi-hat", "then build"],
+      "negative_local_styles": [],
+      "lines": [
+        "The window closes, nobody knows",
+        "Pyth rolls the dice, the end block shows",
+        "Hits before it count, the rest don't score"
+      ]
+    },
+    {
+      "section_name": "Final chorus - the wall breaks",
+      "duration_ms": 14000,
+      "positive_local_styles": ["key change", "triumphant final chorus", "full band", "gang vocals"],
+      "negative_local_styles": [],
+      "lines": [
+        "Hit the target, watch the wall break down",
+        "The seats split the prize, the Stars take the crown",
+        "One Star, one seat, one wall"
+      ]
+    },
+    {
+      "section_name": "Outro",
+      "duration_ms": 7000,
+      "positive_local_styles": ["big ending hit", "short tag line", "chiptune sparkle tail"],
+      "negative_local_styles": [],
+      "lines": ["Grab a seat at Star Raid!"]
+    }
+  ]
+}

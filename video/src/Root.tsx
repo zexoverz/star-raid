@@ -5,6 +5,7 @@ import { FPS, Main, SCENES, TOTAL } from './Main'
 import { EXPLAINER_SCENES, EXPLAINER_TOTAL, Explainer, ExplainerSilent } from './explainer/Explainer'
 import { Pitch, PitchNoFace, PITCH_TOTAL } from './pitch/Pitch'
 import { PITCH_SCENES } from './pitch/scenes'
+import { SONG_FPS, SONG_TOTAL, SongDemo } from './song/SongDemo'
 
 export function Root() {
   return (
@@ -16,6 +17,7 @@ export function Root() {
           <Composition key={id} id={`pitch-${id}`} component={C} durationInFrames={frames} fps={FPS} width={1920} height={1080} />
         ))}
       </Folder>
+      <Composition id="StarRaidSongDemo" component={SongDemo} durationInFrames={SONG_TOTAL} fps={SONG_FPS} width={1920} height={1080} />
       <Composition id="StarRaidDemo" component={Main} durationInFrames={TOTAL} fps={FPS} width={1920} height={1080} />
       <Composition id="StarRaidExplainer" component={Explainer} durationInFrames={EXPLAINER_TOTAL} fps={FPS} width={1920} height={1080} />
       <Composition id="StarRaidExplainerNoVO" component={ExplainerSilent} durationInFrames={EXPLAINER_TOTAL} fps={FPS} width={1920} height={1080} />

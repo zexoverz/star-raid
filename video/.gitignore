@@ -5,3 +5,4 @@ public/pitch-vo/
 public/face/
 public/doodle/.*.log
 public/gen/problem/.*.log
+public/audio/song/take*.stt.json

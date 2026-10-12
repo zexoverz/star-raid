@@ -113,3 +113,11 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
 - Lil Stars community beat: the @Lilstarrrs X profile screenshot supplied by the human
   (`video/public/lilstars/x/profile.png`) with a ring drawn on its follower line. The figure shown
   is the one in the screenshot, 129.5K (the request said 1k; the evidence says 129.5K).
+
+## Video: sung demo ("Star Raid (One Star, One Seat)")
+- Files: `video/src/song/plan.json` (original lyrics written for this demo + composition plan),
+  `video/scripts/song.mjs`, `video/src/song/lyrics.json` (line/word times from ElevenLabs STT of the
+  song), `video/src/song/SongDemo.tsx`, `video/public/audio/song/*.mp3`, `Root.tsx`.
+- Song generated with ElevenLabs Music (music_v1, two takes; take1 chosen: 90% lyric-word coverage
+  by STT vs 86%). Footage is the app's own screen recordings. On-screen numbers come from the raid
+  #26 chain snapshot. Human asked for a short demo where a song is actually sung.
