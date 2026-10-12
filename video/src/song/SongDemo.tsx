@@ -36,18 +36,18 @@ const sceneEnd = (i: number) => (i + 1 < L.length ? sceneStart(i + 1) : 85)
 
 /* ------------------------------------------------------------------ app footage (phone PiP) */
 
-type Shot = { at: number; src: string; from: number; desk?: boolean }
+type Shot = { at: number; src: string; from: number; desk?: boolean; note?: string; crew?: string; fx?: string }
 const SHOTS: Shot[] = [
-  { at: line(1).start - 0.3, src: 'rec/phone/lobby.mp4', from: 0.3 },
+  { at: line(1).start - 0.3, src: 'rec/phone/lobby.mp4', from: 0.3, note: 'next raid countdown', crew: 'bunny_watch', fx: 'sparkle' },
   { at: line(2).start - 0.2, src: 'rec/sponsor.webm', from: 4, desk: true },
-  { at: line(4).start - 0.2, src: 'rec/phone/lobby.mp4', from: 5 },
-  { at: line(5).start - 0.2, src: 'rec/phone/practice.mp4', from: 0 },
-  { at: line(8).start - 0.2, src: 'rec/phone/practice.mp4', from: 4 },
-  { at: line(10).start, src: 'rec/phone/practice.mp4', from: 18 },
-  { at: line(12).start - 0.2, src: 'rec/phone/raid.mp4', from: 7.6 },
-  { at: line(13).start - 0.2, src: 'rec/phone/raid.mp4', from: 12.5 },
-  { at: line(15).start - 0.2, src: 'rec/phone/raid.mp4', from: 22.5 },
-  { at: line(16).start, src: 'rec/phone/raid.mp4', from: 1.0 },
+  { at: line(4).start - 0.2, src: 'rec/phone/lobby.mp4', from: 5, note: 'every raid, live', crew: 'chog_wait', fx: 'hourglass' },
+  { at: line(5).start - 0.2, src: 'rec/phone/practice.mp4', from: 0, note: 'one-tap: set up once', crew: 'fox_think', fx: 'seat_ticket' },
+  { at: line(8).start - 0.2, src: 'rec/phone/practice.mp4', from: 4, note: 'tap HIT = a real buy', crew: 'bear_attack', fx: 'hit_spark' },
+  { at: line(10).start, src: 'rec/phone/practice.mp4', from: 18, note: 'combo! never above the cap', crew: 'fox_attack', fx: 'coin' },
+  { at: line(12).start - 0.2, src: 'rec/phone/raid.mp4', from: 7.6, note: 'window closed', crew: 'bunny_watch', fx: 'lock' },
+  { at: line(13).start - 0.2, src: 'rec/phone/raid.mp4', from: 12.5, note: 'every hit checked', crew: 'chog_cheer', fx: 'dice_block' },
+  { at: line(15).start - 0.2, src: 'rec/phone/raid.mp4', from: 22.5, note: 'VICTORY!', crew: 'bear_cheer', fx: 'sparkle' },
+  { at: line(16).start, src: 'rec/phone/raid.mp4', from: 1.0, note: `${RAID.countedHits} hits counted`, crew: 'fox_cheer', fx: 'coin' },
   { at: line(18).start - 0.3, src: '', from: 0 },
 ]
 
@@ -202,6 +202,45 @@ function Pip({ s, len }: { s: Shot; len: number }) {
   )
 }
 
+/** Fills the space around the phone: a callout with a drawn arrow, a Lil Star (original app art)
+ * hanging off the phone, and themed icons bursting out of the screen on the beat. */
+function PhoneDeco({ s, len }: { s: Shot; len: number }) {
+  const fr = useCurrentFrame()
+  if (s.desk || !s.note) return null
+  const p = spring({ frame: fr - 8, fps: SONG_FPS, config: { damping: 10, stiffness: 200 } })
+  const out = interpolate(fr, [len - 6, len], [0, 1], clamp)
+  const draw = interpolate(fr, [10, 24], [1, 0], clamp)
+  const cp = spring({ frame: fr - 14, fps: SONG_FPS, config: { damping: 9, stiffness: 180 } })
+  const wob = Math.sin(fr / 9) * 3
+  // phone box: right 90, top 130, ~347x724
+  const PX = 1920 - 90 - 347
+  return (
+    <AbsoluteFill style={{ opacity: 1 - out }}>
+      {/* bursting icons from the screen, one wave per beat */}
+      {Array.from({ length: 8 }, (_, n) => {
+        const beatF = (60 / BPM) * SONG_FPS * 2
+        const life = ((fr + n * (beatF / 4)) % (beatF * 2)) / (beatF * 2)
+        const ang = (-150 + n * 37) * (Math.PI / 180)
+        const r = 120 + life * 360
+        const x = PX + 170 + Math.cos(ang) * r
+        const y = 470 + Math.sin(ang) * r * 0.9 + life * life * 200
+        const o = interpolate(life, [0, 0.1, 0.7, 1], [0, 1, 1, 0], clamp)
+        return <Img key={n} src={staticFile(`art/${s.fx}.webp`)} className="absolute h-[64px] w-[64px] object-contain" style={{ left: x, top: y, opacity: o * Math.min(1, fr / 10), transform: `rotate(${life * 360 * (n % 2 ? 1 : -1)}deg) scale(${0.6 + 0.6 * (1 - life)})`, filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))' }} />
+      })}
+      {/* callout + hand-drawn arrow to the phone */}
+      <div className="absolute" style={{ left: PX - 540, top: 190, width: 440, transform: `scale(${p}) rotate(${-4 + wob * 0.4}deg)`, transformOrigin: '100% 50%' }}>
+        <div className="rounded-[22px] border-[5px] border-grape-800 bg-ember-400 px-5 py-3 text-center font-display text-[40px] leading-tight text-white shadow-[0_8px_0_#2d2250]">{s.note}</div>
+        <svg width="120" height="110" viewBox="0 0 200 140" className="absolute" style={{ right: -110, top: 50, overflow: 'visible' }}>
+          <path d="M10 20 C 80 0, 150 40, 170 110" fill="none" stroke="#ffe7a3" strokeWidth="9" strokeLinecap="round" pathLength={1} strokeDasharray={1} strokeDashoffset={draw} style={{ filter: 'drop-shadow(0 4px 0 #2d2250)' }} />
+          <path d="M145 95 L172 115 L182 82" fill="none" stroke="#ffe7a3" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: draw < 0.05 ? 1 : 0, filter: 'drop-shadow(0 4px 0 #2d2250)' }} />
+        </svg>
+      </div>
+      {/* a Lil Star hanging on the phone's edge */}
+      <Img src={staticFile(`art/crew/${s.crew}.webp`)} className="absolute h-[340px] w-auto drop-shadow-[0_12px_18px_rgba(0,0,0,0.55)]" style={{ left: PX - 250, top: 560, transform: `translateX(${(1 - cp) * -300}px) rotate(${-8 + Math.sin(fr / 7) * 6}deg) translateY(${-Math.abs(Math.sin(fr / 8)) * 14}px)`, transformOrigin: '80% 90%' }} />
+    </AbsoluteFill>
+  )
+}
+
 function ProofChip({ c }: { c: Chip }) {
   const fr = useCurrentFrame()
   const p = spring({ frame: fr, fps: SONG_FPS, config: { damping: 11, stiffness: 220 } })
@@ -328,6 +367,7 @@ export function SongDemo() {
         return (
           <Sequence key={`p${i}`} from={from} durationInFrames={len} layout="none">
             <Pip s={s} len={len} />
+            <PhoneDeco s={s} len={len} />
             <Html5Audio src={staticFile('audio/kit/card.mp3')} volume={0.15} />
           </Sequence>
         )
