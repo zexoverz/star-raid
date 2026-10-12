@@ -82,18 +82,27 @@ const LOGO: [RegExp, string][] = [
 ]
 const logoFor = (w: string) => LOGO.find(([re]) => re.test(w))?.[1]
 
-/** Word-level SFX: a pop when a logo word lands, a punch on every sung "hit". */
-function WordSfx() {
-  const out: { at: number; src: string; vol: number }[] = []
+/** Word-level events, shared by the SFX and the VFX. */
+const EVENTS = (() => {
+  const out: { at: number; kind: 'hit' | 'logo' }[] = []
   for (const ln of L.slice(1, -1)) {
     const words = ln.t.split(' ')
     const sung = W.filter((w) => w.s >= ln.start - 0.05 && w.e <= ln.end + 0.05)
     words.forEach((w, i) => {
       const at = sung.length === words.length ? sung[i].s : ln.start + ((ln.end - ln.start) * i) / words.length
-      if (/^hit[!]?$/i.test(w) || /^hits?$/i.test(w.replace(/[^a-z]/gi, ''))) out.push({ at, src: 'hit', vol: 0.3 })
-      else if (logoFor(w)) out.push({ at, src: 'boing', vol: 0.16 })
+      if (/^hits?$/i.test(w.replace(/[^a-z]/gi, ''))) out.push({ at, kind: 'hit' })
+      else if (logoFor(w)) out.push({ at, kind: 'logo' })
     })
   }
+  return out
+})()
+const HITS = EVENTS.filter((e) => e.kind === 'hit').map((e) => e.at)
+// big moments: wall break, crown
+const BOOMS = [line(15).start + 2.2, line(8).start]
+
+/** Word-level SFX: a pop when a logo word lands, a punch on every sung "hit". */
+function WordSfx() {
+  const out = EVENTS.map((e) => ({ at: e.at, src: e.kind === 'hit' ? 'hit' : 'boing', vol: e.kind === 'hit' ? 0.3 : 0.16 }))
   return (
     <>
       {out.map((o, i) => (
@@ -332,10 +341,133 @@ function EndCard() {
   )
 }
 
+/* ------------------------------------------------------------------ visual effects */
+
+const since = (t: number, list: number[]) => list.reduce((best, a) => (t >= a && t - a < best ? t - a : best), Infinity)
+
+/** Camera shake on every sung "hit" and on the big moments. */
+function useShake() {
+  const fr = useCurrentFrame()
+  const t = fr / SONG_FPS
+  const dh = since(t, HITS)
+  const db = since(t, BOOMS)
+  const a = (dh < 0.25 ? (1 - dh / 0.25) * 14 : 0) + (db < 0.8 ? (1 - db / 0.8) * 30 : 0)
+  return { x: Math.sin(fr * 2.7) * a, y: Math.cos(fr * 3.3) * a * 0.7, r: Math.sin(fr * 1.9) * a * 0.04, zoom: 1 + (dh < 0.2 ? (1 - dh / 0.2) * 0.04 : 0) }
+}
+
+/** Comic impact bursts ("POW") where each hit lands. */
+function Impacts() {
+  const fr = useCurrentFrame()
+  const t = fr / SONG_FPS
+  const WORDS = ['POW!', 'BAM!', 'HIT!', 'WHAM!', 'BOOM!']
+  return (
+    <>
+      {HITS.map((at, n) => {
+        const d = t - at
+        if (d < 0 || d > 0.6) return null
+        const p = spring({ frame: fr - f(at), fps: SONG_FPS, config: { damping: 8, stiffness: 320 } })
+        const o = interpolate(d, [0.35, 0.6], [1, 0], clamp)
+        const x = 520 + ((n * 337) % 700)
+        const y = 160 + ((n * 211) % 320)
+        return (
+          <div key={n} className="absolute" style={{ left: x, top: y, transform: `translate(-50%,-50%) scale(${p * 1.1}) rotate(${(n % 2 ? 1 : -1) * 12}deg)`, opacity: o }}>
+            <svg width="340" height="300" viewBox="-170 -150 340 300" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+              <polygon points={Array.from({ length: 24 }, (_, k) => { const r = k % 2 ? 80 : 150; const a = (k / 24) * Math.PI * 2; return `${Math.cos(a) * r},${Math.sin(a) * r * 0.85}` }).join(' ')} fill="#ffd27a" stroke="#2d2250" strokeWidth="8" />
+              <polygon points={Array.from({ length: 24 }, (_, k) => { const r = k % 2 ? 55 : 100; const a = (k / 24) * Math.PI * 2 + 0.1; return `${Math.cos(a) * r},${Math.sin(a) * r * 0.85}` }).join(' ')} fill="#ff7a3d" />
+            </svg>
+            <div className="title-outline relative whitespace-nowrap text-[70px]" style={{ color: '#fff' }}>{WORDS[n % WORDS.length]}</div>
+          </div>
+        )
+      })}
+    </>
+  )
+}
+
+/** Scene change: white flash plus a star iris that opens. */
+function SceneFlash() {
+  const fr = useCurrentFrame()
+  const t = fr / SONG_FPS
+  const d = since(t, L.slice(1).map((_, i) => sceneStart(i + 1)))
+  if (d > 0.4) return null
+  const flash = interpolate(d, [0, 0.12], [0.55, 0], clamp)
+  const iris = interpolate(d, [0, 0.4], [0, 2600], { ...clamp, easing: (x) => 1 - Math.pow(1 - x, 3) })
+  const star = Array.from({ length: 10 }, (_, k) => { const r = k % 2 ? 0.45 : 1; const a = (k / 10) * Math.PI * 2 - Math.PI / 2; return `${960 + Math.cos(a) * r * iris}px ${540 + Math.sin(a) * r * iris}px` }).join(',')
+  return (
+    <>
+      <AbsoluteFill style={{ background: '#2d2250', clipPath: `polygon(evenodd, 0 0, 1920px 0, 1920px 1080px, 0 1080px, 0 0, ${star})`, opacity: d < 0.38 ? 1 : 0 }} />
+      <AbsoluteFill style={{ background: '#fff', opacity: flash }} />
+    </>
+  )
+}
+
+/** Rotating light rays behind the singers, pulsing with the beat. */
+function Rays() {
+  const fr = useCurrentFrame()
+  const k = beatK(fr)
+  return (
+    <div className="absolute" style={{ left: 260 - 700, bottom: 260 - 700, width: 1400, height: 1400, opacity: 0.32 + 0.25 * k, transform: `rotate(${fr * 0.6}deg) scale(${1 + 0.06 * k})`, background: 'repeating-conic-gradient(from 0deg, rgba(255,231,163,0.55) 0deg 8deg, transparent 8deg 24deg)', maskImage: 'radial-gradient(circle, black 15%, transparent 60%)', WebkitMaskImage: 'radial-gradient(circle, black 15%, transparent 60%)' }} />
+  )
+}
+
+/** Confetti rain for the choruses and the finale. */
+function Confetti({ from, to, n = 70 }: { from: number; to: number; n?: number }) {
+  const fr = useCurrentFrame()
+  const t = fr / SONG_FPS
+  if (t < from || t > to + 3) return null
+  const lf = fr - f(from)
+  const COL = ['#ffb84d', '#f7b2d9', '#b6a6ff', '#8ee6c4', '#ffe7a3', '#ff7a3d']
+  return (
+    <>
+      {Array.from({ length: n }, (_, i) => {
+        const delay = (i * 7) % 60
+        const y = -40 + (lf - delay) * (5 + (i % 5))
+        if (lf < delay || y > 1120 || t > to + (y / 1000) * 3) return null
+        const x = ((i * 97) % 1920) + Math.sin((lf + i * 13) / 14) * 40
+        return <div key={i} className="absolute" style={{ left: x, top: y, width: 14 + (i % 3) * 6, height: 8 + (i % 2) * 8, background: COL[i % COL.length], borderRadius: i % 4 === 0 ? '50%' : 2, transform: `rotate(${lf * (4 + (i % 7)) + i * 40}deg) rotateX(${lf * 9}deg)` }} />
+      })}
+    </>
+  )
+}
+
+/** Speed lines for the rocket line. */
+function SpeedLines({ from, to }: { from: number; to: number }) {
+  const fr = useCurrentFrame()
+  const t = fr / SONG_FPS
+  if (t < from || t > to) return null
+  return (
+    <AbsoluteFill style={{ opacity: interpolate(t, [from, from + 0.3, to - 0.3, to], [0, 0.9, 0.9, 0], clamp) }}>
+      {Array.from({ length: 26 }, (_, i) => {
+        const y = (i * 41.7) % 1080
+        const x = 1920 - (((fr * (60 + (i % 5) * 20)) + i * 300) % 2600)
+        return <div key={i} className="absolute rounded-full" style={{ left: x, top: y, width: 220 + (i % 4) * 120, height: 4 + (i % 3) * 2, background: 'linear-gradient(90deg, rgba(255,255,255,0.9), transparent)' }} />
+      })}
+    </AbsoluteFill>
+  )
+}
+
+/** Floating sparkle dust and a beat-pulsing glow vignette, always on. */
+function Atmosphere() {
+  const fr = useCurrentFrame()
+  const k = beatK(fr)
+  return (
+    <AbsoluteFill className="pointer-events-none">
+      <AbsoluteFill style={{ boxShadow: `inset 0 0 ${160 + 80 * k}px rgba(255,140,60,${0.18 + 0.22 * k})` }} />
+      {Array.from({ length: 22 }, (_, i) => {
+        const y = 1100 - ((fr * (1.2 + (i % 4) * 0.5) + i * 97) % 1200)
+        const x = ((i * 173) % 1920) + Math.sin((fr + i * 30) / 25) * 30
+        const s = 0.5 + 0.5 * Math.sin((fr + i * 11) / 8)
+        return <Img key={i} src={staticFile('art/sparkle.webp')} className="absolute h-[34px] w-[34px]" style={{ left: x, top: y, opacity: 0.3 + 0.6 * s, transform: `scale(${0.5 + s * 0.7}) rotate(${fr * 2 + i * 20}deg)` }} />
+      })}
+    </AbsoluteFill>
+  )
+}
+
 export function SongDemo() {
   const endAt = sceneStart(18)
+  const sh = useShake()
   return (
     <AbsoluteFill style={{ background: '#15122a' }}>
+      <AbsoluteFill style={{ transform: `translate(${sh.x}px, ${sh.y}px) rotate(${sh.r}deg) scale(${sh.zoom})` }}>
       {/* scenes */}
       {L.map((_, i) => {
         const idx = Math.min(i, SCENE.length - 1)
@@ -359,6 +491,8 @@ export function SongDemo() {
         )
       })}
       <Twinkles count={14} seed={11} />
+      <Atmosphere />
+      <SpeedLines from={line(11).start - 0.2} to={line(12).start - 0.25} />
       {/* real app */}
       {SHOTS.map((s, i) => {
         if (!s.src) return null
@@ -373,6 +507,9 @@ export function SongDemo() {
         )
       })}
       {/* singers */}
+      <Sequence from={f(line(1).start - 0.25)} durationInFrames={f(sceneStart(18) - line(1).start)} layout="none">
+        <Rays />
+      </Sequence>
       {L.map((_, i) => {
         const from = f(sceneStart(i))
         return (
@@ -395,6 +532,11 @@ export function SongDemo() {
           </Sequence>
         ))}
       </div>
+      <Impacts />
+      <Confetti from={line(8).start} to={line(8).end + 1} n={50} />
+      <Confetti from={line(15).start + 2} to={sceneStart(18) + 4} n={90} />
+      </AbsoluteFill>
+      <SceneFlash />
       <Karaoke />
       <WordSfx />
       <Sequence from={50} durationInFrames={40} layout="none">

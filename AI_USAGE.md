@@ -126,3 +126,4 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
   references), redrawn poses allowed by the human for this video only (docs/plan/decisions.md).
   Karaoke words jump on each sung word with a bouncing star and inline logos (Kuru, Monad, Pyth,
   USDC, Lil Star). Real app recordings stay on screen as "the real app" phone. Human reviews by ear/eye.
+- VFX pass: camera shake + comic POW bursts on every sung "hit", star-iris flash on scene cuts, beat rays behind the singers, confetti on chorus/finale, rocket speed lines, sparkle dust and beat glow.
