@@ -25,6 +25,12 @@ const SCENE = ['s00_stage', 's01_lobby', 's02_wall', 's03_prize', 's04_clock', '
 const SINGERS = ['bear', 'bunny', 'chog', 'fox'] as const
 // who sings each line (lines 0..18); chorus/hooks go to the whole crew
 const WHO: (typeof SINGERS[number] | 'all')[] = ['all', 'bunny', 'chog', 'fox', 'bear', 'bunny', 'all', 'bear', 'all', 'chog', 'fox', 'all', 'bunny', 'chog', 'bear', 'all', 'fox', 'all', 'all']
+// one sound accent per scene: [file, offset s into the scene, volume]
+const ACCENT: [string, number, number][] = [
+  ['cheer', 0.2, 0.3], ['door', 0.1, 0.35], ['bricks', 0.3, 0.35], ['coins', 0.4, 0.25], ['clock', 0.1, 0.3], ['join', 0.2, 0.35],
+  ['robot', 1.4, 0.3], ['click', 1.6, 0.45], ['punch', 0.1, 0.1], ['coins', 0.5, 0.3], ['zap', 0.6, 0.3], ['rocket', 0.1, 0.35],
+  ['curtain', 0.1, 0.4], ['dice', 0.3, 0.4], ['whistle', 0.2, 0.3], ['crumble', 0.1, 0.45], ['crown', 0.2, 0.35], ['sparkle', 0.4, 0.4], ['cheer', 0.1, 0.35],
+]
 const sceneStart = (i: number) => (i === 0 ? 0 : line(i).start - 0.25)
 const sceneEnd = (i: number) => (i + 1 < L.length ? sceneStart(i + 1) : 85)
 
@@ -75,6 +81,29 @@ const LOGO: [RegExp, string][] = [
   [/^hit[!']?s?$/i, 'art/hit_spark.webp'],
 ]
 const logoFor = (w: string) => LOGO.find(([re]) => re.test(w))?.[1]
+
+/** Word-level SFX: a pop when a logo word lands, a punch on every sung "hit". */
+function WordSfx() {
+  const out: { at: number; src: string; vol: number }[] = []
+  for (const ln of L.slice(1, -1)) {
+    const words = ln.t.split(' ')
+    const sung = W.filter((w) => w.s >= ln.start - 0.05 && w.e <= ln.end + 0.05)
+    words.forEach((w, i) => {
+      const at = sung.length === words.length ? sung[i].s : ln.start + ((ln.end - ln.start) * i) / words.length
+      if (/^hit[!]?$/i.test(w) || /^hits?$/i.test(w.replace(/[^a-z]/gi, ''))) out.push({ at, src: 'hit', vol: 0.3 })
+      else if (logoFor(w)) out.push({ at, src: 'boing', vol: 0.16 })
+    })
+  }
+  return (
+    <>
+      {out.map((o, i) => (
+        <Sequence key={i} from={f(o.at)} durationInFrames={24} layout="none">
+          <Html5Audio src={staticFile(`audio/kit/${o.src}.mp3`)} volume={o.vol} />
+        </Sequence>
+      ))}
+    </>
+  )
+}
 
 /* ------------------------------------------------------------------ pieces */
 
@@ -277,8 +306,16 @@ export function SongDemo() {
           <Sequence key={`s${i}`} from={from} durationInFrames={len} layout="none">
             <Scene i={i === 18 ? 0 : idx} len={len} />
             <Sequence from={0} durationInFrames={20} layout="none">
-              <Html5Audio src={staticFile('audio/kit/whoosh.mp3')} volume={0.1} />
+              <Html5Audio src={staticFile('audio/kit/whoosh.mp3')} volume={0.18} />
             </Sequence>
+            <Sequence from={f(ACCENT[i][1])} durationInFrames={75} layout="none">
+              <Html5Audio src={staticFile(`audio/kit/${ACCENT[i][0]}.mp3`)} volume={ACCENT[i][2]} />
+            </Sequence>
+            {i > 0 && (
+              <Sequence from={3} durationInFrames={18} layout="none">
+                <Html5Audio src={staticFile('audio/kit/slide-in.mp3')} volume={0.12} />
+              </Sequence>
+            )}
           </Sequence>
         )
       })}
@@ -291,6 +328,7 @@ export function SongDemo() {
         return (
           <Sequence key={`p${i}`} from={from} durationInFrames={len} layout="none">
             <Pip s={s} len={len} />
+            <Html5Audio src={staticFile('audio/kit/card.mp3')} volume={0.15} />
           </Sequence>
         )
       })}
@@ -313,11 +351,18 @@ export function SongDemo() {
         {CHIPS.map((c, i) => (
           <Sequence key={i} from={f(c.at)} durationInFrames={f(c.until - c.at)} layout="none">
             <ProofChip c={c} />
-            <Html5Audio src={staticFile('audio/kit/card.mp3')} volume={0.18} />
+            <Html5Audio src={staticFile('audio/kit/card.mp3')} volume={0.3} />
           </Sequence>
         ))}
       </div>
       <Karaoke />
+      <WordSfx />
+      <Sequence from={50} durationInFrames={40} layout="none">
+        <Html5Audio src={staticFile('audio/kit/stamp.mp3')} volume={0.4} />
+      </Sequence>
+      <Sequence from={f(sceneStart(18)) + 8} durationInFrames={40} layout="none">
+        <Html5Audio src={staticFile('audio/kit/stamp.mp3')} volume={0.4} />
+      </Sequence>
       <Html5Audio src={staticFile('audio/song/star-raid-song.mp3')} volume={(fr) => interpolate(fr, [SONG_TOTAL - 45, SONG_TOTAL], [0.7, 0], clamp)} />
     </AbsoluteFill>
   )

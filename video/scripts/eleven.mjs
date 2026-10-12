@@ -39,6 +39,21 @@ const SFX = {
   stamp: { text: `satisfying rubber stamp thunk on paper, ${STYLE}`, duration: 0.5 },
   sparkle: { text: `quick glittery sparkle shimmer, holographic card shine, ${STYLE}`, duration: 0.7 },
   scribble: { text: `quick marker pen scribble on a whiteboard, ${STYLE}`, duration: 0.6 },
+  // song demo scene accents
+  cheer: { text: `small happy crowd cheering and clapping at a concert, short burst`, duration: 1.5 },
+  door: { text: `big wooden arcade double doors swinging open with a magical chime`, duration: 1.0 },
+  clock: { text: `fast cartoon alarm clock tick tock ticking, urgent`, duration: 1.5 },
+  bricks: { text: `heavy gold bricks stacked with chunky clinks and a coin jingle, cartoon`, duration: 1.0 },
+  robot: { text: `sad little robot descending beep boop, denied buzzer, cartoon`, duration: 1.0 },
+  punch: { text: `big cartoon punch impact with a crunch of cracking bricks, ${STYLE}`, duration: 0.6 },
+  coins: { text: `cascade of coins pouring into a machine, jingly cash register cha-ching`, duration: 1.2 },
+  zap: { text: `laser barrier zap with coins bouncing off it, boing ting ting, cartoon`, duration: 1.0 },
+  rocket: { text: `cartoon rocket launch whoosh roaring past, fast zoom`, duration: 1.4 },
+  curtain: { text: `heavy velvet theater curtain swooshing closed with a soft thud`, duration: 1.2 },
+  dice: { text: `two big dice rolling and tumbling across a wooden table then stopping`, duration: 1.2 },
+  whistle: { text: `referee whistle short blow, then a ding ding ding checklist`, duration: 1.2 },
+  crumble: { text: `big brick wall exploding and crumbling with coins showering everywhere, cartoon`, duration: 2.0 },
+  crown: { text: `royal fanfare sting with sparkling chimes, crowning moment, short`, duration: 1.5 },
 }
 
 const MUSIC = {
