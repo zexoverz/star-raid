@@ -196,7 +196,7 @@ export function SongDemo() {
         ))}
       </div>
       <Karaoke />
-      <Html5Audio src={staticFile('audio/song/star-raid-song.mp3')} volume={(fr) => interpolate(fr, [SONG_TOTAL - 45, SONG_TOTAL], [1, 0], clamp)} />
+      <Html5Audio src={staticFile('audio/song/star-raid-song.mp3')} volume={(fr) => interpolate(fr, [SONG_TOTAL - 45, SONG_TOTAL], [0.7, 0], clamp)} />
     </AbsoluteFill>
   )
 }
