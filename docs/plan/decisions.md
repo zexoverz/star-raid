@@ -582,3 +582,13 @@ and lets a better raid replace it with `pnpm snapshot <id>`.
 
 **Reverses it.** A screen-recorded demo is preferred, or a mainnet raid replaces the testnet one;
 re-snapshot and update the "testnet" labels.
+
+## Sung demo: redrawn Lil Stars poses (video only)
+**Decision.** For the sung demo video only, the human explicitly allowed redrawing the Lil Stars in
+new poses (singing, raiding) with GPT image generation, using the original sprites as references
+(`video/scripts/gen-song.sh`, output `video/public/gen/song`). This is a deliberate exception to
+AGENTS rule 17 for this one asset. The app and the pitch keep the original art unaltered, and the
+video credits the Lil Stars team and labels the scenes as fan art.
+
+**Reverses it.** The Lil Stars team objects, or the exception is not wanted: drop `gen/song` and
+fall back to the original sprites.
