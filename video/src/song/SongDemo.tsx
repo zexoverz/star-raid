@@ -36,20 +36,24 @@ const sceneEnd = (i: number) => (i + 1 < L.length ? sceneStart(i + 1) : 85)
 
 /* ------------------------------------------------------------------ app footage (phone PiP) */
 
-type Shot = { at: number; src: string; from: number; desk?: boolean; note?: string; crew?: string; fx?: string }
+// desktop recordings of starraid.xyz (scripts/record.mjs); zoom = [scale, originX%, originY%] to push in on the part that matters
+type Shot = { at: number; src: string; from: number; note?: string; crew?: string; fx?: string; zoom?: [number, number, number] }
 const SHOTS: Shot[] = [
-  { at: line(1).start - 0.3, src: 'rec/phone/lobby.mp4', from: 0.3, note: 'next raid countdown', crew: 'bunny_watch', fx: 'sparkle' },
-  { at: line(2).start - 0.2, src: 'rec/sponsor.webm', from: 4, desk: true },
-  { at: line(4).start - 0.2, src: 'rec/phone/lobby.mp4', from: 5, note: 'every raid, live', crew: 'chog_wait', fx: 'hourglass' },
-  { at: line(5).start - 0.2, src: 'rec/phone/practice.mp4', from: 0, note: 'one-tap: set up once', crew: 'fox_think', fx: 'seat_ticket' },
-  { at: line(8).start - 0.2, src: 'rec/phone/practice.mp4', from: 4, note: 'tap HIT = a real buy', crew: 'bear_attack', fx: 'hit_spark' },
-  { at: line(10).start, src: 'rec/phone/practice.mp4', from: 18, note: 'combo! never above the cap', crew: 'fox_attack', fx: 'coin' },
-  { at: line(12).start - 0.2, src: 'rec/phone/raid.mp4', from: 7.6, note: 'window closed', crew: 'bunny_watch', fx: 'lock' },
-  { at: line(13).start - 0.2, src: 'rec/phone/raid.mp4', from: 12.5, note: 'every hit checked', crew: 'chog_cheer', fx: 'dice_block' },
-  { at: line(15).start - 0.2, src: 'rec/phone/raid.mp4', from: 22.5, note: 'VICTORY!', crew: 'bear_cheer', fx: 'sparkle' },
-  { at: line(16).start, src: 'rec/phone/raid.mp4', from: 1.0, note: `${RAID.countedHits} hits counted`, crew: 'fox_cheer', fx: 'coin' },
+  { at: line(1).start - 0.3, src: 'rec/lobby.webm', from: 2.6, note: 'the lobby', crew: 'bunny_watch', fx: 'sparkle', zoom: [1.15, 70, 30] },
+  { at: line(2).start - 0.2, src: 'rec/sponsor-form.webm', from: 4, note: 'sponsor console', crew: 'chog_wait', fx: 'coin', zoom: [1.2, 30, 30] },
+  { at: line(4).start - 0.2, src: 'rec/lobby.webm', from: 5.5, note: 'next raid, live', crew: 'chog_wait', fx: 'hourglass', zoom: [1.25, 30, 20] },
+  { at: line(5).start - 0.2, src: 'rec/practice.webm', from: 1, note: 'your Star = your seat', crew: 'fox_think', fx: 'seat_ticket', zoom: [1.45, 85, 70] },
+  { at: line(7).start - 0.2, src: 'rec/practice.webm', from: 8, note: 'one-tap armed', crew: 'fox_think', fx: 'seat_ticket', zoom: [1.5, 88, 20] },
+  { at: line(8).start - 0.2, src: 'rec/practice.webm', from: 14, note: 'tap HIT = a real buy', crew: 'bear_attack', fx: 'hit_spark', zoom: [1.3, 60, 30] },
+  { at: line(10).start, src: 'rec/practice.webm', from: 36, note: 'combo! never above the cap', crew: 'fox_attack', fx: 'coin', zoom: [1.2, 40, 50] },
+  { at: line(12).start - 0.2, src: 'rec/results.webm', from: 15.5, note: 'window closed', crew: 'bunny_watch', fx: 'lock' },
+  { at: line(13).start - 0.2, src: 'rec/results.webm', from: 19, note: 'Pyth draws the end block', crew: 'chog_cheer', fx: 'dice_block', zoom: [1.35, 50, 40] },
+  { at: line(15).start - 0.2, src: 'rec/results.webm', from: 31, note: 'VICTORY!', crew: 'bear_cheer', fx: 'sparkle', zoom: [1.2, 50, 75] },
+  { at: line(16).start, src: 'rec/results.webm', from: 4.2, note: `${RAID.countedHits} hits counted`, crew: 'fox_cheer', fx: 'coin', zoom: [1.3, 35, 30] },
   { at: line(18).start - 0.3, src: '', from: 0 },
 ]
+// the desktop browser window
+const BW = { x: 700, y: 120, w: 1150, h: 647, bar: 38 }
 
 /* ------------------------------------------------------------------ proof chips */
 
@@ -190,23 +194,20 @@ function Pip({ s, len }: { s: Shot; len: number }) {
   const fr = useCurrentFrame()
   const p = spring({ frame: fr, fps: SONG_FPS, config: { damping: 13, stiffness: 170 } })
   const out = interpolate(fr, [len - 6, len], [0, 1], clamp)
-  const bob = Math.sin(fr / 20) * 6
-  if (s.desk) {
-    return (
-      <div className="absolute overflow-hidden rounded-[20px] border-[6px] border-grape-800 bg-black shadow-[0_12px_0_#2d2250,0_30px_60px_rgba(0,0,0,0.5)]" style={{ right: 60, top: 300, width: 720, height: 405, transform: `translateX(${(1 - p) * 900 + out * 60}px) translateY(${bob}px) rotate(${2 - (1 - p) * 8}deg)` }}>
-        <OffthreadVideo src={staticFile(s.src)} trimBefore={f(s.from)} muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-      </div>
-    )
-  }
-  const h = 700
-  const w = Math.round(h * (780 / 1688))
+  const bob = Math.sin(fr / 24) * 4
+  // push in on the part of the page the lyric is about
+  const [z, ox, oy] = s.zoom ?? [1, 50, 50]
+  const zk = interpolate(fr, [0, Math.min(len, 75)], [1, z], { ...clamp, easing: (x) => 1 - Math.pow(1 - x, 3) })
   return (
-    <div className="absolute" style={{ right: 90, top: 130, width: w + 24, height: h + 24, transform: `translateY(${(1 - p) * 900 + bob - out * 30}px) rotate(${3 + (1 - p) * 10}deg)` }}>
-      <div className="absolute inset-0 rounded-[50px] bg-[#0d0b18] shadow-[0_0_0_6px_#ffb84d,0_30px_70px_rgba(0,0,0,0.6)]" />
-      <div className="absolute overflow-hidden rounded-[38px]" style={{ left: 12, top: 12, width: w, height: h }}>
-        <OffthreadVideo src={staticFile(s.src)} trimBefore={f(s.from)} muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+    <div className="absolute overflow-hidden rounded-[18px] bg-[#15122a] shadow-[0_0_0_6px_#ffb84d,0_0_0_12px_#2d2250,0_30px_70px_rgba(0,0,0,0.6)]" style={{ left: BW.x, top: BW.y, width: BW.w, height: BW.h + BW.bar, transform: `translateY(${(1 - p) * 900 + bob - out * 30}px) rotate(${1 + (1 - p) * 6}deg)` }}>
+      <div className="absolute inset-x-0 top-0 z-10 flex items-center gap-2 bg-[#221d3d] px-4" style={{ height: BW.bar }}>
+        {['#ff5f57', '#febc2e', '#28c840'].map((c) => <span key={c} className="h-[13px] w-[13px] rounded-full" style={{ background: c }} />)}
+        <span className="ml-4 flex-1 rounded-full bg-[#15122a] px-4 font-mono text-[18px] leading-[28px] text-cream-100/85">🔒 starraid.xyz</span>
+        <span className="rounded-full bg-ember-400 px-3 font-display text-[17px] leading-[26px] text-white">the real app</span>
       </div>
-      <div className="absolute -top-[30px] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border-[4px] border-grape-800 bg-ember-400 px-5 py-1 font-display text-[26px] text-white shadow-[0_5px_0_#2d2250]">the real app</div>
+      <div className="absolute inset-x-0 bottom-0 overflow-hidden" style={{ top: BW.bar }}>
+        <OffthreadVideo src={staticFile(s.src)} trimBefore={f(s.from)} muted style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: '50% 0%', transform: `scale(${zk})`, transformOrigin: `${ox}% ${oy}%` }} />
+      </div>
     </div>
   )
 }
@@ -215,14 +216,13 @@ function Pip({ s, len }: { s: Shot; len: number }) {
  * hanging off the phone, and themed icons bursting out of the screen on the beat. */
 function PhoneDeco({ s, len }: { s: Shot; len: number }) {
   const fr = useCurrentFrame()
-  if (s.desk || !s.note) return null
+  if (!s.note) return null
   const p = spring({ frame: fr - 8, fps: SONG_FPS, config: { damping: 10, stiffness: 200 } })
   const out = interpolate(fr, [len - 6, len], [0, 1], clamp)
   const draw = interpolate(fr, [10, 24], [1, 0], clamp)
   const cp = spring({ frame: fr - 14, fps: SONG_FPS, config: { damping: 9, stiffness: 180 } })
   const wob = Math.sin(fr / 9) * 3
-  // phone box: right 90, top 130, ~347x724
-  const PX = 1920 - 90 - 347
+
   return (
     <AbsoluteFill style={{ opacity: 1 - out }}>
       {/* bursting icons from the screen, one wave per beat */}
@@ -231,21 +231,20 @@ function PhoneDeco({ s, len }: { s: Shot; len: number }) {
         const life = ((fr + n * (beatF / 4)) % (beatF * 2)) / (beatF * 2)
         const ang = (-150 + n * 37) * (Math.PI / 180)
         const r = 120 + life * 360
-        const x = PX + 170 + Math.cos(ang) * r
-        const y = 470 + Math.sin(ang) * r * 0.9 + life * life * 200
+        const x = BW.x + BW.w / 2 + Math.cos(ang) * (r + 420)
+        const y = BW.y + 300 + Math.sin(ang) * (r + 200) * 0.9 + life * life * 200
         const o = interpolate(life, [0, 0.1, 0.7, 1], [0, 1, 1, 0], clamp)
         return <Img key={n} src={staticFile(`art/${s.fx}.webp`)} className="absolute h-[64px] w-[64px] object-contain" style={{ left: x, top: y, opacity: o * Math.min(1, fr / 10), transform: `rotate(${life * 360 * (n % 2 ? 1 : -1)}deg) scale(${0.6 + 0.6 * (1 - life)})`, filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))' }} />
       })}
-      {/* callout + hand-drawn arrow to the phone */}
-      <div className="absolute" style={{ left: PX - 540, top: 190, width: 440, transform: `scale(${p}) rotate(${-4 + wob * 0.4}deg)`, transformOrigin: '100% 50%' }}>
-        <div className="rounded-[22px] border-[5px] border-grape-800 bg-ember-400 px-5 py-3 text-center font-display text-[40px] leading-tight text-white shadow-[0_8px_0_#2d2250]">{s.note}</div>
-        <svg width="120" height="110" viewBox="0 0 200 140" className="absolute" style={{ right: -110, top: 50, overflow: 'visible' }}>
-          <path d="M10 20 C 80 0, 150 40, 170 110" fill="none" stroke="#ffe7a3" strokeWidth="9" strokeLinecap="round" pathLength={1} strokeDasharray={1} strokeDashoffset={draw} style={{ filter: 'drop-shadow(0 4px 0 #2d2250)' }} />
-          <path d="M145 95 L172 115 L182 82" fill="none" stroke="#ffe7a3" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: draw < 0.05 ? 1 : 0, filter: 'drop-shadow(0 4px 0 #2d2250)' }} />
+      {/* callout tag hanging off the window's bottom edge, with a drawn underline */}
+      <div className="absolute" style={{ left: BW.x + 40, top: BW.y + BW.h + BW.bar - 34, transform: `scale(${p}) rotate(${-3 + wob * 0.4}deg)`, transformOrigin: '0% 50%' }}>
+        <div className="whitespace-nowrap rounded-[20px] border-[5px] border-grape-800 bg-ember-400 px-6 py-2 font-display text-[42px] leading-tight text-white shadow-[0_8px_0_#2d2250]">{s.note}</div>
+        <svg width="100%" height="20" viewBox="0 0 100 10" preserveAspectRatio="none" className="absolute -bottom-5 left-0" style={{ overflow: 'visible' }}>
+          <path d="M4 5 Q 50 10, 96 3" fill="none" stroke="#ffe7a3" strokeWidth="3" strokeLinecap="round" pathLength={1} strokeDasharray={1} strokeDashoffset={draw} />
         </svg>
       </div>
-      {/* a Lil Star hanging on the phone's edge */}
-      <Img src={staticFile(`art/crew/${s.crew}.webp`)} className="absolute h-[340px] w-auto drop-shadow-[0_12px_18px_rgba(0,0,0,0.55)]" style={{ left: PX - 250, top: 560, transform: `translateX(${(1 - cp) * -300}px) rotate(${-8 + Math.sin(fr / 7) * 6}deg) translateY(${-Math.abs(Math.sin(fr / 8)) * 14}px)`, transformOrigin: '80% 90%' }} />
+      {/* a Lil Star peeking over the window's top-right corner */}
+      <Img src={staticFile(`art/crew/${s.crew}.webp`)} className="absolute h-[230px] w-auto drop-shadow-[0_12px_18px_rgba(0,0,0,0.55)]" style={{ left: BW.x + BW.w - 170, top: BW.y - 150, transform: `translateY(${(1 - cp) * 200}px) rotate(${8 + Math.sin(fr / 7) * 6}deg) translateY(${-Math.abs(Math.sin(fr / 8)) * 12}px)`, transformOrigin: '50% 100%' }} />
     </AbsoluteFill>
   )
 }

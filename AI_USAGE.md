@@ -137,3 +137,4 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
   ETHGlobal project video (voice isolated from the music first), at the boss's request.
   `video/scripts/pitch-sync.mjs` reads the lines with it when `ELEVEN_VOICE=<id>` is set. The voice id
   and source audio stay outside the repo.
+- Song demo: phone mockup replaced by a large desktop browser window (fresh starraid.xyz recordings) with a per-line push-in on the relevant part of the page, at the boss's request (phone too small to read).
