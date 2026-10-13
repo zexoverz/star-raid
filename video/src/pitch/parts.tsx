@@ -34,13 +34,8 @@ export function Face({ s, amount }: { s: Section; amount: number }) {
   const k = Math.min(Math.max(amount, 0), 1)
   const mode = useContext(FaceMode)
   if (mode === 'off' && !s.video) {
-    // no recording: full-frame sections get the hero street, the corner circle simply isn't there
-    if (k >= 0.99) return null
-    return (
-      <div className="absolute inset-0 z-[5]" style={{ opacity: 1 - k }}>
-        <Backdrop title={BACKDROP_TITLE[s.id]} />
-      </div>
-    )
+    // no camera: the slot shows the real desktop app instead (full frame, or a browser window in the corner)
+    return <Desk s={s} k={k} title={k < 0.5 ? BACKDROP_TITLE[s.id] : undefined} />
   }
   const box = {
     left: interpolate(k, [0, 1], [FULL.x, CORNER.x]),
@@ -61,6 +56,81 @@ export function Face({ s, amount }: { s: Section; amount: number }) {
 const BACKDROP_TITLE: Record<string, string[]> = {
   hook: ['A token launch', 'that plays like a boss fight'],
   close: ['One Star.', 'One seat.', 'One wall.'],
+}
+
+/** Desktop recordings of starraid.xyz (scripts/record.mjs) per section; `at` is seconds into the section. */
+const DESK: Record<string, { src: string; from: number; at: number }[]> = {
+  hook: [{ src: 'rec/lobby.webm', from: 2.6, at: 0 }],
+  problem: [{ src: 'rec/lobby.webm', from: 5.5, at: 0 }],
+  days: [{ src: 'rec/practice.webm', from: 18, at: 0 }],
+  meet: [{ src: 'rec/lobby.webm', from: 2.6, at: 0 }, { src: 'rec/lobby.webm', from: 5.5, at: 6 }],
+  lilstars: [{ src: 'rec/lobby.webm', from: 8.5, at: 0 }, { src: 'rec/practice.webm', from: 10, at: 9 }, { src: 'rec/results.webm', from: 3, at: 22 }],
+  rules: [{ src: 'rec/practice.webm', from: 4, at: 0 }, { src: 'rec/practice.webm', from: 56, at: 15 }],
+  how: [{ src: 'rec/sponsor-form.webm', from: 4, at: 0 }, { src: 'rec/results.webm', from: 24, at: 12 }],
+  why: [{ src: 'rec/practice.webm', from: 14, at: 0 }, { src: 'rec/results.webm', from: 27, at: 9.6 }],
+  roadmap: [{ src: 'rec/sponsor-form.webm', from: 10, at: 0 }],
+  close: [{ src: 'rec/results.webm', from: 35, at: 0 }],
+}
+const DESK_CORNER = { x: 1920 - 50 - 440, y: 1080 - 160 - 275, w: 440, h: 275, r: 18 }
+
+/** The real desktop app in a browser frame. k 0 = the whole screen, 1 = a window in the corner. */
+function Desk({ s, k, title }: { s: Section; k: number; title?: string[] }) {
+  const frame = useCurrentFrame()
+  const cuts = DESK[s.id] ?? [{ src: 'rec/lobby.webm', from: 2.6, at: 0 }]
+  const box = {
+    left: interpolate(k, [0, 1], [0, DESK_CORNER.x]),
+    top: interpolate(k, [0, 1], [0, DESK_CORNER.y]),
+    width: interpolate(k, [0, 1], [1920, DESK_CORNER.w]),
+    height: interpolate(k, [0, 1], [1080, DESK_CORNER.h]),
+    borderRadius: interpolate(k, [0, 1], [0, DESK_CORNER.r]),
+  }
+  const bar = interpolate(k, [0, 1], [44, 26])
+  const enter = spring({ frame, fps: FPS, config: { damping: 15, stiffness: 140 } })
+  // slow push-in so the full-screen app never sits still
+  const zoom = interpolate(frame, [0, 600], [1.0, 1.06], clamp) * (k < 0.5 ? 1 : 1)
+  return (
+    <div className="absolute z-30 overflow-hidden bg-[#15122a]" style={{ ...box, boxShadow: k > 0.02 ? `0 0 0 ${6 * k}px #fff4e4, 0 0 0 ${11 * k}px #2d2250, 0 ${14 * k}px 30px rgba(0,0,0,0.45)` : undefined, transform: k > 0.5 ? `translateY(${(1 - enter) * 300}px) rotate(${-1.5 * k}deg)` : undefined }}>
+      {/* browser chrome: traffic lights + the real URL */}
+      <div className="absolute inset-x-0 top-0 z-10 flex items-center gap-[1%] bg-[#221d3d] px-[1.2%]" style={{ height: bar }}>
+        {['#ff5f57', '#febc2e', '#28c840'].map((c) => (
+          <span key={c} className="rounded-full" style={{ background: c, width: bar * 0.32, height: bar * 0.32 }} />
+        ))}
+        <span className="ml-[2%] flex-1 truncate rounded-full bg-[#15122a] px-[1.5%] font-mono text-cream-100/85" style={{ fontSize: bar * 0.45, lineHeight: `${bar * 0.68}px` }}>
+          🔒 starraid.xyz
+        </span>
+      </div>
+      <div className="absolute inset-x-0 bottom-0 overflow-hidden" style={{ top: bar }}>
+        {cuts.map((c, i) => {
+          const a = Math.round(c.at * FPS)
+          const until = cuts[i + 1] ? Math.round(cuts[i + 1].at * FPS) : 1e6
+          if (frame < a - 2 || frame > until + 2) return null
+          return (
+            <Sequence key={i} from={a} durationInFrames={until - a + 2} layout="none">
+              <OffthreadVideo src={staticFile(c.src)} trimBefore={Math.round(c.from * FPS)} muted style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '50% 0%', transform: `scale(${zoom})`, transformOrigin: '50% 30%' }} />
+            </Sequence>
+          )
+        })}
+      </div>
+      {k < 0.98 && <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(21,18,42,0) 55%, rgba(21,18,42,0.65))', opacity: 1 - k }} />}
+      {k < 0.98 && (
+        <div className="absolute bottom-[16%] right-[3%] rounded-full border-[4px] border-grape-800 bg-ember-400 px-5 py-1 font-display text-[28px] text-white shadow-[0_5px_0_#2d2250]" style={{ opacity: 1 - k * 2, transform: `scale(${spring({ frame: frame - 6, fps: FPS, config: { damping: 10, stiffness: 200 } })}) rotate(-3deg)` }}>
+          the real app · desktop
+        </div>
+      )}
+      {title && (
+        <AbsoluteFill className="items-center justify-center" style={{ background: 'rgba(21,18,42,0.45)' }}>
+          {title.map((t, i) => {
+            const p = spring({ frame: frame - 6 - i * 12, fps: FPS, config: { damping: 11, stiffness: 170 } })
+            return (
+              <div key={t} className="title-outline text-center leading-[1.05]" style={{ fontSize: i === 0 && title.length === 2 ? 120 : 104, color: i === title.length - 1 ? '#ffb84d' : '#fff', transform: `translateY(${(1 - p) * 60}px) rotate(-2deg)`, opacity: Math.min(1, p * 1.5) }}>
+                {t}
+              </div>
+            )
+          })}
+        </AbsoluteFill>
+      )}
+    </div>
+  )
 }
 
 function Backdrop({ title }: { title?: string[] }) {

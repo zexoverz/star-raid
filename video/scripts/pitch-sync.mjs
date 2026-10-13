@@ -12,13 +12,17 @@
 // Writes src/pitch/timing.json, which the Remotion composition reads.
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 
 const root = new URL('../', import.meta.url).pathname
 const sections = JSON.parse(readFileSync(`${root}src/pitch/lines.json`, 'utf8'))
 const VOICE = process.env.VOICE ?? 'en-US-AndrewNeural'
 const EDGE = process.env.EDGE_TTS ?? 'edge-tts'
+// ELEVEN_VOICE=<voice id>: read the lines with an ElevenLabs voice (the boss's instant clone) instead of edge-tts
+const ELEVEN_VOICE = process.env.ELEVEN_VOICE ?? ''
+const ELEVEN_MODEL = process.env.ELEVEN_MODEL ?? 'eleven_multilingual_v2'
+const ELEVEN_SPEED = Number(process.env.ELEVEN_SPEED ?? '1.0')
 // Narration pace as originally cut (the energy lives in the visuals). Real takes still lose dead air.
 const RATE = process.env.RATE ?? '+2%'
 const LEAD = 0.35
@@ -32,14 +36,30 @@ const dur = (f) => Number(execFileSync('ffprobe', ['-v', 'error', '-show_entries
 const key = () => process.env.ELEVENLABS_API_KEY ?? (existsSync(`${homedir()}/.config/elevenlabs/key`) ? readFileSync(`${homedir()}/.config/elevenlabs/key`, 'utf8').trim() : '')
 
 /** Placeholder: one mp3 per line (cached by text), joined with short gaps. Returns line starts. */
-function placeholder(sec) {
-  const parts = sec.lines.map((l) => {
+async function placeholder(sec) {
+  const parts = []
+  for (const l of sec.lines) {
     const text = l.say ?? l.t
-    const h = createHash('sha1').update(VOICE + text).digest('hex').slice(0, 10)
+    const who = ELEVEN_VOICE ? `${ELEVEN_VOICE}:${ELEVEN_MODEL}:${ELEVEN_SPEED}` : VOICE
+    const h = createHash('sha1').update(who + text).digest('hex').slice(0, 10)
     const f = `${root}public/pitch-vo/line-${h}.mp3`
-    if (!existsSync(f)) execFileSync(EDGE, ['--voice', VOICE, `--rate=${RATE}`, '--text', text, '--write-media', f], { stdio: 'ignore' })
-    return { f, d: dur(f) }
-  })
+    if (!existsSync(f)) {
+      if (ELEVEN_VOICE) {
+        const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${ELEVEN_VOICE}?output_format=mp3_44100_128`, {
+          method: 'POST',
+          headers: { 'xi-api-key': key(), 'content-type': 'application/json' },
+          body: JSON.stringify({ model_id: ELEVEN_MODEL, text, voice_settings: { stability: 0.45, similarity_boost: 0.9, style: 0.15, use_speaker_boost: true, speed: ELEVEN_SPEED } }),
+        })
+        if (!r.ok) throw new Error(`tts ${r.status}: ${(await r.text()).slice(0, 200)}`)
+        const raw = `${f}.raw.mp3`
+        writeFileSync(raw, Buffer.from(await r.arrayBuffer()))
+        // trim the model's leading/trailing silence so the cut keeps its pace
+        execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', raw, '-af', 'silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse', '-ar', '24000', '-ac', '1', '-b:a', '96k', f])
+        rmSync(raw)
+      } else execFileSync(EDGE, ['--voice', VOICE, `--rate=${RATE}`, '--text', text, '--write-media', f], { stdio: 'ignore' })
+    }
+    parts.push({ f, d: dur(f) })
+  }
   const out = `${root}public/pitch-vo/${sec.id}.mp3`
   const list = `${root}public/pitch-vo/${sec.id}.txt`
   const gap = `${root}public/pitch-vo/gap.mp3`
@@ -128,7 +148,7 @@ for (const sec of sections) {
     console.log(`${sec.id.padEnd(8)} ${sec.fixed.toFixed(1)} s  (fixed)`)
     continue
   }
-  const plan = placeholder(sec)
+  const plan = await placeholder(sec)
   const file = `${root}public/face/${sec.file}`
   const r = existsSync(file) ? await real(sec, file, plan) : plan
   const cues = r.cues ?? plan.lines.map((l) => l.start + LEAD)

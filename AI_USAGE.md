@@ -127,3 +127,13 @@ Faisal Firdani is responsible for all of it, including the parts a model wrote.
   Karaoke words jump on each sung word with a bouncing star and inline logos (Kuru, Monad, Pyth,
   USDC, Lil Star). Real app recordings stay on screen as "the real app" phone. Human reviews by ear/eye.
 - VFX pass: camera shake + comic POW bursts on every sung "hit", star-iris flash on scene cuts, beat rays behind the singers, confetti on chorus/finale, rocket speed lines, sparkle dust and beat glow.
+
+## Pitch v2: no-face cut with the desktop app and a cloned narrator voice
+- The boss decided not to appear on camera. In the no-face cut every camera slot now shows the real
+  desktop app (fresh `pnpm record` of starraid.xyz, 13 Oct) in a browser frame: full screen where he
+  would be full frame, a browser window where he would be the corner circle. Phone views stay.
+  Files: `video/src/pitch/parts.tsx` (Desk), `video/public/rec/*.webm`.
+- Narration: an ElevenLabs instant voice clone made from the boss's own voiceover in his earlier
+  ETHGlobal project video (voice isolated from the music first), at the boss's request.
+  `video/scripts/pitch-sync.mjs` reads the lines with it when `ELEVEN_VOICE=<id>` is set. The voice id
+  and source audio stay outside the repo.
