@@ -34,8 +34,13 @@ export function Face({ s, amount }: { s: Section; amount: number }) {
   const k = Math.min(Math.max(amount, 0), 1)
   const mode = useContext(FaceMode)
   if (mode === 'off' && !s.video) {
-    // no camera: the slot shows the real desktop app instead (full frame, or a browser window in the corner)
-    return <Desk s={s} k={k} title={k < 0.5 ? BACKDROP_TITLE[s.id] : undefined} />
+    // no camera: where he'd be full frame, the real desktop app fills the screen; no corner window
+    if (k >= 0.99) return null
+    return (
+      <div className="absolute inset-0" style={{ opacity: 1 - k }}>
+        <Desk s={s} k={0} title={BACKDROP_TITLE[s.id]} />
+      </div>
+    )
   }
   const box = {
     left: interpolate(k, [0, 1], [FULL.x, CORNER.x]),
@@ -113,7 +118,7 @@ function Desk({ s, k, title }: { s: Section; k: number; title?: string[] }) {
       </div>
       {k < 0.98 && <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(21,18,42,0) 55%, rgba(21,18,42,0.65))', opacity: 1 - k }} />}
       {k < 0.98 && (
-        <div className="absolute bottom-[16%] right-[3%] rounded-full border-[4px] border-grape-800 bg-ember-400 px-5 py-1 font-display text-[28px] text-white shadow-[0_5px_0_#2d2250]" style={{ opacity: 1 - k * 2, transform: `scale(${spring({ frame: frame - 6, fps: FPS, config: { damping: 10, stiffness: 200 } })}) rotate(-3deg)` }}>
+        <div className="absolute right-[2%] top-[11%] rounded-full border-[4px] border-grape-800 bg-ember-400 px-5 py-1 font-display text-[28px] text-white shadow-[0_5px_0_#2d2250]" style={{ opacity: 1 - k * 2, transform: `scale(${spring({ frame: frame - 6, fps: FPS, config: { damping: 10, stiffness: 200 } })}) rotate(-3deg)` }}>
           the real app · desktop
         </div>
       )}
