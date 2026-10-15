@@ -19,8 +19,19 @@ named, so a farm cannot multiply itself into the payout.
 
 ## Status
 
-Nothing is deployed. This repo is the skeleton: plan, tickets, and the rules an agent works under.
-Addresses and verified contracts will be listed here when they exist, and not before.
+Live on Monad testnet (chain 10143), deployed 6 Oct 2026. Play it at **https://starraid.xyz**.
+Testnet raid #26 broke its wall: 58 hits from seats, 580 / 500 counted toward the target.
+
+| Contract | Address |
+|---|---|
+| RaidVault | `0xE4C81a5717bb9E4b8C2FF87a96AcA56FA2480E89` |
+| RaidRouter | `0x653363d9EfE33898DB7948FB78EB30c43e0B8498` |
+| SeatGate | `0xc2aB9E8b765730bd8E540810a9fC937c7BA89472` |
+| Kuru market (tSTAR/tUSDC) | `0xA2D5f9feD74DB8b37322436fFcb43E672a6e396E` |
+| Pyth Entropy (testnet) | `0x825c0390f379C631f3Cf11A82a37D20BddF93c07` |
+
+The full list is in `deployments/testnet.json` and `docs/plan/decisions.md` (D29). The tokens and
+the Lil Stars contract on testnet are test stand-ins anyone can mint. Mainnet is next.
 
 ## Plan
 
